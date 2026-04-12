@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SMC APEX · SIGNAL MODE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        :root { 
+            --bg-primary: #0A0A0C;
+            --bg-secondary: #111114;
+            --bg-tertiary: #16161A;
+            --border-subtle: #222228;
+            --border-active: #2A2A32;
+            --text-primary: #EDEDEF;
+            --text-secondary: #9898A0;
+            --text-tertiary: #5C5C66;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --accent-blue: #3B82F6;
+            --accent-purple: #8B5CF6;
+            --accent-orange: #F59E0B;
+            --accent-pink: #EC4899;
+            --accent-gold: #FBBF24;
+            --accent-cyan: #00BFFF;
+            --success: #22C55E;
+            --warning: #F97316;
+            --danger: #DC2626;
+        }
+        
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background: var(--bg-primary); 
+            color: var(--text-primary); 
+            height: 100vh; 
+            width: 100vw; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+        }
+        
+        /* Zero Scroll Container */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+            padding: 12px 16px;
+            gap: 8px;
+            overflow: hidden;
+        }
+        
+        /* Header - Compact */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+        
+        .logo {
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+        }
+        
+        .logo-accent {
+            color: var(--accent-cyan);
+            font-weight: 800;
+        }
+        
+        .version-tag {
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            background: rgba(0, 191, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 100px;
+            border: 1px solid rgba(0, 191, 255, 0.2);
+        }
+        
+        .connection-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-tertiary);
+            transition: all 0.2s ease;
+        }
+        
+        .status-dot.live { background: var(--success); box-shadow: 0 0 8px rgba(34, 197, 94, 0.5); animation: pulse 2s infinite; }
+        .status-dot.connecting { background: var(--warning); animation: pulse 1.5s infinite; }
+        .status-dot.reconnect { background: var(--accent-orange); animation: pulse 1s infinite; }
+        .status-dot.fallback { background: var(--accent-blue); animation: pulse 1.5s infinite; }
+        .status-dot.stale { background: var(--danger); animation: pulse 1.5s infinite; }
+        .status-dot.offline { background: var(--danger); }
+        
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        /* Navigation - Compact */
+        .nav-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            gap: 8px;
+        }
+        
+        .tab-group {
+            display: flex;
+            gap: 3px;
+            background: var(--bg-secondary);
+            padding: 3px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+        }
+        
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            padding: 5px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        
+        .tab-btn.active { color: var(--text-primary); background: var(--bg-tertiary); }
+        
+        /* Mode Row */
+        .mode-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        
+        .mode-btn-large {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-tertiary);
+            padding: 7px 5px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            letter-spacing: 0.3px;
+        }
+        
+        .mode-btn-large.conservative.active { background: rgba(16, 185, 129, 0.12); border-color: var(--accent-green); color: var(--accent-green); }
+        .mode-btn-large.sniper.active { background: rgba(139, 92, 246, 0.12); border-color: var(--accent-purple); color: var(--accent-purple); }
+        .mode-btn-large.semiretail.active { background: rgba(245, 158, 11, 0.12); border-color: var(--accent-orange); color: var(--accent-orange); }
+        
+        .mode-group { display: none; }
+        
+        /* === SIGNAL BAR === */
+        .signal-bar {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        
+        .signal-content {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+        }
+        
+        .signal-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--accent-gold);
+            letter-spacing: 0.5px;
+        }
+        
+        .signal-text {
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        
+        .signal-arrow {
+            font-size: 1.2rem;
+            font-weight: 300;
+            line-height: 1;
+        }
+        
+        /* Price Display */
+        .price-section {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            padding: 4px 0;
+            flex-shrink: 0;
+        }
+        
+        .price-main {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1.5px;
+            line-height: 1;
+            cursor: pointer;
+        }
+        
+        .price-decimal { font-size: 1.5rem; opacity: 0.5; font-weight: 500; }
+        
+        .price-change {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 100px;
+            background: var(--bg-secondary);
+        }
+        
+        /* === METRICS ROW (EMA & ADX) === */
+        .metrics-duo {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        
+        .metric-card {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .metric-label {
+            font-size: 0.55rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+        }
+        
+        .metric-value {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        
+        .metric-sub {
+            font-size: 0.55rem;
+            color: var(--text-secondary);
+        }
+        
+        /* === RSI BAR (MENGGANTIKAN FACTOR CHIPS) === */
+        .rsi-bar-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 8px 12px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        
+        .rsi-bar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .rsi-bar-title {
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-tertiary);
+        }
+        
+        .rsi-bar-value {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .rsi-track {
+            height: 2px;
+            background: var(--bg-tertiary);
+            border-radius: 100px;
+            overflow: hidden;
+            margin: 6px 0 4px;
+        }
+        
+        .rsi-fill {
+            height: 100%;
+            width: 50%;
+            border-radius: 100px;
+            transition: width 0.3s ease, background 0.3s ease;
+            background: var(--accent-purple);
+        }
+        
+        .rsi-fill.oversold { background: var(--accent-green); }
+        .rsi-fill.overbought { background: var(--accent-red); }
+        .rsi-fill.neutral { background: var(--accent-purple); }
+        
+        .rsi-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.45rem;
+            color: var(--text-tertiary);
+        }
+        
+        .rsi-labels span:nth-child(1) { color: var(--accent-green); }
+        .rsi-labels span:nth-child(3) { color: var(--accent-red); }
+        
+        /* Factor Chips - DISEMBUNYIKAN */
+        .factors-row {
+            display: none;
+        }
+        
+        /* Order Block */
+        .ob-card {
+            background: linear-gradient(135deg, rgba(0, 191, 255, 0.03) 0%, transparent 100%);
+            border: 1px solid rgba(0, 191, 255, 0.15);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .ob-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .ob-title {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent-cyan);
+        }
+        
+        .ob-bias {
+            font-size: 0.55rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 100px;
+            background: var(--bg-tertiary);
+        }
+        
+        .ob-bias.bullish { background: rgba(16, 185, 129, 0.12); color: var(--accent-green); }
+        .ob-bias.bearish { background: rgba(239, 68, 68, 0.12); color: var(--accent-red); }
+        
+        .ob-range-bar {
+            height: 3px;
+            background: var(--bg-tertiary);
+            border-radius: 100px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+        
+        .ob-range-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.2s ease;
+        }
+        
+        .ob-range-fill.bullish { background: var(--accent-green); }
+        .ob-range-fill.bearish { background: var(--accent-red); }
+        
+        .ob-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.5rem;
+            color: var(--text-tertiary);
+        }
+        
+        .ob-value {
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+        
+        /* Levels Grid Vertical */
+        .levels-grid-vertical {
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 8px 12px;
+            flex-shrink: 0;
+            gap: 6px;
+        }
+        
+        .level-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            cursor: pointer;
+            padding: 2px 0;
+            border-bottom: 1px dashed var(--border-subtle);
+        }
+        .level-row:last-child { border-bottom: none; }
+        
+        .level-label-lg {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .level-value-lg {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        /* MTF Panel */
+        .mtf-panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .mtf-title {
+            font-size: 0.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+        }
+        
+        .mtf-tfs {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .mtf-item {
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+        }
+        
+        .mtf-tf {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .mtf-bias {
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+        
+        /* Footer */
+        .footer-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 5px;
+            border-top: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+        
+        .session-info {
+            display: flex;
+            gap: 12px;
+            font-size: 0.55rem;
+        }
+        
+        .session-label {
+            color: var(--text-tertiary);
+            margin-right: 4px;
+        }
+        
+        .session-value {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .clock {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+        }
+        
+        /* Utility */
+        .copied { background: rgba(0, 191, 255, 0.15) !important; }
+        .decision-animate { animation: decisionPulse 0.3s ease; }
+        @keyframes decisionPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.01); } }
+        .signal-active { animation: signalPulse 1s ease infinite; }
+        @keyframes signalPulse { 0%, 100% { opacity: 0.9; } 50% { opacity: 1; } }
+        .stale-warning { background: rgba(220, 38, 38, 0.15) !important; }
+        
+        .text-green { color: var(--accent-green); }
+        .text-red { color: var(--accent-red); }
+        .text-gold { color: var(--accent-gold); }
+        .text-blue { color: var(--accent-blue); }
+        .text-cyan { color: var(--accent-cyan); }
+        
+        .badge {
+            font-size: 0.45rem;
+            padding: 1px 5px;
+            border-radius: 100px;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-section">
+            <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
+            <span class="version-tag">v21.8 SG</span>
+        </div>
+        <div class="connection-badge">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text">CONNECTING</span>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <div class="tab-group">
+            <button class="tab-btn active" data-pair="XAUUSDT">XAUUSD</button>
+            <button class="tab-btn" data-pair="BTCUSDT">BTCUSD</button>
+        </div>
+        <div class="tab-group">
+            <button class="tab-btn" data-tf="4h">H4</button>
+            <button class="tab-btn" data-tf="1h">H1</button>
+            <button class="tab-btn active" data-tf="15m">M15</button>
+            <button class="tab-btn" data-tf="5m">M5</button>
+        </div>
+        <div class="mode-group"></div>
+    </nav>
+
+    <!-- Mode Row -->
+    <div class="mode-row">
+        <button class="mode-btn-large conservative" data-mode="conservative">🛡️ CONSERVATIVE</button>
+        <button class="mode-btn-large sniper" data-mode="sniper">🎯 SNIPER <span id="sniper-badge"></span></button>
+        <button class="mode-btn-large semiretail" data-mode="semiretail">🔵 RETAIL</button>
+    </div>
+
+    <!-- SIGNAL BAR -->
+    <div class="signal-bar" id="signal-bar" onclick="smartCopy('decision-status')">
+        <div class="signal-content">
+            <span class="signal-badge">SIGNAL</span>
+            <span class="signal-text" id="decision-status">ANALYZING</span>
+        </div>
+        <div class="signal-arrow" id="direction-arrow">—</div>
+    </div>
+
+    <!-- Price -->
+    <div class="price-section">
+        <div class="price-main" id="live-price" onclick="smartCopy('live-price')">0.00</div>
+        <div class="price-change" id="price-change"></div>
+    </div>
+
+    <!-- Metrics Duo (EMA & ADX) -->
+    <div class="metrics-duo">
+        <div class="metric-card">
+            <div class="metric-header">
+                <span class="metric-label">EMA 21</span>
+                <span id="ema-trend">—</span>
+            </div>
+            <div class="metric-value" id="ema-value">—</div>
+            <div class="metric-sub" id="ema-distance">—</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-header">
+                <span class="metric-label">ADX / DI</span>
+                <span id="adx-trend">—</span>
+            </div>
+            <div class="metric-value" id="adx-value">—</div>
+            <div class="metric-sub" id="di-values">—</div>
+        </div>
+    </div>
+
+    <!-- === RSI BAR (MENGGANTIKAN FACTOR CHIPS) === -->
+    <div class="rsi-bar-container" id="rsi-bar-container" onclick="smartCopy('rsi-bar-value')">
+        <div class="rsi-bar-header">
+            <span class="rsi-bar-title">RSI (14)</span>
+            <span class="rsi-bar-value" id="rsi-bar-value">—</span>
+        </div>
+        <div class="rsi-track">
+            <div class="rsi-fill" id="rsi-fill"></div>
+        </div>
+        <div class="rsi-labels">
+            <span>OVERSOLD (30)</span>
+            <span>NEUTRAL</span>
+            <span>OVERBOUGHT (70)</span>
+        </div>
+    </div>
+
+    <!-- Factor Chips - DISEMBUNYIKAN (tetap ada untuk kompatibilitas JS) -->
+    <div class="factors-row" style="display: none;">
+        <div class="factor-chip ema" id="ema-chip"><span class="factor-label">EMA</span><span class="factor-value" id="ema-chip-value">—</span></div>
+        <div class="factor-chip" id="adx-chip"><span class="factor-label">ADX</span><span class="factor-value" id="adx-chip-value">—</span></div>
+        <div class="factor-chip rsi" id="rsi-chip"><span class="factor-label">RSI</span><span class="factor-value" id="rsi-chip-value">—</span></div>
+        <div class="factor-chip" id="ob-chip"><span class="factor-label">OB</span><span class="factor-value" id="ob-chip-value">—</span></div>
+    </div>
+
+    <!-- Order Block -->
+    <div class="ob-card" id="ob-card" onclick="smartCopy('ob-card')">
+        <div class="ob-header">
+            <span class="ob-title">📦 ORDER BLOCK <span id="ob-type">SCANNING</span></span>
+            <span class="ob-bias" id="ob-bias">NEUTRAL</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.65rem; font-weight: 600;">
+            <span id="ob-high">—</span>
+            <span id="ob-mid">—</span>
+            <span id="ob-low">—</span>
+        </div>
+        <div class="ob-range-bar">
+            <div class="ob-range-fill" id="ob-range-fill"></div>
+        </div>
+        <div class="ob-footer">
+            <span>STR: <span class="ob-value" id="ob-strength">—</span></span>
+            <span>MIT: <span class="ob-value" id="ob-mitigation">—</span></span>
+            <span>DIST: <span class="ob-value" id="ob-distance">—</span></span>
+        </div>
+    </div>
+
+        <!-- Levels Grid Vertical -->
+    <div class="levels-grid-vertical">
+        <div class="level-row" onclick="copySwingHL()">
+            <span class="level-label-lg">SWING H/L</span>
+            <span class="level-value-lg"><span id="swing-high">—</span> <span style="color: var(--text-tertiary);">/</span> <span id="swing-low">—</span></span>
+        </div>
+        <div class="level-row" onclick="smartCopy('sl-value')">
+            <span class="level-label-lg">SL (50%)</span>
+            <span class="level-value-lg text-red" id="sl-value">—</span>
+        </div>
+        <div class="level-row" onclick="copyEntryZone()">
+            <span class="level-label-lg">ENTRY ZONE</span>
+            <span class="level-value-lg"><span class="text-gold" id="r618">—</span> <span style="color: var(--text-tertiary);">/</span> <span class="text-gold" id="r786">—</span></span>
+        </div>
+        <div class="level-row" onclick="smartCopy('rTP')">
+            <span class="level-label-lg">TP (27%)</span>
+            <span class="level-value-lg text-blue" id="rTP">—</span>
+        </div>
+        <div class="level-row" onclick="smartCopy('pips-display')">
+            <span class="level-label-lg">RANGE</span>
+            <span class="level-value-lg" id="pips-display">—</span>
+        </div>
+    </div>
+
+    <!-- MTF -->
+    <div class="mtf-panel" onclick="smartCopy('mtf-content')">
+        <div class="mtf-title">Multi-Timeframe</div>
+        <div class="mtf-tfs" id="mtf-content">
+            <div class="mtf-item"><span class="mtf-tf">H1</span><span class="mtf-bias" id="mtf-h1">—</span></div>
+            <div class="mtf-item"><span class="mtf-tf">M15</span><span class="mtf-bias" id="mtf-m15">—</span></div>
+            <div class="mtf-item"><span class="mtf-tf">M5</span><span class="mtf-bias" id="mtf-m5">—</span></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-bar">
+        <div class="session-info">
+            <div><span class="session-label">SESSION</span><span class="session-value" id="session-tag">ASIA</span></div>
+            <div><span class="session-label">DATE</span><span class="session-value" id="date-display">—</span></div>
+        </div>
+        <div class="clock" id="clock-display">00:00:00</div>
+    </footer>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    console.log('%c🎯 SMC APEX v21.8 | RSI Bar Indicator', 'color: #00BFFF; font-weight: 700;');
+    
+    // ==================== SAFE UTILITIES ====================
+    const safeValue = (val, fallback = 0) => (val === null || val === undefined || typeof val !== 'number' || isNaN(val) || !isFinite(val)) ? fallback : val;
+    
+    // ==================== CONFIG ====================
+    const ADX_DEFAULT = 15;
+    const STALE_THRESHOLD = 10000;
+    const THROTTLE_MINUTES = 2;
+    const throttleMap = new Map();
+    
+    let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
+    let currentTF = localStorage.getItem('lastTF') || "15m";
+    let wsConnection = null;
+    let lastPrice = 0, prevPrice = 0;
+    let candleData = [];
+    let isReloading = false;
+    let lastSignalExpiry = 0, lastSignalDecision = "";
+    let mtfBiasCache = { m5: "NEUTRAL", m15: "NEUTRAL", h1: "NEUTRAL" };
+    let lastPriceUpdateTime = 0;
+    let isDataStale = false;
+    
+    // Connection state
+    let reconnectDelay = 1000;
+    let lastWSMessageTime = Date.now();
+    let isUsingFallback = false;
+    let isManualDisconnect = false;
+    let reconnectTimer = null;
+    let heartbeatInterval = null, stuckCheckInterval = null, restFallbackInterval = null;
+    
+    let activeModes = { conservative: false, sniper: false, semiretail: false, sniperQuality: null };
+    
+    let orderBlocks = [];
+    let activeOB = null;
+    let obEvaluation = { hasOB: false, score: 0, strength: 'NONE' };
+    
+    let engine = {
+        swingHigh: 0, swingLow: 0, f618: 0, deep: 0, tp: 0, sl: 0,
+        bias: "NEUTRAL", sweepDetected: false, bosConfirmed: false,
+        adx: ADX_DEFAULT, ema21: 0, plusDI: 25, minusDI: 25
+    };
+    
+    let factorStatus = { f1: false, f2: false, f3: false, ob: false };
+    
+    // ==================== PRECISION ====================
+    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
+    
+    // ==================== ORDER BLOCK ====================
+    function detectOrderBlocks(data) {
+        if (!data || data.length < 10) return [];
+        const blocks = [];
+        for (let i = 5; i < data.length - 1; i++) {
+            const candle = data[i], prev = data[i-1];
+            if (prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
+                let isHighest = true;
+                for (let j = i - 3; j < i; j++) if (data[j].h > candle.h) isHighest = false;
+                if (isHighest) {
+                    blocks.push({
+                        type: 'BULLISH', high: candle.h, low: candle.o, price: (candle.h + candle.o) / 2,
+                        strength: Math.min(10, Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3),
+                        mitigated: false
+                    });
+                }
+            }
+            if (prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
+                let isLowest = true;
+                for (let j = i - 3; j < i; j++) if (data[j].l < candle.l) isLowest = false;
+                if (isLowest) {
+                    blocks.push({
+                        type: 'BEARISH', high: candle.o, low: candle.l, price: (candle.o + candle.l) / 2,
+                        strength: Math.min(10, Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3),
+                        mitigated: false
+                    });
+                }
+            }
+        }
+        return blocks;
+    }
+    
+    function evaluateOB(price) {
+        const p = safeValue(price, 0);
+        const relevant = orderBlocks.filter(b => !b.mitigated);
+        if (!relevant.length) return { hasOB: false, score: 0, strength: 'NONE', block: null, mitigation: 0 };
+        
+        let best = null, maxScore = 0, mitigation = 0;
+        const tol = currentPair === "XAUUSDT" ? 0.6 : 80;
+        
+        for (const b of relevant) {
+            let score = 0;
+            if ((engine.bias.includes("BULL") && b.type === 'BULLISH') || (engine.bias.includes("BEAR") && b.type === 'BEARISH')) score += 3;
+            if (p >= b.low - tol && p <= b.high + tol) { score += 2; if (p >= b.low && p <= b.high) { score += 2; mitigation = ((p - b.low) / (b.high - b.low)) * 100; } }
+            score += b.strength / 2;
+            if (score > maxScore) { maxScore = score; best = b; }
+        }
+        
+        if (best) {
+            return {
+                hasOB: true, score: maxScore,
+                strength: maxScore >= 7 ? 'STRONG' : (maxScore >= 4 ? 'MEDIUM' : 'WEAK'),
+                block: best, mitigation, isActive: p >= best.low && p <= best.high
+            };
+        }
+        return { hasOB: false, score: 0, strength: 'NONE', block: null, mitigation: 0 };
+    }
+    
+    function updateOBUI(price) {
+        const p = safeValue(price, 0);
+        obEvaluation = evaluateOB(p);
+        factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= 3;
+        
+        const typeEl = document.getElementById('ob-type');
+        const biasEl = document.getElementById('ob-bias');
+        const highEl = document.getElementById('ob-high');
+        const lowEl = document.getElementById('ob-low');
+        const midEl = document.getElementById('ob-mid');
+        const fillEl = document.getElementById('ob-range-fill');
+        const strEl = document.getElementById('ob-strength');
+        const mitEl = document.getElementById('ob-mitigation');
+        const distEl = document.getElementById('ob-distance');
+        const chipVal = document.getElementById('ob-chip-value');
+        const chip = document.getElementById('ob-chip');
+        
+        const prec = getPrecision();
+        
+        if (obEvaluation.hasOB && obEvaluation.block) {
+            const b = obEvaluation.block;
+            activeOB = b;
+            typeEl.textContent = b.type === 'BULLISH' ? '🟢 BULL' : '🔴 BEAR';
+            typeEl.style.color = b.type === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
+            biasEl.textContent = b.type;
+            biasEl.className = `ob-bias ${b.type.toLowerCase()}`;
+            highEl.textContent = b.high.toFixed(prec);
+            lowEl.textContent = b.low.toFixed(prec);
+            midEl.textContent = b.price.toFixed(prec);
+            
+            const range = b.high - b.low;
+            let fill = 0;
+            if (p >= b.high) fill = 100;
+            else if (p <= b.low) fill = 0;
+            else fill = ((p - b.low) / range) * 100;
+            fillEl.style.width = Math.min(100, Math.max(0, fill)) + '%';
+            fillEl.className = `ob-range-fill ${b.type.toLowerCase()}`;
+            
+            strEl.textContent = `${obEvaluation.score.toFixed(1)} (${obEvaluation.strength})`;
+            mitEl.textContent = obEvaluation.isActive ? `${obEvaluation.mitigation.toFixed(0)}%` : 'OUT';
+            distEl.textContent = Math.abs(p - b.price).toFixed(prec);
+            
+            if (chipVal) chipVal.textContent = obEvaluation.isActive ? '✅' : '📍';
+            if (chip) chip.classList.toggle('active', factorStatus.ob);
+        } else {
+            typeEl.textContent = 'SCANNING'; typeEl.style.color = 'var(--text-tertiary)';
+            biasEl.textContent = 'NEUTRAL'; biasEl.className = 'ob-bias';
+            highEl.textContent = lowEl.textContent = midEl.textContent = '—';
+            fillEl.style.width = '0%';
+            strEl.textContent = mitEl.textContent = distEl.textContent = '—';
+            if (chipVal) chipVal.textContent = '—';
+            if (chip) chip.classList.remove('active');
+        }
+    }
+    
+    // ==================== SMC ====================
+    function calculateSMCLevels() {
+        if (candleData.length < 30) return;
+        const slice = candleData.slice(-50);
+        let sh = 0, sl = Infinity;
+        for (let i = 3; i < slice.length - 3; i++) {
+            let isSH = true, isSL = true;
+            for (let j = i - 3; j <= i + 3; j++) {
+                if (j !== i && slice[j].h >= slice[i].h) isSH = false;
+                if (j !== i && slice[j].l <= slice[i].l) isSL = false;
+            }
+            if (isSH && slice[i].h > sh) sh = slice[i].h;
+            if (isSL && slice[i].l < sl) sl = slice[i].l;
+        }
+        if (sh === 0) sh = Math.max(...slice.map(c => c.h));
+        if (sl === Infinity) sl = Math.min(...slice.map(c => c.l));
+        
+        engine.swingHigh = sh;
+        engine.swingLow = sl;
+        const range = sh - sl;
+        if (range <= 0) return;
+        
+        if (!engine.bosConfirmed) {
+            engine.bias = candleData[candleData.length-1].c > (sh + sl)/2 ? "BULLISH" : "BEARISH";
+        }
+        
+        const isBull = engine.bias.includes("BULL");
+        if (isBull) {
+            engine.f618 = sl + range * 0.618;
+            engine.deep = sl + range * 0.786;
+            engine.tp = sh + range * 0.27;
+            engine.sl = Math.max(sl, (engine.f618 + engine.deep)/2 - Math.abs(engine.tp - (engine.f618 + engine.deep)/2) * 0.5);
+        } else {
+            engine.f618 = sh - range * 0.618;
+            engine.deep = sh - range * 0.786;
+            engine.tp = sl - range * 0.27;
+            engine.sl = Math.min(sh, (engine.f618 + engine.deep)/2 + Math.abs((engine.f618 + engine.deep)/2 - engine.tp) * 0.5);
+        }
+        
+        const prec = getPrecision();
+        document.getElementById('swing-high').textContent = sh.toFixed(prec);
+        document.getElementById('swing-low').textContent = sl.toFixed(prec);
+        document.getElementById('r618').textContent = engine.f618.toFixed(prec);
+        document.getElementById('r786').textContent = engine.deep.toFixed(prec);
+        document.getElementById('rTP').textContent = engine.tp.toFixed(prec);
+        document.getElementById('sl-value').textContent = engine.sl.toFixed(prec);
+        document.getElementById('pips-display').textContent = Math.abs(engine.tp - (engine.f618 + engine.deep)/2).toFixed(prec);
+    }
+    
+    // ==================== INDICATORS ====================
+    function calculateEMA21() {
+        if (candleData.length < 21) return 0;
+        const closes = candleData.slice(-21).map(c => c.c);
+        let ema = closes.slice(0, 21).reduce((a, b) => a + b, 0) / 21;
+        const mult = 2 / 22;
+        for (let i = 21; i < closes.length; i++) ema = (closes[i] - ema) * mult + ema;
+        return ema;
+    }
+    
+    function calculateADX() {
+        if (candleData.length < 28) return ADX_DEFAULT;
+        const period = 14;
+        let tr = [], plusDM = [], minusDM = [];
+        for (let i = 1; i < candleData.length; i++) {
+            const h = candleData[i].h, l = candleData[i].l;
+            const ph = candleData[i-1].h, pl = candleData[i-1].l, pc = candleData[i-1].c;
+            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
+            const up = h - ph, down = pl - l;
+            plusDM.push(up > down && up > 0 ? up : 0);
+            minusDM.push(down > up && down > 0 ? down : 0);
+        }
+        let sTR = 0, sPDM = 0, sMDM = 0;
+        for (let i = tr.length - period; i < tr.length; i++) { sTR += tr[i]; sPDM += plusDM[i]; sMDM += minusDM[i]; }
+        sTR /= period; sPDM /= period; sMDM /= period;
+        const pDI = sTR > 0 ? (sPDM / sTR) * 100 : 0;
+        const mDI = sTR > 0 ? (sMDM / sTR) * 100 : 0;
+        engine.plusDI = pDI; engine.minusDI = mDI;
+        return (pDI + mDI) === 0 ? 0 : (Math.abs(pDI - mDI) / (pDI + mDI)) * 100;
+    }
+    
+    function computeRSI(price) {
+        if (candleData.length < 20) return 50;
+        let closes = candleData.map(c => c.c);
+        closes.push(safeValue(price, 0));
+        if (closes.length < 15) return 50;
+        let gains = [], losses = [];
+        for (let i = 1; i < closes.length; i++) {
+            const diff = closes[i] - closes[i-1];
+            gains.push(diff > 0 ? diff : 0);
+            losses.push(diff < 0 ? -diff : 0);
+        }
+        let avgG = gains.slice(0, 14).reduce((a, b) => a + b, 0) / 14;
+        let avgL = losses.slice(0, 14).reduce((a, b) => a + b, 0) / 14;
+        for (let i = 14; i < gains.length; i++) {
+            avgG = (avgG * 13 + gains[i]) / 14;
+            avgL = (avgL * 13 + losses[i]) / 14;
+        }
+        return avgL === 0 ? 100 : 100 - (100 / (1 + avgG / avgL));
+    }
+    
+    // ==================== MTF ====================
+    async function fetchMTFData() {
+        const tfs = ['1h', '15m', '5m'];
+        await Promise.all(tfs.map(async tf => {
+            try {
+                const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf}&limit=100`);
+                const data = await resp.json();
+                if (Array.isArray(data)) {
+                    const closes = data.map(d => parseFloat(d[4]));
+                    let ema = closes.slice(0, 21).reduce((a, b) => a + b, 0) / 21;
+                    for (let i = 21; i < closes.length; i++) ema = (closes[i] - ema) * 0.0909 + ema;
+                    const bias = closes[closes.length-1] > ema ? "BULLISH" : "BEARISH";
+                    if (tf === '5m') mtfBiasCache.m5 = bias;
+                    else if (tf === '15m') mtfBiasCache.m15 = bias;
+                    else mtfBiasCache.h1 = bias;
+                }
+            } catch(e) {}
+        }));
+        
+        const setMTF = (id, bias) => {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = bias === 'BULLISH' ? '▲' : '▼'; el.style.color = bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)'; }
+        };
+        setMTF('mtf-h1', mtfBiasCache.h1);
+        setMTF('mtf-m15', mtfBiasCache.m15);
+        setMTF('mtf-m5', mtfBiasCache.m5);
+        
+        factorStatus.f2 = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1].filter(b => b === "BULLISH").length >= 2 ||
+                         [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1].filter(b => b === "BEARISH").length >= 2;
+    }
+    
+    // ==================== RSI BAR UPDATE ====================
+    function updateRSIBar(rsi) {
+        const rsiValue = document.getElementById('rsi-bar-value');
+        const rsiFill = document.getElementById('rsi-fill');
+        
+        if (rsiValue) rsiValue.textContent = rsi.toFixed(1);
+        if (rsiFill) {
+            rsiFill.style.width = Math.min(100, Math.max(0, rsi)) + '%';
+            rsiFill.className = 'rsi-fill';
+            if (rsi < 30) rsiFill.classList.add('oversold');
+            else if (rsi > 70) rsiFill.classList.add('overbought');
+            else rsiFill.classList.add('neutral');
+        }
+        
+        // Update hidden chip value untuk kompatibilitas
+        const rsiChip = document.getElementById('rsi-chip-value');
+        if (rsiChip) rsiChip.textContent = rsi.toFixed(0);
+    }
+    
+    // ==================== DECISION ====================
+    function updateDecision() {
+        const p = lastPrice;
+        const decisionEl = document.getElementById('decision-status');
+        const arrowEl = document.getElementById('direction-arrow');
+        const signalBar = document.getElementById('signal-bar');
+        
+        if (isDataStale) {
+            decisionEl.textContent = 'DATA STALE';
+            decisionEl.style.color = 'var(--warning)';
+            signalBar.style.background = 'rgba(220, 38, 38, 0.1)';
+            return;
+        }
+        
+        if (Date.now() < lastSignalExpiry) {
+            const rem = Math.ceil((lastSignalExpiry - Date.now()) / 1000);
+            decisionEl.textContent = `${lastSignalDecision} (${Math.floor(rem/60)}m${rem%60}s)`;
+            return;
+        }
+        
+        calculateSMCLevels();
+        engine.ema21 = calculateEMA21();
+        engine.adx = calculateADX();
+        updateOBUI(p);
+        const rsi = computeRSI(p);
+        
+        // Update RSI Bar
+        updateRSIBar(rsi);
+        
+        const inZone = p >= Math.min(engine.f618, engine.deep) && p <= Math.max(engine.f618, engine.deep);
+        factorStatus.f1 = engine.bias !== "NEUTRAL";
+        factorStatus.f3 = engine.adx >= 20 && (inZone || obEvaluation.isActive);
+        
+        let score = 0;
+        if (factorStatus.f1) score += 3;
+        if (factorStatus.f2) score += 2;
+        if (factorStatus.f3) score += 2;
+        if (factorStatus.ob) score += obEvaluation.strength === 'STRONG' ? 3 : (obEvaluation.strength === 'MEDIUM' ? 2 : 1);
+        
+        // UI Updates
+        const prec = getPrecision();
+        document.getElementById('ema-value').textContent = engine.ema21.toFixed(prec);
+        document.getElementById('ema-distance').textContent = `${(p > engine.ema21 ? '+' : '')}${(p - engine.ema21).toFixed(prec)} (${((p - engine.ema21)/engine.ema21*100).toFixed(2)}%)`;
+        document.getElementById('ema-trend').textContent = p > engine.ema21 ? '▲' : '▼';
+        document.getElementById('ema-trend').style.color = p > engine.ema21 ? 'var(--accent-green)' : 'var(--accent-red)';
+        
+        // Update hidden chip values
+        const emaChip = document.getElementById('ema-chip-value');
+        if (emaChip) emaChip.textContent = engine.ema21.toFixed(prec);
+        
+        document.getElementById('adx-value').textContent = Math.round(engine.adx);
+        document.getElementById('di-values').textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
+        document.getElementById('adx-trend').textContent = engine.plusDI > engine.minusDI ? '▲' : '▼';
+        document.getElementById('adx-trend').style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
+        
+        const adxChip = document.getElementById('adx-chip-value');
+        if (adxChip) adxChip.textContent = Math.round(engine.adx);
+        
+        arrowEl.innerHTML = engine.plusDI > engine.minusDI ? '▲' : '▼';
+        arrowEl.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
+        
+        // Modes
+        activeModes = {
+            conservative: factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score >= 6,
+            sniper: factorStatus.f1 && factorStatus.ob && score >= 5 && (inZone || obEvaluation.isActive),
+            semiretail: factorStatus.f1 && (inZone || obEvaluation.isActive) && rsi >= 40 && rsi <= 60,
+            sniperQuality: obEvaluation.strength === 'STRONG' ? 'GOLDEN' : 'SILVER'
+        };
+        
+        document.querySelector('[data-mode="conservative"]').classList.toggle('active', activeModes.conservative);
+        document.querySelector('[data-mode="sniper"]').classList.toggle('active', activeModes.sniper);
+        document.querySelector('[data-mode="semiretail"]').classList.toggle('active', activeModes.semiretail);
+        document.getElementById('sniper-badge').textContent = activeModes.sniperQuality === 'GOLDEN' ? '🏆' : '';
+        
+        let decision = '', color = '', bgColor = '';
+        if (activeModes.conservative) { decision = `CONSERVATIVE ${engine.bias.includes('BULL') ? 'BUY' : 'SELL'}`; color = 'var(--accent-green)'; bgColor = 'rgba(16, 185, 129, 0.08)'; }
+        else if (activeModes.sniper) { decision = `SNIPER ${engine.bias.includes('BULL') ? 'BUY' : 'SELL'}`; color = 'var(--accent-purple)'; bgColor = 'rgba(139, 92, 246, 0.08)'; }
+        else if (activeModes.semiretail) { decision = `SEMI-RETAIL ${engine.bias.includes('BULL') ? 'BUY' : 'SELL'}`; color = 'var(--accent-orange)'; bgColor = 'rgba(245, 158, 11, 0.08)'; }
+        else if (factorStatus.ob && obEvaluation.strength === 'STRONG' && score >= 6) { decision = `OB CONFLUENCE ${engine.bias.includes('BULL') ? 'BUY' : 'SELL'}`; color = 'var(--accent-cyan)'; bgColor = 'rgba(0, 191, 255, 0.05)'; }
+        else if (score >= 4) { decision = 'WAITING'; color = 'var(--accent-gold)'; bgColor = 'var(--bg-secondary)'; }
+        else { decision = 'NO SETUP'; color = 'var(--text-tertiary)'; bgColor = 'var(--bg-secondary)'; }
+        
+        decisionEl.textContent = `${decision} [${score}/10]`;
+        decisionEl.style.color = color;
+        signalBar.style.background = bgColor;
+        signalBar.style.borderColor = activeModes.conservative || activeModes.sniper || activeModes.semiretail ? color : 'var(--border-subtle)';
+        
+        if (activeModes.conservative || activeModes.sniper || activeModes.semiretail) {
+            lastSignalExpiry = Date.now() + THROTTLE_MINUTES * 60000;
+            lastSignalDecision = decision;
+            signalBar.classList.add('decision-animate');
+            setTimeout(() => signalBar.classList.remove('decision-animate'), 300);
+        }
+    }
+    
+    // ==================== UI UPDATE ====================
+    function updateUI(price) {
+        const p = safeValue(price, 0);
+        const prec = getPrecision();
+        const priceEl = document.getElementById('live-price');
+        const changeEl = document.getElementById('price-change');
+        
+        if (priceEl) {
+            const fixed = p.toFixed(prec);
+            const parts = fixed.split('.');
+            priceEl.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`;
+            priceEl.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
+        }
+        if (changeEl && prevPrice > 0) {
+            const change = p - prevPrice;
+            const pct = (change / prevPrice) * 100;
+            changeEl.innerHTML = `${change > 0 ? '+' : ''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`;
+            changeEl.style.color = change > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+        }
+        
+        updateDecision();
+        prevPrice = p;
+        lastPrice = p;
+    }
+    
+    // ==================== WEBSOCKET - STABILIZED (DIGANTI SESUAI PERMINTAAN) ====================
+    function updateWSStatus(status, message) {
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        const signalBar = document.getElementById('signal-bar');
+        if (!dot || !text) return;
+        
+        dot.className = 'status-dot';
+        if (status === 'live') {
+            dot.classList.add('live');
+            text.innerText = message || 'LIVE';
+            reconnectDelay = 1000;
+            isUsingFallback = false;
+            isDataStale = false;
+        } else if (status === 'connecting') {
+            dot.classList.add('connecting');
+            text.innerText = message || 'CONNECTING';
+        } else if (status === 'reconnect') {
+            dot.classList.add('reconnect');
+            text.innerText = message || 'RECONNECT';
+        } else if (status === 'fallback') {
+            dot.classList.add('fallback');
+            text.innerText = message || 'FALLBACK';
+            isUsingFallback = true;
+        } else if (status === 'stale') {
+            dot.classList.add('stale');
+            text.innerText = message || 'DATA STALE';
+            isDataStale = true;
+        } else {
+            dot.classList.add('offline');
+            text.innerText = message || 'OFFLINE';
+        }
+        
+        if (signalBar) {
+            if (isDataStale) signalBar.classList.add('stale-warning');
+            else signalBar.classList.remove('stale-warning');
+        }
+    }
+
+    function cleanupWebSocket() {
+        if (wsConnection) {
+            isManualDisconnect = true;
+            try {
+                wsConnection.onopen = null;
+                wsConnection.onmessage = null;
+                wsConnection.onclose = null;
+                wsConnection.onerror = null;
+                if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) {
+                    wsConnection.close();
+                }
+            } catch(e) { console.warn("WS cleanup error:", e); }
+            wsConnection = null;
+        }
+        setTimeout(() => { isManualDisconnect = false; }, 100);
+    }
+
+    function initWebSocket() {
+        cleanupWebSocket();
+        updateWSStatus('connecting', 'CONNECTING');
+        
+        const wsUrl = `wss://fstream.binance.com/ws/${currentPair.toLowerCase()}@aggTrade`;
+        
+        try {
+            wsConnection = new WebSocket(wsUrl);
+            
+            wsConnection.onopen = () => {
+                console.log(`✅ WebSocket connected: ${currentPair}`);
+                reconnectDelay = 1000;
+                lastWSMessageTime = Date.now();
+                lastPriceUpdateTime = Date.now();
+                
+                if (isUsingFallback) {
+                    isUsingFallback = false;
+                }
+                if (isDataStale) {
+                    isDataStale = false;
+                }
+                
+                updateWSStatus('live', 'LIVE');
+            };
+            
+            wsConnection.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg && typeof msg.p === 'string') {
+                        const tradePrice = safeValue(parseFloat(msg.p), 0);
+                        if (tradePrice > 0) {
+                            lastWSMessageTime = Date.now();
+                            lastPriceUpdateTime = Date.now();
+                            
+                            if (isUsingFallback) {
+                                isUsingFallback = false;
+                                updateWSStatus('live', 'LIVE');
+                            }
+                            
+                            if (isDataStale) {
+                                isDataStale = false;
+                                updateWSStatus('live', 'LIVE');
+                            }
+                            
+                            if (candleData.length > 0) {
+                                const lc = candleData[candleData.length - 1];
+                                lc.c = tradePrice;
+                                if (tradePrice > lc.h) lc.h = tradePrice;
+                                if (tradePrice < lc.l) lc.l = tradePrice;
+                            }
+                            
+                            // Karena fungsi calculateSMCLevels dan updateDecision dipanggil dari updateUI
+                            updateUI(tradePrice);
+                        }
+                    }
+                } catch (err) {
+                    console.warn("WS message error:", err);
+                }
+            };
+            
+            wsConnection.onclose = (event) => {
+                console.log(`WebSocket closed: ${currentPair}, code: ${event.code}`);
+                
+                if (!isReloading && !isManualDisconnect) {
+                    updateWSStatus('reconnect', 'RECONNECT');
+                    
+                    if (reconnectTimer) clearTimeout(reconnectTimer);
+                    reconnectTimer = setTimeout(() => {
+                        if (!isReloading && !isManualDisconnect) {
+                            reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
+                            initWebSocket();
+                        }
+                    }, reconnectDelay);
+                }
+            };
+            
+            wsConnection.onerror = (error) => {
+                console.warn(`WebSocket error: ${currentPair}`, error);
+                if (!isReloading && !isManualDisconnect) {
+                    updateWSStatus('reconnect', 'ERROR');
+                }
+            };
+            
+        } catch (e) {
+            console.error('WebSocket init error:', e);
+            updateWSStatus('fallback', 'FALLBACK');
+            isUsingFallback = true;
+        }
+    }
+    
+    async function fetchKlines() {
+        try {
+            const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=150`);
+            const data = await resp.json();
+            if (Array.isArray(data)) {
+                candleData = data.map(d => ({ t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) }));
+                if (candleData.length) { lastPrice = prevPrice = candleData[candleData.length-1].c; orderBlocks = detectOrderBlocks(candleData); updateUI(lastPrice); }
+                return true;
+            }
+        } catch(e) {}
+        return false;
+    }
+    
+    async function fetchPriceREST() {
+        try {
+            const resp = await fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentPair}`);
+            const data = await resp.json();
+            if (data?.price) {
+                const price = parseFloat(data.price);
+                if (price > 0 && (Date.now() - lastWSMessageTime > 3000 || isUsingFallback)) {
+                    lastPriceUpdateTime = Date.now();
+                    updateUI(price);
+                }
+            }
+        } catch(e) {}
+    }
+    
+    async function fullReload() {
+        if (isReloading) return;
+        isReloading = true;
+        
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        if (stuckCheckInterval) clearInterval(stuckCheckInterval);
+        if (restFallbackInterval) clearInterval(restFallbackInterval);
+        cleanupWebSocket();
+        
+        document.querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('active', b.dataset.pair === currentPair));
+        document.querySelectorAll('[data-tf]').forEach(b => b.classList.toggle('active', b.dataset.tf === currentTF));
+        
+        updateWSStatus('connecting', 'LOADING');
+        
+        engine = { swingHigh:0, swingLow:0, f618:0, deep:0, tp:0, sl:0, bias:"NEUTRAL", sweepDetected:false, bosConfirmed:false, adx:ADX_DEFAULT, ema21:0, plusDI:25, minusDI:25 };
+        factorStatus = { f1:false, f2:false, f3:false, ob:false };
+        orderBlocks = []; activeOB = null;
+        lastSignalExpiry = 0;
+        
+        await fetchKlines();
+        await fetchMTFData();
+        initWebSocket();
+        
+        heartbeatInterval = setInterval(() => { if (wsConnection?.readyState === WebSocket.OPEN) wsConnection.send(JSON.stringify({method:"ping"})); }, 30000);
+        stuckCheckInterval = setInterval(() => {
+            if (Date.now() - lastPriceUpdateTime > STALE_THRESHOLD) updateWSStatus('stale');
+            else if (isDataStale) updateWSStatus(isUsingFallback ? 'fallback' : 'live');
+        }, 5000);
+        restFallbackInterval = setInterval(fetchPriceREST, 5000);
+        
+        isReloading = false;
+    }
+    
+        // ==================== EVENT LISTENERS ====================
+    document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => { if (!isReloading) { currentPair = b.dataset.pair; localStorage.setItem('lastPair', currentPair); fullReload(); } });
+    document.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => { if (!isReloading) { currentTF = b.dataset.tf; localStorage.setItem('lastTF', currentTF); fullReload(); } });
+    
+    window.copySwingHL = () => {
+        const swingHigh = document.getElementById('swing-high')?.textContent || '—';
+        const swingLow = document.getElementById('swing-low')?.textContent || '—';
+        navigator.clipboard?.writeText(`Swing H: ${swingHigh} | L: ${swingLow}`);
+        const el = document.querySelector('[onclick="copySwingHL()"]');
+        if (el) { el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
+    };
+    
+    window.copyEntryZone = () => {
+        const r618 = document.getElementById('r618')?.textContent || '—';
+        const r786 = document.getElementById('r786')?.textContent || '—';
+        navigator.clipboard?.writeText(`Entry Zone: ${r618} / ${r786}`);
+        const el = document.querySelector('[onclick="copyEntryZone()"]');
+        if (el) { el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
+    };
+    
+    window.smartCopy = (id) => {
+        const el = document.getElementById(id);
+        if (el) { navigator.clipboard?.writeText(el.textContent.trim()); el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
+    };
+    
+    // Clock
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock-display').textContent = now.toLocaleTimeString('id-ID');
+        document.getElementById('date-display').textContent = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`;
+        document.getElementById('session-tag').textContent = now.getHours() >= 7 && now.getHours() < 14 ? 'ASIA' : (now.getHours() >= 14 && now.getHours() < 20 ? 'LONDON' : 'NY');
+    }, 1000);
+    
+    setInterval(fetchMTFData, 120000);
+    
+    fullReload();
+})();
+</script>
+</body>
+</html>
