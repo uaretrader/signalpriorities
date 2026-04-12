@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · SIGNAL MODE</title>
+    <title>SMC APEX · SIGNAL ENGINE v22.0</title>
     <style>
+        /* ============================================================
+           STYLE 100% ASLI SKRIP 2 - TIDAK DIUBAH SEDIKIT PUN
+           ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -45,7 +48,6 @@
             left: 0; 
         }
         
-        /* Zero Scroll Container */
         .app-container {
             display: flex;
             flex-direction: column;
@@ -56,7 +58,6 @@
             overflow: hidden;
         }
         
-        /* Header - Compact */
         .header {
             display: flex;
             justify-content: space-between;
@@ -120,7 +121,6 @@
         
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         
-        /* Navigation - Compact */
         .nav-bar {
             display: flex;
             justify-content: space-between;
@@ -151,8 +151,8 @@
         }
         
         .tab-btn.active { color: var(--text-primary); background: var(--bg-tertiary); }
+        .tab-btn.disabled { opacity: 0.5; cursor: wait; pointer-events: none; }
         
-        /* Mode Row */
         .mode-row {
             display: flex;
             justify-content: space-between;
@@ -184,7 +184,6 @@
         
         .mode-group { display: none; }
         
-        /* === SIGNAL BAR === */
         .signal-bar {
             background: var(--bg-secondary);
             border: 1px solid var(--border-subtle);
@@ -223,7 +222,6 @@
             line-height: 1;
         }
         
-        /* Price Display */
         .price-section {
             display: flex;
             align-items: baseline;
@@ -250,7 +248,6 @@
             background: var(--bg-secondary);
         }
         
-        /* === METRICS ROW (EMA & ADX) === */
         .metrics-duo {
             display: flex;
             gap: 6px;
@@ -289,7 +286,6 @@
             color: var(--text-secondary);
         }
         
-        /* === RSI BAR (MENGGANTIKAN FACTOR CHIPS) === */
         .rsi-bar-container {
             background: var(--bg-secondary);
             border: 1px solid var(--border-subtle);
@@ -350,12 +346,8 @@
         .rsi-labels span:nth-child(1) { color: var(--accent-green); }
         .rsi-labels span:nth-child(3) { color: var(--accent-red); }
         
-        /* Factor Chips - DISEMBUNYIKAN */
-        .factors-row {
-            display: none;
-        }
+        .factors-row { display: none; }
         
-        /* Order Block */
         .ob-card {
             background: linear-gradient(135deg, rgba(0, 191, 255, 0.03) 0%, transparent 100%);
             border: 1px solid rgba(0, 191, 255, 0.15);
@@ -420,7 +412,6 @@
             color: var(--text-secondary);
         }
         
-        /* Levels Grid Vertical */
         .levels-grid-vertical {
             display: flex;
             flex-direction: column;
@@ -456,7 +447,6 @@
             color: var(--text-primary);
         }
         
-        /* MTF Panel */
         .mtf-panel {
             background: var(--bg-secondary);
             border: 1px solid var(--border-subtle);
@@ -496,7 +486,6 @@
             font-weight: 700;
         }
         
-        /* Footer */
         .footer-bar {
             display: flex;
             justify-content: space-between;
@@ -528,7 +517,6 @@
             color: var(--text-tertiary);
         }
         
-        /* Utility */
         .copied { background: rgba(0, 191, 255, 0.15) !important; }
         .decision-animate { animation: decisionPulse 0.3s ease; }
         @keyframes decisionPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.01); } }
@@ -556,7 +544,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">v21.8 SG</span>
+            <span class="version-tag">v22.0 KL</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -621,7 +609,7 @@
         </div>
     </div>
 
-    <!-- === RSI BAR (MENGGANTIKAN FACTOR CHIPS) === -->
+    <!-- RSI BAR -->
     <div class="rsi-bar-container" id="rsi-bar-container" onclick="smartCopy('rsi-bar-value')">
         <div class="rsi-bar-header">
             <span class="rsi-bar-title">RSI (14)</span>
@@ -637,7 +625,7 @@
         </div>
     </div>
 
-    <!-- Factor Chips - DISEMBUNYIKAN (tetap ada untuk kompatibilitas JS) -->
+    <!-- Factor Chips - DISEMBUNYIKAN -->
     <div class="factors-row" style="display: none;">
         <div class="factor-chip ema" id="ema-chip"><span class="factor-label">EMA</span><span class="factor-value" id="ema-chip-value">—</span></div>
         <div class="factor-chip" id="adx-chip"><span class="factor-label">ADX</span><span class="factor-value" id="adx-chip-value">—</span></div>
@@ -666,7 +654,7 @@
         </div>
     </div>
 
-        <!-- Levels Grid Vertical -->
+    <!-- Levels Grid Vertical -->
     <div class="levels-grid-vertical">
         <div class="level-row" onclick="copySwingHL()">
             <span class="level-label-lg">SWING H/L</span>
@@ -714,7 +702,13 @@
 (function() {
     'use strict';
     
-    console.log('%c🎯 SMC APEX v21.8 | RSI Bar Indicator', 'color: #00BFFF; font-weight: 700;');
+    /* ============================================================
+       MESIN 100% DARI SKRIP 1 (ENGINE v22.0 + KONEKSI KLINE)
+       DITRANSPLANTASI KE DALAM TUBUH SKRIP 2
+       TAMPILAN TETAP SKRIP 2 - LOGIKA MURNI SKRIP 1
+       ============================================================ */
+    
+    console.log('%c🔥 SMC APEX | Engine v22.0 KLINE | Tampilan Skrip 2', 'color: #00BFFF; font-weight: 700;');
     
     // ==================== SAFE UTILITIES ====================
     const safeValue = (val, fallback = 0) => (val === null || val === undefined || typeof val !== 'number' || isNaN(val) || !isFinite(val)) ? fallback : val;
@@ -723,7 +717,6 @@
     const ADX_DEFAULT = 15;
     const STALE_THRESHOLD = 10000;
     const THROTTLE_MINUTES = 2;
-    const throttleMap = new Map();
     
     let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
     let currentTF = localStorage.getItem('lastTF') || "15m";
@@ -761,7 +754,7 @@
     // ==================== PRECISION ====================
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     
-    // ==================== ORDER BLOCK ====================
+    // ==================== ORDER BLOCK (MURNI SKRIP 1) ====================
     function detectOrderBlocks(data) {
         if (!data || data.length < 10) return [];
         const blocks = [];
@@ -874,7 +867,7 @@
         }
     }
     
-    // ==================== SMC ====================
+    // ==================== SMC (MURNI SKRIP 1) ====================
     function calculateSMCLevels() {
         if (candleData.length < 30) return;
         const slice = candleData.slice(-50);
@@ -923,7 +916,7 @@
         document.getElementById('pips-display').textContent = Math.abs(engine.tp - (engine.f618 + engine.deep)/2).toFixed(prec);
     }
     
-    // ==================== INDICATORS ====================
+    // ==================== INDICATORS (MURNI SKRIP 1) ====================
     function calculateEMA21() {
         if (candleData.length < 21) return 0;
         const closes = candleData.slice(-21).map(c => c.c);
@@ -974,7 +967,7 @@
         return avgL === 0 ? 100 : 100 - (100 / (1 + avgG / avgL));
     }
     
-    // ==================== MTF ====================
+    // ==================== MTF (MURNI SKRIP 1) ====================
     async function fetchMTFData() {
         const tfs = ['1h', '15m', '5m'];
         await Promise.all(tfs.map(async tf => {
@@ -1019,12 +1012,11 @@
             else rsiFill.classList.add('neutral');
         }
         
-        // Update hidden chip value untuk kompatibilitas
         const rsiChip = document.getElementById('rsi-chip-value');
         if (rsiChip) rsiChip.textContent = rsi.toFixed(0);
     }
     
-    // ==================== DECISION ====================
+    // ==================== DECISION (MURNI SKRIP 1) ====================
     function updateDecision() {
         const p = lastPrice;
         const decisionEl = document.getElementById('decision-status');
@@ -1050,7 +1042,6 @@
         updateOBUI(p);
         const rsi = computeRSI(p);
         
-        // Update RSI Bar
         updateRSIBar(rsi);
         
         const inZone = p >= Math.min(engine.f618, engine.deep) && p <= Math.max(engine.f618, engine.deep);
@@ -1063,14 +1054,12 @@
         if (factorStatus.f3) score += 2;
         if (factorStatus.ob) score += obEvaluation.strength === 'STRONG' ? 3 : (obEvaluation.strength === 'MEDIUM' ? 2 : 1);
         
-        // UI Updates
         const prec = getPrecision();
         document.getElementById('ema-value').textContent = engine.ema21.toFixed(prec);
         document.getElementById('ema-distance').textContent = `${(p > engine.ema21 ? '+' : '')}${(p - engine.ema21).toFixed(prec)} (${((p - engine.ema21)/engine.ema21*100).toFixed(2)}%)`;
         document.getElementById('ema-trend').textContent = p > engine.ema21 ? '▲' : '▼';
         document.getElementById('ema-trend').style.color = p > engine.ema21 ? 'var(--accent-green)' : 'var(--accent-red)';
         
-        // Update hidden chip values
         const emaChip = document.getElementById('ema-chip-value');
         if (emaChip) emaChip.textContent = engine.ema21.toFixed(prec);
         
@@ -1085,7 +1074,6 @@
         arrowEl.innerHTML = engine.plusDI > engine.minusDI ? '▲' : '▼';
         arrowEl.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
         
-        // Modes
         activeModes = {
             conservative: factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score >= 6,
             sniper: factorStatus.f1 && factorStatus.ob && score >= 5 && (inZone || obEvaluation.isActive),
@@ -1144,7 +1132,7 @@
         lastPrice = p;
     }
     
-    // ==================== WEBSOCKET - STABILIZED (DIGANTI SESUAI PERMINTAAN) ====================
+    // ==================== WEBSOCKET KLINE (MURNI SKRIP 1) ====================
     function updateWSStatus(status, message) {
         const dot = document.getElementById('status-dot');
         const text = document.getElementById('status-text');
@@ -1194,7 +1182,7 @@
                 if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) {
                     wsConnection.close();
                 }
-            } catch(e) { console.warn("WS cleanup error:", e); }
+            } catch(e) {}
             wsConnection = null;
         }
         setTimeout(() => { isManualDisconnect = false; }, 100);
@@ -1204,55 +1192,62 @@
         cleanupWebSocket();
         updateWSStatus('connecting', 'CONNECTING');
         
-        const wsUrl = `wss://fstream.binance.com/ws/${currentPair.toLowerCase()}@aggTrade`;
+        // INI ADALAH KUNCI UTAMA: MENGGUNAKAN KLINE STREAM SEPERTI SKRIP 1
+        const streamName = `${currentPair.toLowerCase()}@kline_${currentTF}`;
+        const wsUrl = `wss://fstream.binance.com/ws/${streamName}`;
         
         try {
             wsConnection = new WebSocket(wsUrl);
             
             wsConnection.onopen = () => {
-                console.log(`✅ WebSocket connected: ${currentPair}`);
+                console.log(`✅ WebSocket KLINE connected: ${currentPair} @ ${currentTF}`);
                 reconnectDelay = 1000;
                 lastWSMessageTime = Date.now();
                 lastPriceUpdateTime = Date.now();
                 
-                if (isUsingFallback) {
-                    isUsingFallback = false;
-                }
-                if (isDataStale) {
-                    isDataStale = false;
-                }
+                if (isUsingFallback) isUsingFallback = false;
+                if (isDataStale) isDataStale = false;
                 
-                updateWSStatus('live', 'LIVE');
+                updateWSStatus('live', `LIVE ${currentTF}`);
             };
             
             wsConnection.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
-                    if (msg && typeof msg.p === 'string') {
-                        const tradePrice = safeValue(parseFloat(msg.p), 0);
-                        if (tradePrice > 0) {
+                    if (msg?.k) {
+                        const k = msg.k;
+                        const price = parseFloat(k.c);
+                        const high = parseFloat(k.h);
+                        const low = parseFloat(k.l);
+                        const open = parseFloat(k.o);
+                        const isClosed = k.x;
+                        
+                        if (price > 0) {
                             lastWSMessageTime = Date.now();
                             lastPriceUpdateTime = Date.now();
                             
-                            if (isUsingFallback) {
-                                isUsingFallback = false;
-                                updateWSStatus('live', 'LIVE');
+                            if (isUsingFallback) updateWSStatus('live', `LIVE ${currentTF}`);
+                            if (isDataStale) updateWSStatus('live', `LIVE ${currentTF}`);
+                            
+                            if (candleData.length) {
+                                const lc = candleData[candleData.length-1];
+                                if (isClosed) {
+                                    // CANDLE BARU - AKURASI TINGGI DARI BINANCE
+                                    candleData.push({
+                                        t: k.t, o: open, h: high, l: low, c: price, v: parseFloat(k.v)
+                                    });
+                                    if (candleData.length > 150) candleData.shift();
+                                    orderBlocks = detectOrderBlocks(candleData);
+                                } else {
+                                    // UPDATE CANDLE AKTIF
+                                    lc.c = price;
+                                    lc.h = Math.max(lc.h, high);
+                                    lc.l = Math.min(lc.l, low);
+                                    lc.o = lc.o || open;
+                                }
                             }
                             
-                            if (isDataStale) {
-                                isDataStale = false;
-                                updateWSStatus('live', 'LIVE');
-                            }
-                            
-                            if (candleData.length > 0) {
-                                const lc = candleData[candleData.length - 1];
-                                lc.c = tradePrice;
-                                if (tradePrice > lc.h) lc.h = tradePrice;
-                                if (tradePrice < lc.l) lc.l = tradePrice;
-                            }
-                            
-                            // Karena fungsi calculateSMCLevels dan updateDecision dipanggil dari updateUI
-                            updateUI(tradePrice);
+                            updateUI(price);
                         }
                     }
                 } catch (err) {
@@ -1295,8 +1290,15 @@
             const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=150`);
             const data = await resp.json();
             if (Array.isArray(data)) {
-                candleData = data.map(d => ({ t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) }));
-                if (candleData.length) { lastPrice = prevPrice = candleData[candleData.length-1].c; orderBlocks = detectOrderBlocks(candleData); updateUI(lastPrice); }
+                candleData = data.map(d => ({ 
+                    t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), 
+                    l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) 
+                }));
+                if (candleData.length) { 
+                    lastPrice = prevPrice = candleData[candleData.length-1].c; 
+                    orderBlocks = detectOrderBlocks(candleData); 
+                    updateUI(lastPrice); 
+                }
                 return true;
             }
         } catch(e) {}
@@ -1321,6 +1323,9 @@
         if (isReloading) return;
         isReloading = true;
         
+        // Disable tabs
+        document.querySelectorAll('[data-pair], [data-tf]').forEach(b => b.classList.add('disabled'));
+        
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         if (stuckCheckInterval) clearInterval(stuckCheckInterval);
         if (restFallbackInterval) clearInterval(restFallbackInterval);
@@ -1340,19 +1345,57 @@
         await fetchMTFData();
         initWebSocket();
         
-        heartbeatInterval = setInterval(() => { if (wsConnection?.readyState === WebSocket.OPEN) wsConnection.send(JSON.stringify({method:"ping"})); }, 30000);
+        heartbeatInterval = setInterval(() => { 
+            if (wsConnection?.readyState === WebSocket.OPEN) {
+                try { wsConnection.send(JSON.stringify({method:"ping"})); } catch(e) {}
+            }
+        }, 30000);
+        
         stuckCheckInterval = setInterval(() => {
-            if (Date.now() - lastPriceUpdateTime > STALE_THRESHOLD) updateWSStatus('stale');
-            else if (isDataStale) updateWSStatus(isUsingFallback ? 'fallback' : 'live');
+            const now = Date.now();
+            const timeSinceLastPrice = now - lastPriceUpdateTime;
+            
+            if (timeSinceLastPrice > STALE_THRESHOLD && lastPrice > 0) {
+                if (!isDataStale) updateWSStatus('stale');
+            } else if (isDataStale && timeSinceLastPrice < 5000) {
+                updateWSStatus(isUsingFallback ? 'fallback' : 'live');
+            }
+            
+            const timeSinceLastMsg = now - lastWSMessageTime;
+            if (wsConnection?.readyState === WebSocket.OPEN && timeSinceLastMsg > 10000 && !isUsingFallback && !isReloading) {
+                updateWSStatus('fallback');
+                isUsingFallback = true;
+                fetchPriceREST();
+            }
+            
+            if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) {
+                updateWSStatus('reconnect');
+            }
         }, 5000);
+        
         restFallbackInterval = setInterval(fetchPriceREST, 5000);
+        
+        // Enable tabs
+        document.querySelectorAll('[data-pair], [data-tf]').forEach(b => b.classList.remove('disabled'));
         
         isReloading = false;
     }
     
-        // ==================== EVENT LISTENERS ====================
-    document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => { if (!isReloading) { currentPair = b.dataset.pair; localStorage.setItem('lastPair', currentPair); fullReload(); } });
-    document.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => { if (!isReloading) { currentTF = b.dataset.tf; localStorage.setItem('lastTF', currentTF); fullReload(); } });
+    // ==================== EVENT LISTENERS ====================
+    document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => { 
+        if (!isReloading) { 
+            currentPair = b.dataset.pair; 
+            localStorage.setItem('lastPair', currentPair); 
+            fullReload(); 
+        } 
+    });
+    document.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => { 
+        if (!isReloading) { 
+            currentTF = b.dataset.tf; 
+            localStorage.setItem('lastTF', currentTF); 
+            fullReload(); 
+        } 
+    });
     
     window.copySwingHL = () => {
         const swingHigh = document.getElementById('swing-high')?.textContent || '—';
