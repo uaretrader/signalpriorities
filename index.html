@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · SIGNAL ENGINE v22.0</title>
+    <title>SMC APEX · BIAS ENGINE v22.6</title>
     <style>
         /* ============================================================
-           STYLE 100% ASLI SKRIP 2 - TIDAK DIUBAH SEDIKIT PUN
+           STYLE 100% ASLI - TIDAK DIUBAH
            ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -540,11 +540,10 @@
 </head>
 <body>
 <div class="app-container">
-    <!-- Header -->
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">v22.0 KL</span>
+            <span class="version-tag">v22.6 FINAL</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -552,7 +551,6 @@
         </div>
     </header>
 
-    <!-- Navigation -->
     <nav class="nav-bar">
         <div class="tab-group">
             <button class="tab-btn active" data-pair="XAUUSDT">XAUUSD</button>
@@ -567,14 +565,12 @@
         <div class="mode-group"></div>
     </nav>
 
-    <!-- Mode Row -->
     <div class="mode-row">
         <button class="mode-btn-large conservative" data-mode="conservative">🛡️ CONSERVATIVE</button>
         <button class="mode-btn-large sniper" data-mode="sniper">🎯 SNIPER <span id="sniper-badge"></span></button>
         <button class="mode-btn-large semiretail" data-mode="semiretail">🔵 RETAIL</button>
     </div>
 
-    <!-- SIGNAL BAR -->
     <div class="signal-bar" id="signal-bar" onclick="smartCopy('decision-status')">
         <div class="signal-content">
             <span class="signal-badge">SIGNAL</span>
@@ -583,49 +579,33 @@
         <div class="signal-arrow" id="direction-arrow">—</div>
     </div>
 
-    <!-- Price -->
     <div class="price-section">
         <div class="price-main" id="live-price" onclick="smartCopy('live-price')">0.00</div>
         <div class="price-change" id="price-change"></div>
     </div>
 
-    <!-- Metrics Duo (EMA & ADX) -->
     <div class="metrics-duo">
         <div class="metric-card">
-            <div class="metric-header">
-                <span class="metric-label">EMA 21</span>
-                <span id="ema-trend">—</span>
-            </div>
+            <div class="metric-header"><span class="metric-label">EMA 21</span><span id="ema-trend">—</span></div>
             <div class="metric-value" id="ema-value">—</div>
             <div class="metric-sub" id="ema-distance">—</div>
         </div>
         <div class="metric-card">
-            <div class="metric-header">
-                <span class="metric-label">ADX / DI</span>
-                <span id="adx-trend">—</span>
-            </div>
+            <div class="metric-header"><span class="metric-label">ADX / DI</span><span id="adx-trend">—</span></div>
             <div class="metric-value" id="adx-value">—</div>
             <div class="metric-sub" id="di-values">—</div>
         </div>
     </div>
 
-    <!-- RSI BAR -->
     <div class="rsi-bar-container" id="rsi-bar-container" onclick="smartCopy('rsi-bar-value')">
         <div class="rsi-bar-header">
             <span class="rsi-bar-title">RSI (14)</span>
             <span class="rsi-bar-value" id="rsi-bar-value">—</span>
         </div>
-        <div class="rsi-track">
-            <div class="rsi-fill" id="rsi-fill"></div>
-        </div>
-        <div class="rsi-labels">
-            <span>OVERSOLD (30)</span>
-            <span>NEUTRAL</span>
-            <span>OVERBOUGHT (70)</span>
-        </div>
+        <div class="rsi-track"><div class="rsi-fill" id="rsi-fill"></div></div>
+        <div class="rsi-labels"><span>OVERSOLD (30)</span><span>NEUTRAL</span><span>OVERBOUGHT (70)</span></div>
     </div>
 
-    <!-- Factor Chips - DISEMBUNYIKAN -->
     <div class="factors-row" style="display: none;">
         <div class="factor-chip ema" id="ema-chip"><span class="factor-label">EMA</span><span class="factor-value" id="ema-chip-value">—</span></div>
         <div class="factor-chip" id="adx-chip"><span class="factor-label">ADX</span><span class="factor-value" id="adx-chip-value">—</span></div>
@@ -633,20 +613,15 @@
         <div class="factor-chip" id="ob-chip"><span class="factor-label">OB</span><span class="factor-value" id="ob-chip-value">—</span></div>
     </div>
 
-    <!-- Order Block -->
     <div class="ob-card" id="ob-card" onclick="smartCopy('ob-card')">
         <div class="ob-header">
             <span class="ob-title">📦 ORDER BLOCK <span id="ob-type">SCANNING</span></span>
             <span class="ob-bias" id="ob-bias">NEUTRAL</span>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 0.65rem; font-weight: 600;">
-            <span id="ob-high">—</span>
-            <span id="ob-mid">—</span>
-            <span id="ob-low">—</span>
+            <span id="ob-high">—</span><span id="ob-mid">—</span><span id="ob-low">—</span>
         </div>
-        <div class="ob-range-bar">
-            <div class="ob-range-fill" id="ob-range-fill"></div>
-        </div>
+        <div class="ob-range-bar"><div class="ob-range-fill" id="ob-range-fill"></div></div>
         <div class="ob-footer">
             <span>STR: <span class="ob-value" id="ob-strength">—</span></span>
             <span>MIT: <span class="ob-value" id="ob-mitigation">—</span></span>
@@ -654,41 +629,24 @@
         </div>
     </div>
 
-    <!-- Levels Grid Vertical -->
     <div class="levels-grid-vertical">
-        <div class="level-row" onclick="copySwingHL()">
-            <span class="level-label-lg">SWING H/L</span>
-            <span class="level-value-lg"><span id="swing-high">—</span> <span style="color: var(--text-tertiary);">/</span> <span id="swing-low">—</span></span>
-        </div>
-        <div class="level-row" onclick="smartCopy('sl-value')">
-            <span class="level-label-lg">SL (50%)</span>
-            <span class="level-value-lg text-red" id="sl-value">—</span>
-        </div>
-        <div class="level-row" onclick="copyEntryZone()">
-            <span class="level-label-lg">ENTRY ZONE</span>
-            <span class="level-value-lg"><span class="text-gold" id="r618">—</span> <span style="color: var(--text-tertiary);">/</span> <span class="text-gold" id="r786">—</span></span>
-        </div>
-        <div class="level-row" onclick="smartCopy('rTP')">
-            <span class="level-label-lg">TP (27%)</span>
-            <span class="level-value-lg text-blue" id="rTP">—</span>
-        </div>
-        <div class="level-row" onclick="smartCopy('pips-display')">
-            <span class="level-label-lg">RANGE</span>
-            <span class="level-value-lg" id="pips-display">—</span>
-        </div>
+        <div class="level-row" onclick="copySwingHL()"><span class="level-label-lg">SWING H/L</span><span class="level-value-lg"><span id="swing-high">—</span> / <span id="swing-low">—</span></span></div>
+        <div class="level-row" onclick="smartCopy('sl-value')"><span class="level-label-lg">SL (50%)</span><span class="level-value-lg text-red" id="sl-value">—</span></div>
+        <div class="level-row" onclick="copyEntryZone()"><span class="level-label-lg">ENTRY ZONE</span><span class="level-value-lg"><span class="text-gold" id="r618">—</span> / <span class="text-gold" id="r786">—</span></span></div>
+        <div class="level-row" onclick="smartCopy('rTP')"><span class="level-label-lg">TP (27%)</span><span class="level-value-lg text-blue" id="rTP">—</span></div>
+        <div class="level-row" onclick="smartCopy('pips-display')"><span class="level-label-lg">RANGE</span><span class="level-value-lg" id="pips-display">—</span></div>
     </div>
 
-    <!-- MTF -->
     <div class="mtf-panel" onclick="smartCopy('mtf-content')">
         <div class="mtf-title">Multi-Timeframe</div>
         <div class="mtf-tfs" id="mtf-content">
+            <div class="mtf-item"><span class="mtf-tf">H4</span><span class="mtf-bias" id="mtf-h4">—</span></div>
             <div class="mtf-item"><span class="mtf-tf">H1</span><span class="mtf-bias" id="mtf-h1">—</span></div>
             <div class="mtf-item"><span class="mtf-tf">M15</span><span class="mtf-bias" id="mtf-m15">—</span></div>
             <div class="mtf-item"><span class="mtf-tf">M5</span><span class="mtf-bias" id="mtf-m5">—</span></div>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer-bar">
         <div class="session-info">
             <div><span class="session-label">SESSION</span><span class="session-value" id="session-tag">ASIA</span></div>
@@ -702,18 +660,61 @@
 (function() {
     'use strict';
     
-    /* ============================================================
-       MESIN 100% DARI SKRIP 1 (ENGINE v22.0 + KONEKSI KLINE)
-       DITRANSPLANTASI KE DALAM TUBUH SKRIP 2
-       TAMPILAN TETAP SKRIP 2 - LOGIKA MURNI SKRIP 1
-       ============================================================ */
+    console.log('%c🔥 SMC APEX v22.6 FINAL | Full Optimized & Consistent', 'color: #00BFFF; font-weight: 700;');
     
-    console.log('%c🔥 SMC APEX | Engine v22.0 KLINE | Tampilan Skrip 2', 'color: #00BFFF; font-weight: 700;');
-    
-    // ==================== SAFE UTILITIES ====================
+    // ==================== DOM CACHE (100% COMPLETE) ====================
+    const UI = {
+        dot: document.getElementById('status-dot'),
+        text: document.getElementById('status-text'),
+        signalBar: document.getElementById('signal-bar'),
+        priceMain: document.getElementById('live-price'),
+        priceChange: document.getElementById('price-change'),
+        decision: document.getElementById('decision-status'),
+        arrow: document.getElementById('direction-arrow'),
+        emaValue: document.getElementById('ema-value'),
+        emaDistance: document.getElementById('ema-distance'),
+        emaTrend: document.getElementById('ema-trend'),
+        adxValue: document.getElementById('adx-value'),
+        diValues: document.getElementById('di-values'),
+        adxTrend: document.getElementById('adx-trend'),
+        rsiValue: document.getElementById('rsi-bar-value'),
+        rsiFill: document.getElementById('rsi-fill'),
+        swingHigh: document.getElementById('swing-high'),
+        swingLow: document.getElementById('swing-low'),
+        r618: document.getElementById('r618'),
+        r786: document.getElementById('r786'),
+        rTP: document.getElementById('rTP'),
+        slValue: document.getElementById('sl-value'),
+        pipsDisplay: document.getElementById('pips-display'),
+        obType: document.getElementById('ob-type'),
+        obBias: document.getElementById('ob-bias'),
+        obHigh: document.getElementById('ob-high'),
+        obMid: document.getElementById('ob-mid'),
+        obLow: document.getElementById('ob-low'),
+        obRangeFill: document.getElementById('ob-range-fill'),
+        obStrength: document.getElementById('ob-strength'),
+        obMitigation: document.getElementById('ob-mitigation'),
+        obDistance: document.getElementById('ob-distance'),
+        mtfH4: document.getElementById('mtf-h4'),
+        mtfH1: document.getElementById('mtf-h1'),
+        mtfM15: document.getElementById('mtf-m15'),
+        mtfM5: document.getElementById('mtf-m5'),
+        consBtn: document.querySelector('[data-mode="conservative"]'),
+        snipBtn: document.querySelector('[data-mode="sniper"]'),
+        semiBtn: document.querySelector('[data-mode="semiretail"]'),
+        sniperBadge: document.getElementById('sniper-badge'),
+        clock: document.getElementById('clock-display'),
+        date: document.getElementById('date-display'),
+        session: document.getElementById('session-tag'),
+        emaChip: document.getElementById('ema-chip-value'),
+        adxChip: document.getElementById('adx-chip-value'),
+        rsiChip: document.getElementById('rsi-chip-value'),
+        obChip: document.getElementById('ob-chip-value'),
+        obChipEl: document.getElementById('ob-chip')
+    };
+
+    // ==================== CONFIG (TIDAK DIUBAH) ====================
     const safeValue = (val, fallback = 0) => (val === null || val === undefined || typeof val !== 'number' || isNaN(val) || !isFinite(val)) ? fallback : val;
-    
-    // ==================== CONFIG ====================
     const ADX_DEFAULT = 15;
     const STALE_THRESHOLD = 10000;
     const THROTTLE_MINUTES = 2;
@@ -725,11 +726,10 @@
     let candleData = [];
     let isReloading = false;
     let lastSignalExpiry = 0, lastSignalDecision = "";
-    let mtfBiasCache = { m5: "NEUTRAL", m15: "NEUTRAL", h1: "NEUTRAL" };
+    let mtfBiasCache = { m5: "NEUTRAL", m15: "NEUTRAL", h1: "NEUTRAL", h4: "NEUTRAL" };
     let lastPriceUpdateTime = 0;
     let isDataStale = false;
     
-    // Connection state
     let reconnectDelay = 1000;
     let lastWSMessageTime = Date.now();
     let isUsingFallback = false;
@@ -738,23 +738,32 @@
     let heartbeatInterval = null, stuckCheckInterval = null, restFallbackInterval = null;
     
     let activeModes = { conservative: false, sniper: false, semiretail: false, sniperQuality: null };
-    
     let orderBlocks = [];
     let activeOB = null;
     let obEvaluation = { hasOB: false, score: 0, strength: 'NONE' };
     
     let engine = {
         swingHigh: 0, swingLow: 0, f618: 0, deep: 0, tp: 0, sl: 0,
-        bias: "NEUTRAL", sweepDetected: false, bosConfirmed: false,
+        bias: "NEUTRAL", adxBias: "NEUTRAL",
         adx: ADX_DEFAULT, ema21: 0, plusDI: 25, minusDI: 25
     };
     
     let factorStatus = { f1: false, f2: false, f3: false, ob: false };
     
-    // ==================== PRECISION ====================
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     
-    // ==================== ORDER BLOCK (MURNI SKRIP 1) ====================
+    // ==================== SINGLE EMA FUNCTION ====================
+    function calculateEMA(data, period) {
+        if (!data || data.length < period) return 0;
+        const closes = data.slice(-period * 2).map(c => c.c);
+        if (closes.length < period) return 0;
+        let ema = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        const multiplier = 2 / (period + 1);
+        for (let i = period; i < closes.length; i++) ema = (closes[i] - ema) * multiplier + ema;
+        return ema;
+    }
+    
+    // ==================== ORDER BLOCK ====================
     function detectOrderBlocks(data) {
         if (!data || data.length < 10) return [];
         const blocks = [];
@@ -763,24 +772,12 @@
             if (prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
                 let isHighest = true;
                 for (let j = i - 3; j < i; j++) if (data[j].h > candle.h) isHighest = false;
-                if (isHighest) {
-                    blocks.push({
-                        type: 'BULLISH', high: candle.h, low: candle.o, price: (candle.h + candle.o) / 2,
-                        strength: Math.min(10, Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3),
-                        mitigated: false
-                    });
-                }
+                if (isHighest) blocks.push({ type: 'BULLISH', high: candle.h, low: candle.o, price: (candle.h + candle.o) / 2, strength: Math.min(10, Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3), mitigated: false });
             }
             if (prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
                 let isLowest = true;
                 for (let j = i - 3; j < i; j++) if (data[j].l < candle.l) isLowest = false;
-                if (isLowest) {
-                    blocks.push({
-                        type: 'BEARISH', high: candle.o, low: candle.l, price: (candle.o + candle.l) / 2,
-                        strength: Math.min(10, Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3),
-                        mitigated: false
-                    });
-                }
+                if (isLowest) blocks.push({ type: 'BEARISH', high: candle.o, low: candle.l, price: (candle.o + candle.l) / 2, strength: Math.min(10, Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3), mitigated: false });
             }
         }
         return blocks;
@@ -802,13 +799,7 @@
             if (score > maxScore) { maxScore = score; best = b; }
         }
         
-        if (best) {
-            return {
-                hasOB: true, score: maxScore,
-                strength: maxScore >= 7 ? 'STRONG' : (maxScore >= 4 ? 'MEDIUM' : 'WEAK'),
-                block: best, mitigation, isActive: p >= best.low && p <= best.high
-            };
-        }
+        if (best) return { hasOB: true, score: maxScore, strength: maxScore >= 7 ? 'STRONG' : (maxScore >= 4 ? 'MEDIUM' : 'WEAK'), block: best, mitigation, isActive: p >= best.low && p <= best.high };
         return { hasOB: false, score: 0, strength: 'NONE', block: null, mitigation: 0 };
     }
     
@@ -817,57 +808,44 @@
         obEvaluation = evaluateOB(p);
         factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= 3;
         
-        const typeEl = document.getElementById('ob-type');
-        const biasEl = document.getElementById('ob-bias');
-        const highEl = document.getElementById('ob-high');
-        const lowEl = document.getElementById('ob-low');
-        const midEl = document.getElementById('ob-mid');
-        const fillEl = document.getElementById('ob-range-fill');
-        const strEl = document.getElementById('ob-strength');
-        const mitEl = document.getElementById('ob-mitigation');
-        const distEl = document.getElementById('ob-distance');
-        const chipVal = document.getElementById('ob-chip-value');
-        const chip = document.getElementById('ob-chip');
-        
         const prec = getPrecision();
-        
         if (obEvaluation.hasOB && obEvaluation.block) {
             const b = obEvaluation.block;
             activeOB = b;
-            typeEl.textContent = b.type === 'BULLISH' ? '🟢 BULL' : '🔴 BEAR';
-            typeEl.style.color = b.type === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
-            biasEl.textContent = b.type;
-            biasEl.className = `ob-bias ${b.type.toLowerCase()}`;
-            highEl.textContent = b.high.toFixed(prec);
-            lowEl.textContent = b.low.toFixed(prec);
-            midEl.textContent = b.price.toFixed(prec);
+            UI.obType.textContent = b.type === 'BULLISH' ? '🟢 BULL' : '🔴 BEAR';
+            UI.obType.style.color = b.type === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
+            UI.obBias.textContent = b.type;
+            UI.obBias.className = `ob-bias ${b.type.toLowerCase()}`;
+            UI.obHigh.textContent = b.high.toFixed(prec);
+            UI.obLow.textContent = b.low.toFixed(prec);
+            UI.obMid.textContent = b.price.toFixed(prec);
             
             const range = b.high - b.low;
             let fill = 0;
             if (p >= b.high) fill = 100;
             else if (p <= b.low) fill = 0;
             else fill = ((p - b.low) / range) * 100;
-            fillEl.style.width = Math.min(100, Math.max(0, fill)) + '%';
-            fillEl.className = `ob-range-fill ${b.type.toLowerCase()}`;
+            UI.obRangeFill.style.width = Math.min(100, Math.max(0, fill)) + '%';
+            UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
             
-            strEl.textContent = `${obEvaluation.score.toFixed(1)} (${obEvaluation.strength})`;
-            mitEl.textContent = obEvaluation.isActive ? `${obEvaluation.mitigation.toFixed(0)}%` : 'OUT';
-            distEl.textContent = Math.abs(p - b.price).toFixed(prec);
+            UI.obStrength.textContent = `${obEvaluation.score.toFixed(1)} (${obEvaluation.strength})`;
+            UI.obMitigation.textContent = obEvaluation.isActive ? `${obEvaluation.mitigation.toFixed(0)}%` : 'OUT';
+            UI.obDistance.textContent = Math.abs(p - b.price).toFixed(prec);
             
-            if (chipVal) chipVal.textContent = obEvaluation.isActive ? '✅' : '📍';
-            if (chip) chip.classList.toggle('active', factorStatus.ob);
+            if (UI.obChip) UI.obChip.textContent = obEvaluation.isActive ? '✅' : '📍';
+            if (UI.obChipEl) UI.obChipEl.classList.toggle('active', factorStatus.ob);
         } else {
-            typeEl.textContent = 'SCANNING'; typeEl.style.color = 'var(--text-tertiary)';
-            biasEl.textContent = 'NEUTRAL'; biasEl.className = 'ob-bias';
-            highEl.textContent = lowEl.textContent = midEl.textContent = '—';
-            fillEl.style.width = '0%';
-            strEl.textContent = mitEl.textContent = distEl.textContent = '—';
-            if (chipVal) chipVal.textContent = '—';
-            if (chip) chip.classList.remove('active');
+            UI.obType.textContent = 'SCANNING'; UI.obType.style.color = 'var(--text-tertiary)';
+            UI.obBias.textContent = 'NEUTRAL'; UI.obBias.className = 'ob-bias';
+            UI.obHigh.textContent = UI.obLow.textContent = UI.obMid.textContent = '—';
+            UI.obRangeFill.style.width = '0%';
+            UI.obStrength.textContent = UI.obMitigation.textContent = UI.obDistance.textContent = '—';
+            if (UI.obChip) UI.obChip.textContent = '—';
+            if (UI.obChipEl) UI.obChipEl.classList.remove('active');
         }
     }
     
-    // ==================== SMC (MURNI SKRIP 1) ====================
+    // ==================== SMC LEVELS ====================
     function calculateSMCLevels() {
         if (candleData.length < 30) return;
         const slice = candleData.slice(-50);
@@ -884,14 +862,18 @@
         if (sh === 0) sh = Math.max(...slice.map(c => c.h));
         if (sl === Infinity) sl = Math.min(...slice.map(c => c.l));
         
+        // FIX: Validasi jika sh === sl
+        if (sh <= sl) {
+            sh = sl + (currentPair === "XAUUSDT" ? 5 : 100);
+        }
+        
         engine.swingHigh = sh;
         engine.swingLow = sl;
         const range = sh - sl;
         if (range <= 0) return;
         
-        if (!engine.bosConfirmed) {
-            engine.bias = candleData[candleData.length-1].c > (sh + sl)/2 ? "BULLISH" : "BEARISH";
-        }
+        // Bias SMC berdasarkan posisi harga terhadap mid
+        engine.bias = candleData[candleData.length-1].c > (sh + sl)/2 ? "BULLISH" : "BEARISH";
         
         const isBull = engine.bias.includes("BULL");
         if (isBull) {
@@ -907,25 +889,16 @@
         }
         
         const prec = getPrecision();
-        document.getElementById('swing-high').textContent = sh.toFixed(prec);
-        document.getElementById('swing-low').textContent = sl.toFixed(prec);
-        document.getElementById('r618').textContent = engine.f618.toFixed(prec);
-        document.getElementById('r786').textContent = engine.deep.toFixed(prec);
-        document.getElementById('rTP').textContent = engine.tp.toFixed(prec);
-        document.getElementById('sl-value').textContent = engine.sl.toFixed(prec);
-        document.getElementById('pips-display').textContent = Math.abs(engine.tp - (engine.f618 + engine.deep)/2).toFixed(prec);
+        UI.swingHigh.textContent = sh.toFixed(prec);
+        UI.swingLow.textContent = sl.toFixed(prec);
+        UI.r618.textContent = engine.f618.toFixed(prec);
+        UI.r786.textContent = engine.deep.toFixed(prec);
+        UI.rTP.textContent = engine.tp.toFixed(prec);
+        UI.slValue.textContent = engine.sl.toFixed(prec);
+        UI.pipsDisplay.textContent = Math.abs(engine.tp - (engine.f618 + engine.deep)/2).toFixed(prec);
     }
     
-    // ==================== INDICATORS (MURNI SKRIP 1) ====================
-    function calculateEMA21() {
-        if (candleData.length < 21) return 0;
-        const closes = candleData.slice(-21).map(c => c.c);
-        let ema = closes.slice(0, 21).reduce((a, b) => a + b, 0) / 21;
-        const mult = 2 / 22;
-        for (let i = 21; i < closes.length; i++) ema = (closes[i] - ema) * mult + ema;
-        return ema;
-    }
-    
+    // ==================== INDICATORS ====================
     function calculateADX() {
         if (candleData.length < 28) return ADX_DEFAULT;
         const period = 14;
@@ -944,14 +917,16 @@
         const pDI = sTR > 0 ? (sPDM / sTR) * 100 : 0;
         const mDI = sTR > 0 ? (sMDM / sTR) * 100 : 0;
         engine.plusDI = pDI; engine.minusDI = mDI;
+        
+        // FIX: Bias ADX yang KONSISTEN
+        engine.adxBias = pDI > mDI ? "BULLISH" : (mDI > pDI ? "BEARISH" : "NEUTRAL");
+        
         return (pDI + mDI) === 0 ? 0 : (Math.abs(pDI - mDI) / (pDI + mDI)) * 100;
     }
     
-    function computeRSI(price) {
-        if (candleData.length < 20) return 50;
-        let closes = candleData.map(c => c.c);
-        closes.push(safeValue(price, 0));
-        if (closes.length < 15) return 50;
+    function computeRSI() {
+        if (candleData.length < 15) return 50;
+        const closes = candleData.map(c => c.c);
         let gains = [], losses = [];
         for (let i = 1; i < closes.length; i++) {
             const diff = closes[i] - closes[i-1];
@@ -967,82 +942,66 @@
         return avgL === 0 ? 100 : 100 - (100 / (1 + avgG / avgL));
     }
     
-    // ==================== MTF (MURNI SKRIP 1) ====================
+    // ==================== MTF (FIXED: H4 ADDED) ====================
     async function fetchMTFData() {
-        const tfs = ['1h', '15m', '5m'];
+        const tfs = ['4h', '1h', '15m', '5m'];
         await Promise.all(tfs.map(async tf => {
             try {
                 const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf}&limit=100`);
                 const data = await resp.json();
                 if (Array.isArray(data)) {
                     const closes = data.map(d => parseFloat(d[4]));
-                    let ema = closes.slice(0, 21).reduce((a, b) => a + b, 0) / 21;
-                    for (let i = 21; i < closes.length; i++) ema = (closes[i] - ema) * 0.0909 + ema;
+                    const ema = calculateEMA(data.map(d => ({ c: parseFloat(d[4]) })), 21);
                     const bias = closes[closes.length-1] > ema ? "BULLISH" : "BEARISH";
-                    if (tf === '5m') mtfBiasCache.m5 = bias;
+                    if (tf === '4h') mtfBiasCache.h4 = bias;
+                    else if (tf === '1h') mtfBiasCache.h1 = bias;
                     else if (tf === '15m') mtfBiasCache.m15 = bias;
-                    else mtfBiasCache.h1 = bias;
+                    else if (tf === '5m') mtfBiasCache.m5 = bias;
                 }
-            } catch(e) {}
+            } catch(e) { console.error(`MTF fetch error (${tf}):`, e); }
         }));
         
-        const setMTF = (id, bias) => {
-            const el = document.getElementById(id);
-            if (el) { el.textContent = bias === 'BULLISH' ? '▲' : '▼'; el.style.color = bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)'; }
-        };
-        setMTF('mtf-h1', mtfBiasCache.h1);
-        setMTF('mtf-m15', mtfBiasCache.m15);
-        setMTF('mtf-m5', mtfBiasCache.m5);
+        const setMTF = (el, bias) => { if (el) { el.textContent = bias === 'BULLISH' ? '▲' : '▼'; el.style.color = bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)'; } };
+        setMTF(UI.mtfH4, mtfBiasCache.h4);
+        setMTF(UI.mtfH1, mtfBiasCache.h1);
+        setMTF(UI.mtfM15, mtfBiasCache.m15);
+        setMTF(UI.mtfM5, mtfBiasCache.m5);
         
-        factorStatus.f2 = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1].filter(b => b === "BULLISH").length >= 2 ||
-                         [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1].filter(b => b === "BEARISH").length >= 2;
+        factorStatus.f2 = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b => b === "BULLISH").length >= 3 ||
+                         [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b => b === "BEARISH").length >= 3;
     }
     
-    // ==================== RSI BAR UPDATE ====================
-    function updateRSIBar(rsi) {
-        const rsiValue = document.getElementById('rsi-bar-value');
-        const rsiFill = document.getElementById('rsi-fill');
-        
-        if (rsiValue) rsiValue.textContent = rsi.toFixed(1);
-        if (rsiFill) {
-            rsiFill.style.width = Math.min(100, Math.max(0, rsi)) + '%';
-            rsiFill.className = 'rsi-fill';
-            if (rsi < 30) rsiFill.classList.add('oversold');
-            else if (rsi > 70) rsiFill.classList.add('overbought');
-            else rsiFill.classList.add('neutral');
-        }
-        
-        const rsiChip = document.getElementById('rsi-chip-value');
-        if (rsiChip) rsiChip.textContent = rsi.toFixed(0);
-    }
-    
-    // ==================== DECISION (MURNI SKRIP 1) ====================
+    // ==================== DECISION ENGINE (KONSISTEN) ====================
     function updateDecision() {
         const p = lastPrice;
-        const decisionEl = document.getElementById('decision-status');
-        const arrowEl = document.getElementById('direction-arrow');
-        const signalBar = document.getElementById('signal-bar');
+        const prec = getPrecision();
         
         if (isDataStale) {
-            decisionEl.textContent = 'DATA STALE';
-            decisionEl.style.color = 'var(--warning)';
-            signalBar.style.background = 'rgba(220, 38, 38, 0.1)';
+            UI.decision.textContent = 'DATA STALE';
+            UI.decision.style.color = 'var(--warning)';
+            UI.signalBar.style.background = 'rgba(220, 38, 38, 0.1)';
             return;
         }
         
         if (Date.now() < lastSignalExpiry) {
             const rem = Math.ceil((lastSignalExpiry - Date.now()) / 1000);
-            decisionEl.textContent = `${lastSignalDecision} (${Math.floor(rem/60)}m${rem%60}s)`;
+            UI.decision.textContent = `${lastSignalDecision} (${Math.floor(rem/60)}m${rem%60}s)`;
             return;
         }
         
         calculateSMCLevels();
-        engine.ema21 = calculateEMA21();
+        engine.ema21 = calculateEMA(candleData, 21);
         engine.adx = calculateADX();
         updateOBUI(p);
-        const rsi = computeRSI(p);
         
-        updateRSIBar(rsi);
+        const rsi = computeRSI();
+        UI.rsiValue.textContent = rsi.toFixed(1);
+        UI.rsiFill.style.width = Math.min(100, Math.max(0, rsi)) + '%';
+        UI.rsiFill.className = 'rsi-fill';
+        if (rsi < 30) UI.rsiFill.classList.add('oversold');
+        else if (rsi > 70) UI.rsiFill.classList.add('overbought');
+        else UI.rsiFill.classList.add('neutral');
+        if (UI.rsiChip) UI.rsiChip.textContent = rsi.toFixed(0);
         
         const inZone = p >= Math.min(engine.f618, engine.deep) && p <= Math.max(engine.f618, engine.deep);
         factorStatus.f1 = engine.bias !== "NEUTRAL";
@@ -1054,25 +1013,24 @@
         if (factorStatus.f3) score += 2;
         if (factorStatus.ob) score += obEvaluation.strength === 'STRONG' ? 3 : (obEvaluation.strength === 'MEDIUM' ? 2 : 1);
         
-        const prec = getPrecision();
-        document.getElementById('ema-value').textContent = engine.ema21.toFixed(prec);
-        document.getElementById('ema-distance').textContent = `${(p > engine.ema21 ? '+' : '')}${(p - engine.ema21).toFixed(prec)} (${((p - engine.ema21)/engine.ema21*100).toFixed(2)}%)`;
-        document.getElementById('ema-trend').textContent = p > engine.ema21 ? '▲' : '▼';
-        document.getElementById('ema-trend').style.color = p > engine.ema21 ? 'var(--accent-green)' : 'var(--accent-red)';
+        UI.emaValue.textContent = engine.ema21.toFixed(prec);
+        UI.emaDistance.textContent = `${(p > engine.ema21 ? '+' : '')}${(p - engine.ema21).toFixed(prec)} (${((p - engine.ema21)/engine.ema21*100).toFixed(2)}%)`;
+        UI.emaTrend.textContent = p > engine.ema21 ? '▲' : '▼';
+        UI.emaTrend.style.color = p > engine.ema21 ? 'var(--accent-green)' : 'var(--accent-red)';
+        if (UI.emaChip) UI.emaChip.textContent = engine.ema21.toFixed(prec);
         
-        const emaChip = document.getElementById('ema-chip-value');
-        if (emaChip) emaChip.textContent = engine.ema21.toFixed(prec);
+        UI.adxValue.textContent = Math.round(engine.adx);
+        UI.diValues.textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
+        UI.adxTrend.textContent = engine.plusDI > engine.minusDI ? '▲' : '▼';
+        UI.adxTrend.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
+        if (UI.adxChip) UI.adxChip.textContent = Math.round(engine.adx);
         
-        document.getElementById('adx-value').textContent = Math.round(engine.adx);
-        document.getElementById('di-values').textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
-        document.getElementById('adx-trend').textContent = engine.plusDI > engine.minusDI ? '▲' : '▼';
-        document.getElementById('adx-trend').style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
+        // FIX: Konsisten - Arrow dan Decision menggunakan ADX bias
+        const signalDirection = engine.adxBias;
+        const isBullish = signalDirection === "BULLISH";
         
-        const adxChip = document.getElementById('adx-chip-value');
-        if (adxChip) adxChip.textContent = Math.round(engine.adx);
-        
-        arrowEl.innerHTML = engine.plusDI > engine.minusDI ? '▲' : '▼';
-        arrowEl.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
+        UI.arrow.innerHTML = isBullish ? '▲' : '▼';
+        UI.arrow.style.color = isBullish ? 'var(--accent-green)' : 'var(--accent-red)';
         
         activeModes = {
             conservative: factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score >= 6,
@@ -1081,29 +1039,31 @@
             sniperQuality: obEvaluation.strength === 'STRONG' ? 'GOLDEN' : 'SILVER'
         };
         
-        document.querySelector('[data-mode="conservative"]').classList.toggle('active', activeModes.conservative);
-        document.querySelector('[data-mode="sniper"]').classList.toggle('active', activeModes.sniper);
-        document.querySelector('[data-mode="semiretail"]').classList.toggle('active', activeModes.semiretail);
-        document.getElementById('sniper-badge').textContent = activeModes.sniperQuality === 'GOLDEN' ? '🏆' : '';
+        UI.consBtn.classList.toggle('active', activeModes.conservative);
+        UI.snipBtn.classList.toggle('active', activeModes.sniper);
+        UI.semiBtn.classList.toggle('active', activeModes.semiretail);
+        UI.sniperBadge.textContent = activeModes.sniperQuality === 'GOLDEN' ? '🏆' : '';
         
         let decision = '', color = '', bgColor = '';
-        if (activeModes.conservative) { decision = `CONSERVATIVE ${engine.bias.includes('BULL') ? 'BUY' : 'SELL'}`; color = 'var(--accent-green)'; bgColor = 'rgba(16, 185, 129, 0.08)'; }
-        else if (activeModes.sniper) { decision = `SNIPER ${engine.bias.includes('BULL') ? 'BUY' : 'SELL'}`; color = 'var(--accent-purple)'; bgColor = 'rgba(139, 92, 246, 0.08)'; }
-        else if (activeModes.semiretail) { decision = `SEMI-RETAIL ${engine.bias.includes('BULL') ? 'BUY' : 'SELL'}`; color = 'var(--accent-orange)'; bgColor = 'rgba(245, 158, 11, 0.08)'; }
-        else if (factorStatus.ob && obEvaluation.strength === 'STRONG' && score >= 6) { decision = `OB CONFLUENCE ${engine.bias.includes('BULL') ? 'BUY' : 'SELL'}`; color = 'var(--accent-cyan)'; bgColor = 'rgba(0, 191, 255, 0.05)'; }
+        const action = isBullish ? 'BUY' : 'SELL';
+        
+        if (activeModes.conservative) { decision = `CONSERVATIVE ${action}`; color = 'var(--accent-green)'; bgColor = 'rgba(16, 185, 129, 0.08)'; }
+        else if (activeModes.sniper) { decision = `SNIPER ${action}`; color = 'var(--accent-purple)'; bgColor = 'rgba(139, 92, 246, 0.08)'; }
+        else if (activeModes.semiretail) { decision = `SEMI-RETAIL ${action}`; color = 'var(--accent-orange)'; bgColor = 'rgba(245, 158, 11, 0.08)'; }
+        else if (factorStatus.ob && obEvaluation.strength === 'STRONG' && score >= 6) { decision = `OB CONFLUENCE ${action}`; color = 'var(--accent-cyan)'; bgColor = 'rgba(0, 191, 255, 0.05)'; }
         else if (score >= 4) { decision = 'WAITING'; color = 'var(--accent-gold)'; bgColor = 'var(--bg-secondary)'; }
         else { decision = 'NO SETUP'; color = 'var(--text-tertiary)'; bgColor = 'var(--bg-secondary)'; }
         
-        decisionEl.textContent = `${decision} [${score}/10]`;
-        decisionEl.style.color = color;
-        signalBar.style.background = bgColor;
-        signalBar.style.borderColor = activeModes.conservative || activeModes.sniper || activeModes.semiretail ? color : 'var(--border-subtle)';
+        UI.decision.textContent = `${decision} [${score}/10]`;
+        UI.decision.style.color = color;
+        UI.signalBar.style.background = bgColor;
+        UI.signalBar.style.borderColor = activeModes.conservative || activeModes.sniper || activeModes.semiretail ? color : 'var(--border-subtle)';
         
         if (activeModes.conservative || activeModes.sniper || activeModes.semiretail) {
             lastSignalExpiry = Date.now() + THROTTLE_MINUTES * 60000;
             lastSignalDecision = decision;
-            signalBar.classList.add('decision-animate');
-            setTimeout(() => signalBar.classList.remove('decision-animate'), 300);
+            UI.signalBar.classList.add('decision-animate');
+            setTimeout(() => UI.signalBar.classList.remove('decision-animate'), 300);
         }
     }
     
@@ -1111,20 +1071,18 @@
     function updateUI(price) {
         const p = safeValue(price, 0);
         const prec = getPrecision();
-        const priceEl = document.getElementById('live-price');
-        const changeEl = document.getElementById('price-change');
         
-        if (priceEl) {
+        if (UI.priceMain) {
             const fixed = p.toFixed(prec);
             const parts = fixed.split('.');
-            priceEl.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`;
-            priceEl.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
+            UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`;
+            UI.priceMain.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
         }
-        if (changeEl && prevPrice > 0) {
+        if (UI.priceChange && prevPrice > 0) {
             const change = p - prevPrice;
             const pct = (change / prevPrice) * 100;
-            changeEl.innerHTML = `${change > 0 ? '+' : ''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`;
-            changeEl.style.color = change > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+            UI.priceChange.innerHTML = `${change > 0 ? '+' : ''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`;
+            UI.priceChange.style.color = change > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
         }
         
         updateDecision();
@@ -1132,56 +1090,26 @@
         lastPrice = p;
     }
     
-    // ==================== WEBSOCKET KLINE (MURNI SKRIP 1) ====================
+    // ==================== WEBSOCKET (TIDAK DIUBAH) ====================
     function updateWSStatus(status, message) {
-        const dot = document.getElementById('status-dot');
-        const text = document.getElementById('status-text');
-        const signalBar = document.getElementById('signal-bar');
-        if (!dot || !text) return;
+        if (!UI.dot || !UI.text) return;
+        UI.dot.className = 'status-dot';
+        if (status === 'live') { UI.dot.classList.add('live'); UI.text.innerText = message || 'LIVE'; reconnectDelay = 1000; isUsingFallback = false; isDataStale = false; }
+        else if (status === 'connecting') { UI.dot.classList.add('connecting'); UI.text.innerText = message || 'CONNECTING'; }
+        else if (status === 'reconnect') { UI.dot.classList.add('reconnect'); UI.text.innerText = message || 'RECONNECT'; }
+        else if (status === 'fallback') { UI.dot.classList.add('fallback'); UI.text.innerText = message || 'FALLBACK'; isUsingFallback = true; }
+        else if (status === 'stale') { UI.dot.classList.add('stale'); UI.text.innerText = message || 'DATA STALE'; isDataStale = true; }
+        else { UI.dot.classList.add('offline'); UI.text.innerText = message || 'OFFLINE'; }
         
-        dot.className = 'status-dot';
-        if (status === 'live') {
-            dot.classList.add('live');
-            text.innerText = message || 'LIVE';
-            reconnectDelay = 1000;
-            isUsingFallback = false;
-            isDataStale = false;
-        } else if (status === 'connecting') {
-            dot.classList.add('connecting');
-            text.innerText = message || 'CONNECTING';
-        } else if (status === 'reconnect') {
-            dot.classList.add('reconnect');
-            text.innerText = message || 'RECONNECT';
-        } else if (status === 'fallback') {
-            dot.classList.add('fallback');
-            text.innerText = message || 'FALLBACK';
-            isUsingFallback = true;
-        } else if (status === 'stale') {
-            dot.classList.add('stale');
-            text.innerText = message || 'DATA STALE';
-            isDataStale = true;
-        } else {
-            dot.classList.add('offline');
-            text.innerText = message || 'OFFLINE';
-        }
-        
-        if (signalBar) {
-            if (isDataStale) signalBar.classList.add('stale-warning');
-            else signalBar.classList.remove('stale-warning');
-        }
+        if (UI.signalBar) UI.signalBar.classList.toggle('stale-warning', isDataStale);
     }
 
     function cleanupWebSocket() {
         if (wsConnection) {
             isManualDisconnect = true;
             try {
-                wsConnection.onopen = null;
-                wsConnection.onmessage = null;
-                wsConnection.onclose = null;
-                wsConnection.onerror = null;
-                if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) {
-                    wsConnection.close();
-                }
+                wsConnection.onopen = wsConnection.onmessage = wsConnection.onclose = wsConnection.onerror = null;
+                if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) wsConnection.close();
             } catch(e) {}
             wsConnection = null;
         }
@@ -1192,7 +1120,6 @@
         cleanupWebSocket();
         updateWSStatus('connecting', 'CONNECTING');
         
-        // INI ADALAH KUNCI UTAMA: MENGGUNAKAN KLINE STREAM SEPERTI SKRIP 1
         const streamName = `${currentPair.toLowerCase()}@kline_${currentTF}`;
         const wsUrl = `wss://fstream.binance.com/ws/${streamName}`;
         
@@ -1202,12 +1129,9 @@
             wsConnection.onopen = () => {
                 console.log(`✅ WebSocket KLINE connected: ${currentPair} @ ${currentTF}`);
                 reconnectDelay = 1000;
-                lastWSMessageTime = Date.now();
-                lastPriceUpdateTime = Date.now();
-                
+                lastWSMessageTime = lastPriceUpdateTime = Date.now();
                 if (isUsingFallback) isUsingFallback = false;
                 if (isDataStale) isDataStale = false;
-                
                 updateWSStatus('live', `LIVE ${currentTF}`);
             };
             
@@ -1223,8 +1147,7 @@
                         const isClosed = k.x;
                         
                         if (price > 0) {
-                            lastWSMessageTime = Date.now();
-                            lastPriceUpdateTime = Date.now();
+                            lastWSMessageTime = lastPriceUpdateTime = Date.now();
                             
                             if (isUsingFallback) updateWSStatus('live', `LIVE ${currentTF}`);
                             if (isDataStale) updateWSStatus('live', `LIVE ${currentTF}`);
@@ -1232,14 +1155,10 @@
                             if (candleData.length) {
                                 const lc = candleData[candleData.length-1];
                                 if (isClosed) {
-                                    // CANDLE BARU - AKURASI TINGGI DARI BINANCE
-                                    candleData.push({
-                                        t: k.t, o: open, h: high, l: low, c: price, v: parseFloat(k.v)
-                                    });
+                                    candleData.push({ t: k.t, o: open, h: high, l: low, c: price, v: parseFloat(k.v) });
                                     if (candleData.length > 150) candleData.shift();
                                     orderBlocks = detectOrderBlocks(candleData);
                                 } else {
-                                    // UPDATE CANDLE AKTIF
                                     lc.c = price;
                                     lc.h = Math.max(lc.h, high);
                                     lc.l = Math.min(lc.l, low);
@@ -1250,17 +1169,13 @@
                             updateUI(price);
                         }
                     }
-                } catch (err) {
-                    console.warn("WS message error:", err);
-                }
+                } catch (err) { console.warn("WS message error:", err); }
             };
             
             wsConnection.onclose = (event) => {
                 console.log(`WebSocket closed: ${currentPair}, code: ${event.code}`);
-                
                 if (!isReloading && !isManualDisconnect) {
                     updateWSStatus('reconnect', 'RECONNECT');
-                    
                     if (reconnectTimer) clearTimeout(reconnectTimer);
                     reconnectTimer = setTimeout(() => {
                         if (!isReloading && !isManualDisconnect) {
@@ -1273,9 +1188,7 @@
             
             wsConnection.onerror = (error) => {
                 console.warn(`WebSocket error: ${currentPair}`, error);
-                if (!isReloading && !isManualDisconnect) {
-                    updateWSStatus('reconnect', 'ERROR');
-                }
+                if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect', 'ERROR');
             };
             
         } catch (e) {
@@ -1290,10 +1203,7 @@
             const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=150`);
             const data = await resp.json();
             if (Array.isArray(data)) {
-                candleData = data.map(d => ({ 
-                    t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), 
-                    l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) 
-                }));
+                candleData = data.map(d => ({ t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) }));
                 if (candleData.length) { 
                     lastPrice = prevPrice = candleData[candleData.length-1].c; 
                     orderBlocks = detectOrderBlocks(candleData); 
@@ -1301,7 +1211,7 @@
                 }
                 return true;
             }
-        } catch(e) {}
+        } catch(e) { console.error('fetchKlines error:', e); }
         return false;
     }
     
@@ -1316,14 +1226,13 @@
                     updateUI(price);
                 }
             }
-        } catch(e) {}
+        } catch(e) { console.error('fetchPriceREST error:', e); }
     }
     
     async function fullReload() {
         if (isReloading) return;
         isReloading = true;
         
-        // Disable tabs
         document.querySelectorAll('[data-pair], [data-tf]').forEach(b => b.classList.add('disabled'));
         
         if (heartbeatInterval) clearInterval(heartbeatInterval);
@@ -1336,7 +1245,7 @@
         
         updateWSStatus('connecting', 'LOADING');
         
-        engine = { swingHigh:0, swingLow:0, f618:0, deep:0, tp:0, sl:0, bias:"NEUTRAL", sweepDetected:false, bosConfirmed:false, adx:ADX_DEFAULT, ema21:0, plusDI:25, minusDI:25 };
+        engine = { swingHigh:0, swingLow:0, f618:0, deep:0, tp:0, sl:0, bias:"NEUTRAL", adxBias:"NEUTRAL", adx:ADX_DEFAULT, ema21:0, plusDI:25, minusDI:25 };
         factorStatus = { f1:false, f2:false, f3:false, ob:false };
         orderBlocks = []; activeOB = null;
         lastSignalExpiry = 0;
@@ -1345,21 +1254,14 @@
         await fetchMTFData();
         initWebSocket();
         
-        heartbeatInterval = setInterval(() => { 
-            if (wsConnection?.readyState === WebSocket.OPEN) {
-                try { wsConnection.send(JSON.stringify({method:"ping"})); } catch(e) {}
-            }
-        }, 30000);
+        heartbeatInterval = setInterval(() => { if (wsConnection?.readyState === WebSocket.OPEN) try { wsConnection.send(JSON.stringify({method:"ping"})); } catch(e) {} }, 30000);
         
         stuckCheckInterval = setInterval(() => {
             const now = Date.now();
             const timeSinceLastPrice = now - lastPriceUpdateTime;
             
-            if (timeSinceLastPrice > STALE_THRESHOLD && lastPrice > 0) {
-                if (!isDataStale) updateWSStatus('stale');
-            } else if (isDataStale && timeSinceLastPrice < 5000) {
-                updateWSStatus(isUsingFallback ? 'fallback' : 'live');
-            }
+            if (timeSinceLastPrice > STALE_THRESHOLD && lastPrice > 0) { if (!isDataStale) updateWSStatus('stale'); }
+            else if (isDataStale && timeSinceLastPrice < 5000) updateWSStatus(isUsingFallback ? 'fallback' : 'live');
             
             const timeSinceLastMsg = now - lastWSMessageTime;
             if (wsConnection?.readyState === WebSocket.OPEN && timeSinceLastMsg > 10000 && !isUsingFallback && !isReloading) {
@@ -1368,46 +1270,31 @@
                 fetchPriceREST();
             }
             
-            if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) {
-                updateWSStatus('reconnect');
-            }
+            if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect');
         }, 5000);
         
         restFallbackInterval = setInterval(fetchPriceREST, 5000);
         
-        // Enable tabs
         document.querySelectorAll('[data-pair], [data-tf]').forEach(b => b.classList.remove('disabled'));
         
         isReloading = false;
     }
     
     // ==================== EVENT LISTENERS ====================
-    document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => { 
-        if (!isReloading) { 
-            currentPair = b.dataset.pair; 
-            localStorage.setItem('lastPair', currentPair); 
-            fullReload(); 
-        } 
-    });
-    document.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => { 
-        if (!isReloading) { 
-            currentTF = b.dataset.tf; 
-            localStorage.setItem('lastTF', currentTF); 
-            fullReload(); 
-        } 
-    });
+    document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => { if (!isReloading) { currentPair = b.dataset.pair; localStorage.setItem('lastPair', currentPair); fullReload(); } });
+    document.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => { if (!isReloading) { currentTF = b.dataset.tf; localStorage.setItem('lastTF', currentTF); fullReload(); } });
     
     window.copySwingHL = () => {
-        const swingHigh = document.getElementById('swing-high')?.textContent || '—';
-        const swingLow = document.getElementById('swing-low')?.textContent || '—';
+        const swingHigh = UI.swingHigh?.textContent || '—';
+        const swingLow = UI.swingLow?.textContent || '—';
         navigator.clipboard?.writeText(`Swing H: ${swingHigh} | L: ${swingLow}`);
         const el = document.querySelector('[onclick="copySwingHL()"]');
         if (el) { el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
     };
     
     window.copyEntryZone = () => {
-        const r618 = document.getElementById('r618')?.textContent || '—';
-        const r786 = document.getElementById('r786')?.textContent || '—';
+        const r618 = UI.r618?.textContent || '—';
+        const r786 = UI.r786?.textContent || '—';
         navigator.clipboard?.writeText(`Entry Zone: ${r618} / ${r786}`);
         const el = document.querySelector('[onclick="copyEntryZone()"]');
         if (el) { el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
@@ -1418,12 +1305,11 @@
         if (el) { navigator.clipboard?.writeText(el.textContent.trim()); el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
     };
     
-    // Clock
     setInterval(() => {
         const now = new Date();
-        document.getElementById('clock-display').textContent = now.toLocaleTimeString('id-ID');
-        document.getElementById('date-display').textContent = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`;
-        document.getElementById('session-tag').textContent = now.getHours() >= 7 && now.getHours() < 14 ? 'ASIA' : (now.getHours() >= 14 && now.getHours() < 20 ? 'LONDON' : 'NY');
+        UI.clock.textContent = now.toLocaleTimeString('id-ID');
+        UI.date.textContent = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`;
+        UI.session.textContent = now.getHours() >= 7 && now.getHours() < 14 ? 'ASIA' : (now.getHours() >= 14 && now.getHours() < 20 ? 'LONDON' : 'NY');
     }, 1000);
     
     setInterval(fetchMTFData, 120000);
