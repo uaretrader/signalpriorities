@@ -916,64 +916,90 @@
         UI.pipsDisplay.textContent = Math.abs(engine.tp - (engine.f618 + engine.deep)/2).toFixed(prec);
     }
     
-    // ==================== FIX: ADX DENGAN WILDER SMOOTHING ====================
-    function calculateADX() {
-        if (candleData.length < 28) return 15; // Default ADX
+    // ==================== FIX: ADX DENGAN WILDER SMOOTHING FULL (TR/DM + DX) ====================
+function calculateADX() {
+    if (candleData.length < 28) return 15; // Default ADX saat data belum cukup
+    
+    const period = 14;
+    
+    // 1. Kumpulkan True Range, +DM, -DM
+    let tr = [], plusDM = [], minusDM = [];
+    for (let i = 1; i < candleData.length; i++) {
+        const h = candleData[i].h, l = candleData[i].l;
+        const ph = candleData[i-1].h, pl = candleData[i-1].l, pc = candleData[i-1].c;
         
-        const period = 14;
+        const trueRange = Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+        tr.push(trueRange);
         
-        // Hitung True Range, +DM, -DM
-        let tr = [], plusDM = [], minusDM = [];
-        for (let i = 1; i < candleData.length; i++) {
-            const h = candleData[i].h, l = candleData[i].l;
-            const ph = candleData[i-1].h, pl = candleData[i-1].l, pc = candleData[i-1].c;
-            
-            const trueRange = Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
-            tr.push(trueRange);
-            
-            const upMove = h - ph;
-            const downMove = pl - l;
-            
-            if (upMove > downMove && upMove > 0) {
-                plusDM.push(upMove);
-                minusDM.push(0);
-            } else if (downMove > upMove && downMove > 0) {
-                plusDM.push(0);
-                minusDM.push(downMove);
-            } else {
-                plusDM.push(0);
-                minusDM.push(0);
-            }
+        const upMove = h - ph;
+        const downMove = pl - l;
+        
+        if (upMove > downMove && upMove > 0) {
+            plusDM.push(upMove);
+            minusDM.push(0);
+        } else if (downMove > upMove && downMove > 0) {
+            plusDM.push(0);
+            minusDM.push(downMove);
+        } else {
+            plusDM.push(0);
+            minusDM.push(0);
         }
+    }
+    
+    // 2. Wilder's Smoothing untuk TR, +DM, -DM
+    let atr = tr.slice(0, period).reduce((a, b) => a + b, 0);
+    let pDM = plusDM.slice(0, period).reduce((a, b) => a + b, 0);
+    let mDM = minusDM.slice(0, period).reduce((a, b) => a + b, 0);
+    
+    let dxValues = [];
+    let lastPDI = 0, lastMDI = 0;
+    
+    for (let i = period; i < tr.length; i++) {
+        // Wilder's Smoothing untuk TR, +DM, -DM
+        atr = (atr * (period - 1) + tr[i]) / period;
+        pDM = (pDM * (period - 1) + plusDM[i]) / period;
+        mDM = (mDM * (period - 1) + minusDM[i]) / period;
         
-        // Wilder Smoothing (EMA-like untuk ADX)
-        let atr = tr.slice(0, period).reduce((a, b) => a + b, 0);
-        let pDM = plusDM.slice(0, period).reduce((a, b) => a + b, 0);
-        let mDM = minusDM.slice(0, period).reduce((a, b) => a + b, 0);
-        
-        for (let i = period; i < tr.length; i++) {
-            atr = (atr * (period - 1) + tr[i]) / period;
-            pDM = (pDM * (period - 1) + plusDM[i]) / period;
-            mDM = (mDM * (period - 1) + minusDM[i]) / period;
-        }
-        
+        // Hitung +DI dan -DI
         const pDI = atr > 0 ? (pDM / atr) * 100 : 0;
         const mDI = atr > 0 ? (mDM / atr) * 100 : 0;
-        const dx = (pDI + mDI) > 0 ? Math.abs(pDI - mDI) / (pDI + mDI) * 100 : 0;
         
-        // FIX: ADX adalah rata-rata DX 14 periode
-        // Untuk menyederhanakan, kita gunakan DX langsung dengan minimum 5
-        let adxValue = dx;
+        // Simpan DI terakhir untuk bias dan tampilan
+        lastPDI = pDI;
+        lastMDI = mDI;
         
-        // FIX: ADX tidak pernah 0, minimal 5
-        adxValue = Math.max(5, Math.min(100, adxValue));
-        
-        engine.plusDI = Math.round(pDI);
-        engine.minusDI = Math.round(mDI);
-        engine.adxBias = pDI > mDI ? "BULLISH" : (mDI > pDI ? "BEARISH" : "NEUTRAL");
-        
-        return adxValue;
+        // Hitung DX (Directional Movement Index)
+        const dx = (pDI + mDI) > 0 
+            ? (Math.abs(pDI - mDI) / (pDI + mDI)) * 100 
+            : 0;
+        dxValues.push(dx);
     }
+    
+    // 3. Smoothing DX untuk mendapatkan ADX (Sesuai Standar Welles Wilder)
+    let adxValue;
+    if (dxValues.length >= period) {
+        // ADX pertama: simple average dari 14 DX pertama
+        let smoothedADX = dxValues.slice(0, period).reduce((a, b) => a + b, 0) / period;
+        
+        // ADX selanjutnya: Wilder's Smoothing
+        for (let i = period; i < dxValues.length; i++) {
+            smoothedADX = (smoothedADX * (period - 1) + dxValues[i]) / period;
+        }
+        adxValue = smoothedADX;
+    } else {
+        adxValue = 15; // Default jika DX belum cukup
+    }
+    
+    // 4. Batasan nilai ADX (tidak pernah 0, minimal 5)
+    adxValue = Math.max(5, Math.min(100, adxValue));
+    
+    // 5. Set engine values untuk digunakan di tempat lain
+    engine.plusDI = Math.round(lastPDI);
+    engine.minusDI = Math.round(lastMDI);
+    engine.adxBias = lastPDI > lastMDI ? "BULLISH" : (lastMDI > lastPDI ? "BEARISH" : "NEUTRAL");
+    
+    return adxValue;
+}
     
     function computeRSI() {
         if (candleData.length < 15) return 50;
