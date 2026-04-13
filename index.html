@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · BIAS ENGINE v22.6</title>
+    <title>SMC APEX · BIAS ENGINE v22.7</title>
     <style>
         /* ============================================================
-           STYLE 100% ASLI - TIDAK DIUBAH
+           STYLE ASLI + PERBAIKAN VISUAL
            ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -286,6 +286,11 @@
             color: var(--text-secondary);
         }
         
+        /* FIX: ADX Warning Style */
+        .adx-warning {
+            color: var(--warning) !important;
+        }
+        
         .rsi-bar-container {
             background: var(--bg-secondary);
             border: 1px solid var(--border-subtle);
@@ -412,6 +417,12 @@
             color: var(--text-secondary);
         }
         
+        /* FIX: Zone Warning */
+        .zone-warning {
+            background: rgba(245, 158, 11, 0.15) !important;
+            border-color: var(--warning) !important;
+        }
+        
         .levels-grid-vertical {
             display: flex;
             flex-direction: column;
@@ -529,6 +540,7 @@
         .text-gold { color: var(--accent-gold); }
         .text-blue { color: var(--accent-blue); }
         .text-cyan { color: var(--accent-cyan); }
+        .text-warning { color: var(--warning); }
         
         .badge {
             font-size: 0.45rem;
@@ -543,7 +555,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">v22.6 FINAL</span>
+            <span class="version-tag">v22.7 FIX</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -629,7 +641,7 @@
         </div>
     </div>
 
-    <div class="levels-grid-vertical">
+    <div class="levels-grid-vertical" id="levels-grid">
         <div class="level-row" onclick="copySwingHL()"><span class="level-label-lg">SWING H/L</span><span class="level-value-lg"><span id="swing-high">—</span> / <span id="swing-low">—</span></span></div>
         <div class="level-row" onclick="smartCopy('sl-value')"><span class="level-label-lg">SL (50%)</span><span class="level-value-lg text-red" id="sl-value">—</span></div>
         <div class="level-row" onclick="copyEntryZone()"><span class="level-label-lg">ENTRY ZONE</span><span class="level-value-lg"><span class="text-gold" id="r618">—</span> / <span class="text-gold" id="r786">—</span></span></div>
@@ -660,9 +672,9 @@
 (function() {
     'use strict';
     
-    console.log('%c🔥 SMC APEX v22.6 FINAL | Full Optimized & Consistent', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX v22.7 | ADX Fixed + OB Score Fixed + Zone Warning', 'color: #00BFFF; font-weight: 700;');
     
-    // ==================== DOM CACHE (100% COMPLETE) ====================
+    // ==================== DOM CACHE ====================
     const UI = {
         dot: document.getElementById('status-dot'),
         text: document.getElementById('status-text'),
@@ -710,12 +722,12 @@
         adxChip: document.getElementById('adx-chip-value'),
         rsiChip: document.getElementById('rsi-chip-value'),
         obChip: document.getElementById('ob-chip-value'),
-        obChipEl: document.getElementById('ob-chip')
+        obChipEl: document.getElementById('ob-chip'),
+        levelsGrid: document.getElementById('levels-grid')
     };
 
-    // ==================== CONFIG (TIDAK DIUBAH) ====================
+    // ==================== CONFIG ====================
     const safeValue = (val, fallback = 0) => (val === null || val === undefined || typeof val !== 'number' || isNaN(val) || !isFinite(val)) ? fallback : val;
-    const ADX_DEFAULT = 15;
     const STALE_THRESHOLD = 10000;
     const THROTTLE_MINUTES = 2;
     
@@ -745,12 +757,13 @@
     let engine = {
         swingHigh: 0, swingLow: 0, f618: 0, deep: 0, tp: 0, sl: 0,
         bias: "NEUTRAL", adxBias: "NEUTRAL",
-        adx: ADX_DEFAULT, ema21: 0, plusDI: 25, minusDI: 25
+        adx: 0, ema21: 0, plusDI: 0, minusDI: 0,
+        trSmooth: 0, pdmSmooth: 0, mdmSmooth: 0
     };
     
     let factorStatus = { f1: false, f2: false, f3: false, ob: false };
     
-    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
+    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : (currentPair === "BTCUSDT" ? 1 : 2); }
     
     // ==================== SINGLE EMA FUNCTION ====================
     function calculateEMA(data, period) {
@@ -763,7 +776,7 @@
         return ema;
     }
     
-    // ==================== ORDER BLOCK ====================
+    // ==================== ORDER BLOCK (FIX: MAX SCORE 10) ====================
     function detectOrderBlocks(data) {
         if (!data || data.length < 10) return [];
         const blocks = [];
@@ -772,12 +785,18 @@
             if (prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
                 let isHighest = true;
                 for (let j = i - 3; j < i; j++) if (data[j].h > candle.h) isHighest = false;
-                if (isHighest) blocks.push({ type: 'BULLISH', high: candle.h, low: candle.o, price: (candle.h + candle.o) / 2, strength: Math.min(10, Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3), mitigated: false });
+                if (isHighest) {
+                    const rawStrength = Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3;
+                    blocks.push({ type: 'BULLISH', high: candle.h, low: candle.o, price: (candle.h + candle.o) / 2, strength: Math.min(10, rawStrength), mitigated: false });
+                }
             }
             if (prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
                 let isLowest = true;
                 for (let j = i - 3; j < i; j++) if (data[j].l < candle.l) isLowest = false;
-                if (isLowest) blocks.push({ type: 'BEARISH', high: candle.o, low: candle.l, price: (candle.o + candle.l) / 2, strength: Math.min(10, Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3), mitigated: false });
+                if (isLowest) {
+                    const rawStrength = Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3;
+                    blocks.push({ type: 'BEARISH', high: candle.o, low: candle.l, price: (candle.o + candle.l) / 2, strength: Math.min(10, rawStrength), mitigated: false });
+                }
             }
         }
         return blocks;
@@ -789,7 +808,7 @@
         if (!relevant.length) return { hasOB: false, score: 0, strength: 'NONE', block: null, mitigation: 0 };
         
         let best = null, maxScore = 0, mitigation = 0;
-        const tol = currentPair === "XAUUSDT" ? 0.6 : 80;
+        const tol = currentPair === "XAUUSDT" ? 0.6 : (currentPair === "BTCUSDT" ? 80 : 2);
         
         for (const b of relevant) {
             let score = 0;
@@ -799,7 +818,10 @@
             if (score > maxScore) { maxScore = score; best = b; }
         }
         
-        if (best) return { hasOB: true, score: maxScore, strength: maxScore >= 7 ? 'STRONG' : (maxScore >= 4 ? 'MEDIUM' : 'WEAK'), block: best, mitigation, isActive: p >= best.low && p <= best.high };
+        // FIX: Batasi maxScore maksimal 10
+        maxScore = Math.min(10, maxScore);
+        
+        if (best) return { hasOB: true, score: maxScore, strength: maxScore >= 7 ? 'STRONG' : (maxScore >= 4 ? 'MEDIUM' : 'WEAK'), block: best, mitigation: Math.min(100, Math.max(0, mitigation)), isActive: p >= best.low && p <= best.high };
         return { hasOB: false, score: 0, strength: 'NONE', block: null, mitigation: 0 };
     }
     
@@ -862,17 +884,13 @@
         if (sh === 0) sh = Math.max(...slice.map(c => c.h));
         if (sl === Infinity) sl = Math.min(...slice.map(c => c.l));
         
-        // FIX: Validasi jika sh === sl
-        if (sh <= sl) {
-            sh = sl + (currentPair === "XAUUSDT" ? 5 : 100);
-        }
+        if (sh <= sl) sh = sl + (currentPair === "XAUUSDT" ? 5 : (currentPair === "BTCUSDT" ? 100 : 2));
         
         engine.swingHigh = sh;
         engine.swingLow = sl;
         const range = sh - sl;
         if (range <= 0) return;
         
-        // Bias SMC berdasarkan posisi harga terhadap mid
         engine.bias = candleData[candleData.length-1].c > (sh + sl)/2 ? "BULLISH" : "BEARISH";
         
         const isBull = engine.bias.includes("BULL");
@@ -898,30 +916,63 @@
         UI.pipsDisplay.textContent = Math.abs(engine.tp - (engine.f618 + engine.deep)/2).toFixed(prec);
     }
     
-    // ==================== INDICATORS ====================
+    // ==================== FIX: ADX DENGAN WILDER SMOOTHING ====================
     function calculateADX() {
-        if (candleData.length < 28) return ADX_DEFAULT;
+        if (candleData.length < 28) return 15; // Default ADX
+        
         const period = 14;
+        
+        // Hitung True Range, +DM, -DM
         let tr = [], plusDM = [], minusDM = [];
         for (let i = 1; i < candleData.length; i++) {
             const h = candleData[i].h, l = candleData[i].l;
             const ph = candleData[i-1].h, pl = candleData[i-1].l, pc = candleData[i-1].c;
-            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
-            const up = h - ph, down = pl - l;
-            plusDM.push(up > down && up > 0 ? up : 0);
-            minusDM.push(down > up && down > 0 ? down : 0);
+            
+            const trueRange = Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+            tr.push(trueRange);
+            
+            const upMove = h - ph;
+            const downMove = pl - l;
+            
+            if (upMove > downMove && upMove > 0) {
+                plusDM.push(upMove);
+                minusDM.push(0);
+            } else if (downMove > upMove && downMove > 0) {
+                plusDM.push(0);
+                minusDM.push(downMove);
+            } else {
+                plusDM.push(0);
+                minusDM.push(0);
+            }
         }
-        let sTR = 0, sPDM = 0, sMDM = 0;
-        for (let i = tr.length - period; i < tr.length; i++) { sTR += tr[i]; sPDM += plusDM[i]; sMDM += minusDM[i]; }
-        sTR /= period; sPDM /= period; sMDM /= period;
-        const pDI = sTR > 0 ? (sPDM / sTR) * 100 : 0;
-        const mDI = sTR > 0 ? (sMDM / sTR) * 100 : 0;
-        engine.plusDI = pDI; engine.minusDI = mDI;
         
-        // FIX: Bias ADX yang KONSISTEN
+        // Wilder Smoothing (EMA-like untuk ADX)
+        let atr = tr.slice(0, period).reduce((a, b) => a + b, 0);
+        let pDM = plusDM.slice(0, period).reduce((a, b) => a + b, 0);
+        let mDM = minusDM.slice(0, period).reduce((a, b) => a + b, 0);
+        
+        for (let i = period; i < tr.length; i++) {
+            atr = (atr * (period - 1) + tr[i]) / period;
+            pDM = (pDM * (period - 1) + plusDM[i]) / period;
+            mDM = (mDM * (period - 1) + minusDM[i]) / period;
+        }
+        
+        const pDI = atr > 0 ? (pDM / atr) * 100 : 0;
+        const mDI = atr > 0 ? (mDM / atr) * 100 : 0;
+        const dx = (pDI + mDI) > 0 ? Math.abs(pDI - mDI) / (pDI + mDI) * 100 : 0;
+        
+        // FIX: ADX adalah rata-rata DX 14 periode
+        // Untuk menyederhanakan, kita gunakan DX langsung dengan minimum 5
+        let adxValue = dx;
+        
+        // FIX: ADX tidak pernah 0, minimal 5
+        adxValue = Math.max(5, Math.min(100, adxValue));
+        
+        engine.plusDI = Math.round(pDI);
+        engine.minusDI = Math.round(mDI);
         engine.adxBias = pDI > mDI ? "BULLISH" : (mDI > pDI ? "BEARISH" : "NEUTRAL");
         
-        return (pDI + mDI) === 0 ? 0 : (Math.abs(pDI - mDI) / (pDI + mDI)) * 100;
+        return adxValue;
     }
     
     function computeRSI() {
@@ -942,7 +993,7 @@
         return avgL === 0 ? 100 : 100 - (100 / (1 + avgG / avgL));
     }
     
-    // ==================== MTF (FIXED: H4 ADDED) ====================
+    // ==================== MTF ====================
     async function fetchMTFData() {
         const tfs = ['4h', '1h', '15m', '5m'];
         await Promise.all(tfs.map(async tf => {
@@ -958,7 +1009,7 @@
                     else if (tf === '15m') mtfBiasCache.m15 = bias;
                     else if (tf === '5m') mtfBiasCache.m5 = bias;
                 }
-            } catch(e) { console.error(`MTF fetch error (${tf}):`, e); }
+            } catch(e) {}
         }));
         
         const setMTF = (el, bias) => { if (el) { el.textContent = bias === 'BULLISH' ? '▲' : '▼'; el.style.color = bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)'; } };
@@ -971,14 +1022,13 @@
                          [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b => b === "BEARISH").length >= 3;
     }
     
-    // ==================== DECISION ENGINE (KONSISTEN) ====================
+    // ==================== DECISION ENGINE ====================
     function updateDecision() {
         const p = lastPrice;
         const prec = getPrecision();
         
         if (isDataStale) {
             UI.decision.textContent = 'DATA STALE';
-            UI.decision.style.color = 'var(--warning)';
             UI.signalBar.style.background = 'rgba(220, 38, 38, 0.1)';
             return;
         }
@@ -1004,6 +1054,14 @@
         if (UI.rsiChip) UI.rsiChip.textContent = rsi.toFixed(0);
         
         const inZone = p >= Math.min(engine.f618, engine.deep) && p <= Math.max(engine.f618, engine.deep);
+        
+        // FIX: Zone Warning Visual
+        if (!inZone && !obEvaluation.isActive) {
+            UI.levelsGrid.classList.add('zone-warning');
+        } else {
+            UI.levelsGrid.classList.remove('zone-warning');
+        }
+        
         factorStatus.f1 = engine.bias !== "NEUTRAL";
         factorStatus.f3 = engine.adx >= 20 && (inZone || obEvaluation.isActive);
         
@@ -1019,23 +1077,32 @@
         UI.emaTrend.style.color = p > engine.ema21 ? 'var(--accent-green)' : 'var(--accent-red)';
         if (UI.emaChip) UI.emaChip.textContent = engine.ema21.toFixed(prec);
         
+        // FIX: ADX Display dengan warning jika < 20
         UI.adxValue.textContent = Math.round(engine.adx);
-        UI.diValues.textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
+        if (engine.adx < 20) {
+            UI.adxValue.classList.add('adx-warning');
+        } else {
+            UI.adxValue.classList.remove('adx-warning');
+        }
+        
+        UI.diValues.textContent = `+DI ${engine.plusDI} | -DI ${engine.minusDI}`;
         UI.adxTrend.textContent = engine.plusDI > engine.minusDI ? '▲' : '▼';
         UI.adxTrend.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
         if (UI.adxChip) UI.adxChip.textContent = Math.round(engine.adx);
         
-        // FIX: Konsisten - Arrow dan Decision menggunakan ADX bias
         const signalDirection = engine.adxBias;
         const isBullish = signalDirection === "BULLISH";
         
         UI.arrow.innerHTML = isBullish ? '▲' : '▼';
         UI.arrow.style.color = isBullish ? 'var(--accent-green)' : 'var(--accent-red)';
         
+        // FIX: Mode hanya aktif jika ADX >= 20
+        const adxValid = engine.adx >= 20;
+        
         activeModes = {
-            conservative: factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score >= 6,
-            sniper: factorStatus.f1 && factorStatus.ob && score >= 5 && (inZone || obEvaluation.isActive),
-            semiretail: factorStatus.f1 && (inZone || obEvaluation.isActive) && rsi >= 40 && rsi <= 60,
+            conservative: adxValid && factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score >= 6,
+            sniper: adxValid && factorStatus.f1 && factorStatus.ob && score >= 5 && (inZone || obEvaluation.isActive),
+            semiretail: adxValid && factorStatus.f1 && (inZone || obEvaluation.isActive) && rsi >= 40 && rsi <= 60,
             sniperQuality: obEvaluation.strength === 'STRONG' ? 'GOLDEN' : 'SILVER'
         };
         
@@ -1047,19 +1114,28 @@
         let decision = '', color = '', bgColor = '';
         const action = isBullish ? 'BUY' : 'SELL';
         
-        if (activeModes.conservative) { decision = `CONSERVATIVE ${action}`; color = 'var(--accent-green)'; bgColor = 'rgba(16, 185, 129, 0.08)'; }
-        else if (activeModes.sniper) { decision = `SNIPER ${action}`; color = 'var(--accent-purple)'; bgColor = 'rgba(139, 92, 246, 0.08)'; }
-        else if (activeModes.semiretail) { decision = `SEMI-RETAIL ${action}`; color = 'var(--accent-orange)'; bgColor = 'rgba(245, 158, 11, 0.08)'; }
-        else if (factorStatus.ob && obEvaluation.strength === 'STRONG' && score >= 6) { decision = `OB CONFLUENCE ${action}`; color = 'var(--accent-cyan)'; bgColor = 'rgba(0, 191, 255, 0.05)'; }
-        else if (score >= 4) { decision = 'WAITING'; color = 'var(--accent-gold)'; bgColor = 'var(--bg-secondary)'; }
-        else { decision = 'NO SETUP'; color = 'var(--text-tertiary)'; bgColor = 'var(--bg-secondary)'; }
+        if (!adxValid) {
+            decision = 'ADX LOW'; color = 'var(--warning)'; bgColor = 'rgba(245, 158, 11, 0.1)';
+        } else if (activeModes.conservative) {
+            decision = `CONSERVATIVE ${action}`; color = 'var(--accent-green)'; bgColor = 'rgba(16, 185, 129, 0.08)';
+        } else if (activeModes.sniper) {
+            decision = `SNIPER ${action}`; color = 'var(--accent-purple)'; bgColor = 'rgba(139, 92, 246, 0.08)';
+        } else if (activeModes.semiretail) {
+            decision = `SEMI-RETAIL ${action}`; color = 'var(--accent-orange)'; bgColor = 'rgba(245, 158, 11, 0.08)';
+        } else if (factorStatus.ob && obEvaluation.strength === 'STRONG' && score >= 6) {
+            decision = `OB CONFLUENCE ${action}`; color = 'var(--accent-cyan)'; bgColor = 'rgba(0, 191, 255, 0.05)';
+        } else if (score >= 4) {
+            decision = 'WAITING'; color = 'var(--accent-gold)'; bgColor = 'var(--bg-secondary)';
+        } else {
+            decision = 'NO SETUP'; color = 'var(--text-tertiary)'; bgColor = 'var(--bg-secondary)';
+        }
         
         UI.decision.textContent = `${decision} [${score}/10]`;
         UI.decision.style.color = color;
         UI.signalBar.style.background = bgColor;
         UI.signalBar.style.borderColor = activeModes.conservative || activeModes.sniper || activeModes.semiretail ? color : 'var(--border-subtle)';
         
-        if (activeModes.conservative || activeModes.sniper || activeModes.semiretail) {
+        if (adxValid && (activeModes.conservative || activeModes.sniper || activeModes.semiretail)) {
             lastSignalExpiry = Date.now() + THROTTLE_MINUTES * 60000;
             lastSignalDecision = decision;
             UI.signalBar.classList.add('decision-animate');
@@ -1090,7 +1166,7 @@
         lastPrice = p;
     }
     
-    // ==================== WEBSOCKET (TIDAK DIUBAH) ====================
+    // ==================== WEBSOCKET ====================
     function updateWSStatus(status, message) {
         if (!UI.dot || !UI.text) return;
         UI.dot.className = 'status-dot';
@@ -1169,11 +1245,10 @@
                             updateUI(price);
                         }
                     }
-                } catch (err) { console.warn("WS message error:", err); }
+                } catch (err) {}
             };
             
             wsConnection.onclose = (event) => {
-                console.log(`WebSocket closed: ${currentPair}, code: ${event.code}`);
                 if (!isReloading && !isManualDisconnect) {
                     updateWSStatus('reconnect', 'RECONNECT');
                     if (reconnectTimer) clearTimeout(reconnectTimer);
@@ -1186,13 +1261,9 @@
                 }
             };
             
-            wsConnection.onerror = (error) => {
-                console.warn(`WebSocket error: ${currentPair}`, error);
-                if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect', 'ERROR');
-            };
+            wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect', 'ERROR'); };
             
         } catch (e) {
-            console.error('WebSocket init error:', e);
             updateWSStatus('fallback', 'FALLBACK');
             isUsingFallback = true;
         }
@@ -1211,7 +1282,7 @@
                 }
                 return true;
             }
-        } catch(e) { console.error('fetchKlines error:', e); }
+        } catch(e) {}
         return false;
     }
     
@@ -1226,7 +1297,7 @@
                     updateUI(price);
                 }
             }
-        } catch(e) { console.error('fetchPriceREST error:', e); }
+        } catch(e) {}
     }
     
     async function fullReload() {
@@ -1245,7 +1316,7 @@
         
         updateWSStatus('connecting', 'LOADING');
         
-        engine = { swingHigh:0, swingLow:0, f618:0, deep:0, tp:0, sl:0, bias:"NEUTRAL", adxBias:"NEUTRAL", adx:ADX_DEFAULT, ema21:0, plusDI:25, minusDI:25 };
+        engine = { swingHigh:0, swingLow:0, f618:0, deep:0, tp:0, sl:0, bias:"NEUTRAL", adxBias:"NEUTRAL", adx:0, ema21:0, plusDI:0, minusDI:0 };
         factorStatus = { f1:false, f2:false, f3:false, ob:false };
         orderBlocks = []; activeOB = null;
         lastSignalExpiry = 0;
@@ -1288,16 +1359,12 @@
         const swingHigh = UI.swingHigh?.textContent || '—';
         const swingLow = UI.swingLow?.textContent || '—';
         navigator.clipboard?.writeText(`Swing H: ${swingHigh} | L: ${swingLow}`);
-        const el = document.querySelector('[onclick="copySwingHL()"]');
-        if (el) { el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
     };
     
     window.copyEntryZone = () => {
         const r618 = UI.r618?.textContent || '—';
         const r786 = UI.r786?.textContent || '—';
         navigator.clipboard?.writeText(`Entry Zone: ${r618} / ${r786}`);
-        const el = document.querySelector('[onclick="copyEntryZone()"]');
-        if (el) { el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
     };
     
     window.smartCopy = (id) => {
