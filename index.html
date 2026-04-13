@@ -1088,10 +1088,10 @@ function calculateADX() {
         factorStatus.f1 = engine.bias !== "NEUTRAL";
         factorStatus.f3 = engine.adx >= 20 && (inZone || obEvaluation.isActive);
         
-        // 🔧 FIX: Cek keselarasan arah OB dengan bias ADX
-        const obAligned = activeOB ? 
-            ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') ||
-             (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH')) : false;
+        // 🔧 FIX: Cek keselarasan arah OB dengan bias ADX (OB harus aktif)
+const obAligned = (activeOB && obEvaluation.isActive) ? 
+    ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') ||
+     (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH')) : false;
         
         let score = 0;
         if (factorStatus.f1) score += 3;
