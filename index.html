@@ -231,7 +231,7 @@
         }
         
         .price-main {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
             letter-spacing: -1.5px;
             line-height: 1;
@@ -1048,23 +1048,19 @@ function calculateADX() {
                          [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b => b === "BEARISH").length >= 3;
     }
     
-    // ==================== DECISION ENGINE ====================
+        // ==================== DECISION ENGINE (FIXED: AUTO-RESET + OB DIRECTION + AREA VALIDATION) ====================
     function updateDecision() {
         const p = lastPrice;
         const prec = getPrecision();
         
         if (isDataStale) {
             UI.decision.textContent = 'DATA STALE';
+            UI.decision.style.color = 'var(--warning)';
             UI.signalBar.style.background = 'rgba(220, 38, 38, 0.1)';
             return;
         }
         
-        if (Date.now() < lastSignalExpiry) {
-            const rem = Math.ceil((lastSignalExpiry - Date.now()) / 1000);
-            UI.decision.textContent = `${lastSignalDecision} (${Math.floor(rem/60)}m${rem%60}s)`;
-            return;
-        }
-        
+        // 🔧 HITUNG ULANG SEMUA INDIKATOR SETIAP TICK (di luar early return)
         calculateSMCLevels();
         engine.ema21 = calculateEMA(candleData, 21);
         engine.adx = calculateADX();
@@ -1081,15 +1077,21 @@ function calculateADX() {
         
         const inZone = p >= Math.min(engine.f618, engine.deep) && p <= Math.max(engine.f618, engine.deep);
         
-        // FIX: Zone Warning Visual
+        // Zone Warning Visual
         if (!inZone && !obEvaluation.isActive) {
             UI.levelsGrid.classList.add('zone-warning');
         } else {
             UI.levelsGrid.classList.remove('zone-warning');
         }
         
+        // 🔧 EVALUASI FACTOR STATUS SETIAP TICK
         factorStatus.f1 = engine.bias !== "NEUTRAL";
         factorStatus.f3 = engine.adx >= 20 && (inZone || obEvaluation.isActive);
+        
+        // 🔧 FIX: Cek keselarasan arah OB dengan bias ADX
+        const obAligned = activeOB ? 
+            ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') ||
+             (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH')) : false;
         
         let score = 0;
         if (factorStatus.f1) score += 3;
@@ -1097,20 +1099,20 @@ function calculateADX() {
         if (factorStatus.f3) score += 2;
         if (factorStatus.ob) score += obEvaluation.strength === 'STRONG' ? 3 : (obEvaluation.strength === 'MEDIUM' ? 2 : 1);
         
+        // Update UI EMA
         UI.emaValue.textContent = engine.ema21.toFixed(prec);
         UI.emaDistance.textContent = `${(p > engine.ema21 ? '+' : '')}${(p - engine.ema21).toFixed(prec)} (${((p - engine.ema21)/engine.ema21*100).toFixed(2)}%)`;
         UI.emaTrend.textContent = p > engine.ema21 ? '▲' : '▼';
         UI.emaTrend.style.color = p > engine.ema21 ? 'var(--accent-green)' : 'var(--accent-red)';
         if (UI.emaChip) UI.emaChip.textContent = engine.ema21.toFixed(prec);
         
-        // FIX: ADX Display dengan warning jika < 20
+        // Update UI ADX
         UI.adxValue.textContent = Math.round(engine.adx);
         if (engine.adx < 20) {
             UI.adxValue.classList.add('adx-warning');
         } else {
             UI.adxValue.classList.remove('adx-warning');
         }
-        
         UI.diValues.textContent = `+DI ${engine.plusDI} | -DI ${engine.minusDI}`;
         UI.adxTrend.textContent = engine.plusDI > engine.minusDI ? '▲' : '▼';
         UI.adxTrend.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
@@ -1122,33 +1124,40 @@ function calculateADX() {
         UI.arrow.innerHTML = isBullish ? '▲' : '▼';
         UI.arrow.style.color = isBullish ? 'var(--accent-green)' : 'var(--accent-red)';
         
-        // FIX: Mode hanya aktif jika ADX >= 20
         const adxValid = engine.adx >= 20;
+        const isInValidArea = inZone || obEvaluation.isActive;
         
+        // 🔧 EVALUASI MODE SETIAP TICK (AUTO-RESET OTOMATIS)
+        // FIX: Semua mode sekarang memerlukan isInValidArea
+        // FIX: SNIPER memerlukan OB yang selaras arah
         activeModes = {
-            conservative: adxValid && factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score >= 6,
-            sniper: adxValid && factorStatus.f1 && factorStatus.ob && score >= 5 && (inZone || obEvaluation.isActive),
-            semiretail: adxValid && factorStatus.f1 && (inZone || obEvaluation.isActive) && rsi >= 40 && rsi <= 60,
+            conservative: adxValid && factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score >= 6 && isInValidArea,
+            sniper: adxValid && factorStatus.f1 && factorStatus.ob && score >= 5 && isInValidArea && obAligned,
+            semiretail: adxValid && factorStatus.f1 && isInValidArea && rsi >= 40 && rsi <= 60,
             sniperQuality: obEvaluation.strength === 'STRONG' ? 'GOLDEN' : 'SILVER'
         };
         
+        // 🔧 UPDATE UI TOMBOL SETIAP TICK (AUTO-RESET)
         UI.consBtn.classList.toggle('active', activeModes.conservative);
         UI.snipBtn.classList.toggle('active', activeModes.sniper);
         UI.semiBtn.classList.toggle('active', activeModes.semiretail);
-        UI.sniperBadge.textContent = activeModes.sniperQuality === 'GOLDEN' ? '🏆' : '';
+        UI.sniperBadge.textContent = (activeModes.sniper && activeModes.sniperQuality === 'GOLDEN') ? '🏆' : '';
         
+        // 🔧 TENTUKAN TEKS SINYAL BERDASARKAN MODE AKTIF
         let decision = '', color = '', bgColor = '';
         const action = isBullish ? 'BUY' : 'SELL';
         
         if (!adxValid) {
             decision = 'ADX LOW'; color = 'var(--warning)'; bgColor = 'rgba(245, 158, 11, 0.1)';
+        } else if (!isInValidArea) {
+            decision = 'OUT OF ZONE'; color = 'var(--warning)'; bgColor = 'rgba(245, 158, 11, 0.1)';
         } else if (activeModes.conservative) {
             decision = `CONSERVATIVE ${action}`; color = 'var(--accent-green)'; bgColor = 'rgba(16, 185, 129, 0.08)';
         } else if (activeModes.sniper) {
             decision = `SNIPER ${action}`; color = 'var(--accent-purple)'; bgColor = 'rgba(139, 92, 246, 0.08)';
         } else if (activeModes.semiretail) {
-            decision = `SEMI-RETAIL ${action}`; color = 'var(--accent-orange)'; bgColor = 'rgba(245, 158, 11, 0.08)';
-        } else if (factorStatus.ob && obEvaluation.strength === 'STRONG' && score >= 6) {
+            decision = `RETAIL ${action}`; color = 'var(--accent-orange)'; bgColor = 'rgba(245, 158, 11, 0.08)';
+        } else if (factorStatus.ob && obEvaluation.strength === 'STRONG' && score >= 6 && obAligned) {
             decision = `OB CONFLUENCE ${action}`; color = 'var(--accent-cyan)'; bgColor = 'rgba(0, 191, 255, 0.05)';
         } else if (score >= 4) {
             decision = 'WAITING'; color = 'var(--accent-gold)'; bgColor = 'var(--bg-secondary)';
@@ -1156,16 +1165,30 @@ function calculateADX() {
             decision = 'NO SETUP'; color = 'var(--text-tertiary)'; bgColor = 'var(--bg-secondary)';
         }
         
-        UI.decision.textContent = `${decision} [${score}/10]`;
-        UI.decision.style.color = color;
-        UI.signalBar.style.background = bgColor;
-        UI.signalBar.style.borderColor = activeModes.conservative || activeModes.sniper || activeModes.semiretail ? color : 'var(--border-subtle)';
+        // 🔧 CEK APAKAH SEDANG DALAM MASA THROTTLE
+        const isThrottled = Date.now() < lastSignalExpiry;
         
-        if (adxValid && (activeModes.conservative || activeModes.sniper || activeModes.semiretail)) {
-            lastSignalExpiry = Date.now() + THROTTLE_MINUTES * 60000;
-            lastSignalDecision = decision;
-            UI.signalBar.classList.add('decision-animate');
-            setTimeout(() => UI.signalBar.classList.remove('decision-animate'), 300);
+        if (isThrottled) {
+            // Selama throttle, tampilkan countdown tapi TOMBOL TETAP UPDATE (auto-reset)
+            const rem = Math.ceil((lastSignalExpiry - Date.now()) / 1000);
+            UI.decision.textContent = `${lastSignalDecision} (${Math.floor(rem/60)}m${rem%60}s)`;
+            UI.decision.style.color = 'var(--accent-gold)';
+            UI.signalBar.style.background = 'var(--bg-secondary)';
+            UI.signalBar.style.borderColor = (activeModes.conservative || activeModes.sniper || activeModes.semiretail) ? color : 'var(--border-subtle)';
+        } else {
+            // Tidak throttled: tampilkan keputusan terbaru
+            UI.decision.textContent = `${decision} [${score}/10]`;
+            UI.decision.style.color = color;
+            UI.signalBar.style.background = bgColor;
+            UI.signalBar.style.borderColor = (activeModes.conservative || activeModes.sniper || activeModes.semiretail) ? color : 'var(--border-subtle)';
+            
+            // Set expiry baru jika mode aktif
+            if (adxValid && isInValidArea && (activeModes.conservative || activeModes.sniper || activeModes.semiretail)) {
+                lastSignalExpiry = Date.now() + THROTTLE_MINUTES * 60000;
+                lastSignalDecision = decision;
+                UI.signalBar.classList.add('decision-animate');
+                setTimeout(() => UI.signalBar.classList.remove('decision-animate'), 300);
+            }
         }
     }
     
