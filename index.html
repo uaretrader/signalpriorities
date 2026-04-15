@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · BIAS ENGINE v23.7</title>
+    <title>SMC APEX · BIAS ENGINE v23.8</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -541,7 +541,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">v23.7</span>
+            <span class="version-tag">v23.8</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -660,7 +660,7 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX v23.7 | Per-timeframe MTF bias (EMA21 based) | No tooltip | Presisi', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX v23.8 | SMC Level sync with active signal | Professional consistency', 'color: #00BFFF; font-weight: 700;');
     
     // ==================== DOM Elements ====================
     const UI = {
@@ -691,7 +691,6 @@
         BTCUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, entryZoneATRFactor: 0.5, slATRFactor: 1.8, minOBStrength: 4 }
     };
     
-    // Konfigurasi MTF per-timeframe (semua menggunakan EMA21 sebagai base)
     const MTF_CONFIG = {
         XAUUSDT: {
             '4h': { emaFast: 21, emaSlow: 200, useStructure: true, weight: 3 },
@@ -718,6 +717,7 @@
     let isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
     let reconnectDelay = 1000, reconnectTimer = null;
     let activeMode = null;
+    let currentAction = "BUY"; // Untuk menyimpan arah sinyal aktif
     let engine = {
         swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL",
         adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0,
@@ -772,18 +772,9 @@
         return { swingHigh: sh, swingLow: sl };
     }
     
-    // Market Structure untuk H4
     function getMarketStructureBias(data) {
         if (data.length < 20) return "NEUTRAL";
-        const swings = findSwingPointsFromData(data);
-        if (swings.higherHigh && swings.higherLow) return "BULLISH";
-        if (swings.lowerHigh && swings.lowerLow) return "BEARISH";
-        return "NEUTRAL";
-    }
-    
-    function findSwingPointsFromData(data) {
         let higherHigh = false, higherLow = false, lowerHigh = false, lowerLow = false;
-        if (data.length < 15) return { higherHigh:false, higherLow:false, lowerHigh:false, lowerLow:false };
         const recentHigh = Math.max(...data.slice(-10).map(c=>c.h));
         const recentLow = Math.min(...data.slice(-10).map(c=>c.l));
         const previousHigh = Math.max(...data.slice(-20, -10).map(c=>c.h));
@@ -792,10 +783,11 @@
         if (recentLow > previousLow) higherLow = true;
         if (recentHigh < previousHigh) lowerHigh = true;
         if (recentLow < previousLow) lowerLow = true;
-        return { higherHigh, higherLow, lowerHigh, lowerLow };
+        if (higherHigh && higherLow) return "BULLISH";
+        if (lowerHigh && lowerLow) return "BEARISH";
+        return "NEUTRAL";
     }
     
-    // Order Block alignment untuk H1
     function checkOBAlignment(data, direction) {
         if (!orderBlocks.length || direction === "NEUTRAL") return false;
         const latestOB = orderBlocks[orderBlocks.length-1];
@@ -804,7 +796,6 @@
         return false;
     }
     
-    // Fibonacci zone untuk M15
     function checkFibonacciZone(data) {
         if (candleData.length < 30) return false;
         const { swingHigh, swingLow } = findSwingPoints();
@@ -817,7 +808,6 @@
         return inZone;
     }
     
-    // Price Action untuk M5
     function checkPriceAction(data) {
         if (data.length < 5) return false;
         const last = data[data.length-1];
@@ -827,7 +817,6 @@
         return isBullishCandle || isEngulfing;
     }
     
-    // Fungsi utama penentuan bias per timeframe (presisi)
     function getTimeframeBias(data, tf, currentPairName) {
         if (!data || data.length < 50) return "NEUTRAL";
         const cfg = MTF_CONFIG[currentPairName][tf];
@@ -836,26 +825,22 @@
         const price = data[data.length-1].c;
         let bullishScore = 0, bearishScore = 0;
         
-        // 1. EMA21 (Fast) - selalu dipakai
         const ema21 = calculateEMA(data, 21);
         if (price > ema21) bullishScore += 2;
         else if (price < ema21) bearishScore += 2;
         
-        // 2. EMA Slow (jika ada)
         if (cfg.emaSlow) {
             const emaSlow = calculateEMA(data, cfg.emaSlow);
             if (price > emaSlow) bullishScore += 2;
             else if (price < emaSlow) bearishScore += 2;
         }
         
-        // 3. Market Structure (khusus H4)
         if (cfg.useStructure) {
             const structBias = getMarketStructureBias(data);
             if (structBias === "BULLISH") bullishScore += 2;
             else if (structBias === "BEARISH") bearishScore += 2;
         }
         
-        // 4. Order Block alignment (khusus H1)
         if (cfg.useOB && engine.adxBias !== "NEUTRAL") {
             const obAlign = checkOBAlignment(data, engine.adxBias);
             if (obAlign) {
@@ -864,7 +849,6 @@
             }
         }
         
-        // 5. Fibonacci zone (khusus M15)
         if (cfg.useFibonacci) {
             const inFibZone = checkFibonacciZone(data);
             if (inFibZone) {
@@ -873,14 +857,12 @@
             }
         }
         
-        // 6. Price Action (khusus M5)
         if (cfg.usePriceAction) {
             const paBullish = checkPriceAction(data);
             if (paBullish) bullishScore += 1;
             else if (!paBullish && price < ema21) bearishScore += 1;
         }
         
-        // Threshold: minimal 3 poin untuk menentukan bias
         if (bullishScore >= 3 && bullishScore > bearishScore) return "BULLISH";
         if (bearishScore >= 3 && bearishScore > bullishScore) return "BEARISH";
         return "NEUTRAL";
@@ -1017,7 +999,6 @@
                 const data = await resp.json();
                 if (Array.isArray(data) && data.length > 0) {
                     const formattedData = data.map(d => ({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }));
-                    // Gunakan fungsi per-timeframe yang presisi
                     let bias = getTimeframeBias(formattedData, tf, currentPair);
                     if (tf==='4h') mtfBiasCache.h4 = bias;
                     else if (tf==='1h') mtfBiasCache.h1 = bias;
@@ -1032,23 +1013,35 @@
         factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
     }
     
-    function updateLevels() {
+    // UPDATE LEVELS: SEKARANG MENGIKUTI ARAH SINYAL AKTIF
+    function updateLevels(active, action) {
         const { swingHigh, swingLow } = findSwingPoints();
         engine.swingHigh = swingHigh;
         engine.swingLow = swingLow;
         const range = swingHigh - swingLow;
         if (range <= 0) return;
         const price = lastPrice;
-        engine.bias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
-        const f618 = engine.bias==="BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
-        const f786 = engine.bias==="BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
+        
+        // Tentukan arah untuk level SMC
+        let levelBias;
+        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
+            // Ikuti arah sinyal aktif
+            levelBias = (action === "BUY") ? "BULLISH" : "BEARISH";
+        } else {
+            // Tidak ada sinyal aktif, gunakan posisi harga terhadap midpoint
+            levelBias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        }
+        engine.bias = levelBias;
+        
+        const f618 = levelBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
+        const f786 = levelBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
         const atr = calculateATR(getConfig().atrPeriod);
         engine.atr = atr;
         const entryFactor = getConfig().entryZoneATRFactor;
         engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
         engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
-        engine.tp = engine.bias==="BULLISH" ? swingHigh + range*0.27 : swingLow - range*0.27;
-        engine.sl = engine.bias==="BULLISH" ? engine.entryZoneLow - atr * getConfig().slATRFactor : engine.entryZoneHigh + atr * getConfig().slATRFactor;
+        engine.tp = levelBias === "BULLISH" ? swingHigh + range*0.27 : swingLow - range*0.27;
+        engine.sl = levelBias === "BULLISH" ? engine.entryZoneLow - atr * getConfig().slATRFactor : engine.entryZoneHigh + atr * getConfig().slATRFactor;
         
         const prec = getPrecision();
         UI.swingHigh.textContent = swingHigh.toFixed(prec);
@@ -1074,7 +1067,13 @@
         const prec = getPrecision();
         engine.ema21 = calculateEMA(candleData, 21);
         engine.adx = calculateADX();
-        updateLevels();
+        
+        // Update level sementara untuk mendapatkan bias awal (untuk perhitungan OB dll)
+        const { swingHigh, swingLow } = findSwingPoints();
+        const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        engine.bias = tempBias;
+        
+        updateLevels(null, null); // update sementara
         obEvaluation = evaluateOB(p);
         factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= config.minOBStrength;
         const rsi = computeRSI();
@@ -1097,6 +1096,71 @@
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
+        const inZoneTemp = p >= engine.entryZoneLow && p <= engine.entryZoneHigh;
+        const adxValid = engine.adx >= config.adxThreshold;
+        factorStatus.f1 = engine.bias !== "NEUTRAL";
+        factorStatus.f3 = adxValid && (inZoneTemp || obEvaluation.isActive);
+        const obAligned = obEvaluation.hasOB && ((engine.adxBias==="BULLISH" && activeOB?.type==='BULLISH') || (engine.adxBias==="BEARISH" && activeOB?.type==='BEARISH'));
+        
+        let score = 0;
+        if (factorStatus.f1) score+=3;
+        if (factorStatus.f2) score+=2;
+        if (factorStatus.f3) score+=2;
+        if (factorStatus.ob) score += obEvaluation.strength==='STRONG'?3:(obEvaluation.strength==='MEDIUM'?2:1);
+        
+        const direction = engine.adxBias;
+        const action = direction==="BULLISH"?"BUY":"SELL";
+        UI.arrow.innerHTML = direction==="BULLISH"? '▲' : '▼';
+        UI.arrow.style.color = direction==="BULLISH"? 'var(--accent-green)' : 'var(--accent-red)';
+        
+        let active = null;
+        let decisionText = '', color = '', bgColor = '';
+        const isInValidZone = inZoneTemp || obEvaluation.isActive;
+        
+        if (!adxValid) { decisionText = `LOW ADX (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
+        else if (!isInValidZone) { decisionText = 'OUT OF ZONE'; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
+        else {
+            if (adxValid && factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score>=8 && engine.adx>=25) {
+                active = 'conservative';
+                decisionText = `CONSERVATIVE ${action}`;
+                color = 'var(--accent-green)';
+                bgColor = 'rgba(16,185,129,0.08)';
+            }
+            else if (adxValid && factorStatus.f1 && factorStatus.ob && obAligned && score>=7 && inZoneTemp) {
+                active = 'sniper';
+                decisionText = `SNIPER ${action}`;
+                color = 'var(--accent-purple)';
+                bgColor = 'rgba(139,92,246,0.08)';
+            }
+            else if (adxValid && factorStatus.f1 && score>=5 && inZoneTemp && rsi>=40 && rsi<=60) {
+                active = 'retail';
+                decisionText = `RETAIL ${action}`;
+                color = 'var(--accent-orange)';
+                bgColor = 'rgba(245,158,11,0.08)';
+            }
+            else if (score>=4) { decisionText = 'WAITING'; color='var(--accent-gold)'; bgColor='var(--bg-secondary)'; active=null; }
+            else { decisionText = 'NO SETUP'; color='var(--text-tertiary)'; bgColor='var(--bg-secondary)'; active=null; }
+        }
+        
+        document.querySelectorAll('.mode-btn-large').forEach(btn => btn.classList.remove('active'));
+        if (active === 'conservative') document.querySelector('[data-mode="conservative"]')?.classList.add('active');
+        else if (active === 'sniper') document.querySelector('[data-mode="sniper"]')?.classList.add('active');
+        else if (active === 'retail') document.querySelector('[data-mode="retail"]')?.classList.add('active');
+        
+        // UPDATE LEVELS DENGAN ARAH SINYAL AKTIF
+        updateLevels(active, action);
+        
+        // UPDATE OB YANG DITAMPILKAN AGAR SEARAH DENGAN SINYAL
+        if (active && orderBlocks.length) {
+            const targetDirection = (action === "BUY") ? "BULLISH" : "BEARISH";
+            const alignedOB = orderBlocks.find(ob => ob.type === targetDirection && !ob.mitigated);
+            if (alignedOB) {
+                activeOB = alignedOB;
+                obEvaluation = evaluateOB(p);
+            }
+        }
+        
+        // Tampilkan ulang OB setelah update
         if (obEvaluation.hasOB && obEvaluation.block) {
             const b = obEvaluation.block;
             activeOB = b;
@@ -1124,58 +1188,12 @@
             UI.obStrength.textContent = UI.obMitigation.textContent = UI.obDistance.textContent = '—';
         }
         
-        const inZone = p >= engine.entryZoneLow && p <= engine.entryZoneHigh;
-        const adxValid = engine.adx >= config.adxThreshold;
-        factorStatus.f1 = engine.bias !== "NEUTRAL";
-        factorStatus.f3 = adxValid && (inZone || obEvaluation.isActive);
-        const obAligned = obEvaluation.hasOB && ((engine.adxBias==="BULLISH" && activeOB?.type==='BULLISH') || (engine.adxBias==="BEARISH" && activeOB?.type==='BEARISH'));
-        
-        let score = 0;
-        if (factorStatus.f1) score+=3;
-        if (factorStatus.f2) score+=2;
-        if (factorStatus.f3) score+=2;
-        if (factorStatus.ob) score += obEvaluation.strength==='STRONG'?3:(obEvaluation.strength==='MEDIUM'?2:1);
-        
-        const direction = engine.adxBias;
-        const action = direction==="BULLISH"?"BUY":"SELL";
-        UI.arrow.innerHTML = direction==="BULLISH"? '▲' : '▼';
-        UI.arrow.style.color = direction==="BULLISH"? 'var(--accent-green)' : 'var(--accent-red)';
-        
-        let active = null;
-        let decisionText = '', color = '', bgColor = '';
-        const isInValidZone = inZone || obEvaluation.isActive;
-        
-        if (!adxValid) { decisionText = `LOW ADX (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
-        else if (!isInValidZone) { decisionText = 'OUT OF ZONE'; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
-        else {
-            if (adxValid && factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score>=8 && engine.adx>=25) {
-                active = 'conservative';
-                decisionText = `CONSERVATIVE ${action}`;
-                color = 'var(--accent-green)';
-                bgColor = 'rgba(16,185,129,0.08)';
-            }
-            else if (adxValid && factorStatus.f1 && factorStatus.ob && obAligned && score>=7 && inZone) {
-                active = 'sniper';
-                decisionText = `SNIPER ${action}`;
-                color = 'var(--accent-purple)';
-                bgColor = 'rgba(139,92,246,0.08)';
-            }
-            else if (adxValid && factorStatus.f1 && score>=5 && inZone && rsi>=40 && rsi<=60) {
-                active = 'retail';
-                decisionText = `RETAIL ${action}`;
-                color = 'var(--accent-orange)';
-                bgColor = 'rgba(245,158,11,0.08)';
-            }
-            else if (score>=4) { decisionText = 'WAITING'; color='var(--accent-gold)'; bgColor='var(--bg-secondary)'; active=null; }
-            else { decisionText = 'NO SETUP'; color='var(--text-tertiary)'; bgColor='var(--bg-secondary)'; active=null; }
+        // Tampilan signal bar
+        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
+            UI.decision.textContent = `${action} NOW 🔥`;
+        } else {
+            UI.decision.textContent = decisionText;
         }
-        
-        document.querySelectorAll('.mode-btn-large').forEach(btn => btn.classList.remove('active'));
-        if (active === 'conservative') document.querySelector('[data-mode="conservative"]')?.classList.add('active');
-        else if (active === 'sniper') document.querySelector('[data-mode="sniper"]')?.classList.add('active');
-        else if (active === 'retail') document.querySelector('[data-mode="retail"]')?.classList.add('active');
-        
-        UI.decision.textContent = `${decisionText} [${score}/10]`;
         UI.decision.style.color = color;
         UI.signalBar.style.background = bgColor;
         UI.signalBar.style.borderColor = active ? color : 'var(--border-subtle)';
