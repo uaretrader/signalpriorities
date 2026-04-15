@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · BIAS ENGINE v23.8</title>
+    <title>SMC APEX · BIAS ENGINE v23.9</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -541,7 +541,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">v23.8</span>
+            <span class="version-tag">v23.9</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -660,7 +660,7 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX v23.8 | SMC Level sync with active signal | Professional consistency', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX v23.9 | OB only unmitigated & aligned with signal | Professional standard', 'color: #00BFFF; font-weight: 700;');
     
     // ==================== DOM Elements ====================
     const UI = {
@@ -717,7 +717,7 @@
     let isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
     let reconnectDelay = 1000, reconnectTimer = null;
     let activeMode = null;
-    let currentAction = "BUY"; // Untuk menyimpan arah sinyal aktif
+    let currentAction = "BUY";
     let engine = {
         swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL",
         adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0,
@@ -1013,7 +1013,39 @@
         factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
     }
     
-    // UPDATE LEVELS: SEKARANG MENGIKUTI ARAH SINYAL AKTIF
+    // Fungsi untuk mendapatkan OB yang akan ditampilkan (hanya yang belum termitigasi dan searah sinyal)
+    function getDisplayOB(active, action, currentPrice) {
+        if (!orderBlocks.length) return null;
+        
+        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
+            const targetDirection = (action === "BUY") ? "BULLISH" : "BEARISH";
+            
+            // Cari OB yang searah sinyal, belum termitigasi, dan masih valid (belum dilewati harga)
+            const validOB = orderBlocks.find(ob => {
+                if (ob.type !== targetDirection) return false;
+                if (ob.mitigated) return false;
+                
+                // Cek apakah OB masih valid (belum dilewati harga)
+                // Bullish OB: harga harus di atas OB (support)
+                // Bearish OB: harga harus di bawah OB (resistance)
+                if (ob.type === 'BULLISH' && currentPrice < ob.low) return false;
+                if (ob.type === 'BEARISH' && currentPrice > ob.high) return false;
+                
+                return true;
+            });
+            
+            if (validOB) return validOB;
+            
+            // Jika tidak ada OB yang valid, cari OB dengan skor tertinggi (tanpa paksaan arah)
+            const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
+            return bestOB || null;
+        }
+        
+        // Tidak ada sinyal aktif: tampilkan OB dengan skor tertinggi
+        const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
+        return bestOB || null;
+    }
+    
     function updateLevels(active, action) {
         const { swingHigh, swingLow } = findSwingPoints();
         engine.swingHigh = swingHigh;
@@ -1022,13 +1054,10 @@
         if (range <= 0) return;
         const price = lastPrice;
         
-        // Tentukan arah untuk level SMC
         let levelBias;
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
-            // Ikuti arah sinyal aktif
             levelBias = (action === "BUY") ? "BULLISH" : "BEARISH";
         } else {
-            // Tidak ada sinyal aktif, gunakan posisi harga terhadap midpoint
             levelBias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
         }
         engine.bias = levelBias;
@@ -1055,6 +1084,52 @@
         UI.rangeValue.textContent = `${rangePoints} pts`;
     }
     
+    function updateOBUI(price, active, action) {
+        const p = safeValue(price, 0);
+        const prec = getPrecision();
+        
+        // Gunakan fungsi getDisplayOB untuk mendapatkan OB yang tepat
+        const displayOB = getDisplayOB(active, action, p);
+        
+        if (displayOB) {
+            const b = displayOB;
+            activeOB = b;
+            UI.obType.textContent = b.type === 'BULLISH' ? '🟢 BULL' : '🔴 BEAR';
+            UI.obBias.textContent = b.type;
+            UI.obBias.className = `ob-bias ${b.type.toLowerCase()}`;
+            UI.obHigh.textContent = b.high.toFixed(prec);
+            UI.obLow.textContent = b.low.toFixed(prec);
+            UI.obMid.textContent = b.price.toFixed(prec);
+            
+            let fill = 0;
+            if (p >= b.high) fill = 100;
+            else if (p <= b.low) fill = 0;
+            else fill = ((p - b.low) / (b.high - b.low)) * 100;
+            UI.obRangeFill.style.width = Math.min(100, Math.max(0, fill)) + '%';
+            UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
+            
+            // Hitung ulang skor untuk OB yang ditampilkan
+            let score = b.strength;
+            const inZone = p >= b.low && p <= b.high;
+            if ((engine.bias === "BULLISH" && b.type === 'BULLISH') || (engine.bias === "BEARISH" && b.type === 'BEARISH')) score += 3;
+            if (inZone) score += 4;
+            score = Math.min(10, score);
+            const strengthLabel = score >= 7 ? 'STRONG' : (score >= 4 ? 'MEDIUM' : 'WEAK');
+            const mitigation = inZone ? ((p - b.low) / (b.high - b.low)) * 100 : (p > b.high ? 100 : 0);
+            
+            UI.obStrength.textContent = `${score.toFixed(1)} (${strengthLabel})`;
+            UI.obMitigation.textContent = inZone ? `${Math.min(100, Math.max(0, mitigation)).toFixed(0)}%` : (p > b.high ? '100%' : '0%');
+            UI.obDistance.textContent = Math.abs(p - b.price).toFixed(prec);
+        } else {
+            UI.obType.textContent = 'SCANNING';
+            UI.obBias.textContent = 'NEUTRAL';
+            UI.obBias.className = 'ob-bias';
+            UI.obHigh.textContent = UI.obLow.textContent = UI.obMid.textContent = '—';
+            UI.obRangeFill.style.width = '0%';
+            UI.obStrength.textContent = UI.obMitigation.textContent = UI.obDistance.textContent = '—';
+        }
+    }
+    
     function updateDecision() {
         if (isDataStale) {
             UI.decision.textContent = 'DATA STALE';
@@ -1068,12 +1143,11 @@
         engine.ema21 = calculateEMA(candleData, 21);
         engine.adx = calculateADX();
         
-        // Update level sementara untuk mendapatkan bias awal (untuk perhitungan OB dll)
         const { swingHigh, swingLow } = findSwingPoints();
         const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
         engine.bias = tempBias;
         
-        updateLevels(null, null); // update sementara
+        updateLevels(null, null);
         obEvaluation = evaluateOB(p);
         factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= config.minOBStrength;
         const rsi = computeRSI();
@@ -1147,48 +1221,11 @@
         else if (active === 'sniper') document.querySelector('[data-mode="sniper"]')?.classList.add('active');
         else if (active === 'retail') document.querySelector('[data-mode="retail"]')?.classList.add('active');
         
-        // UPDATE LEVELS DENGAN ARAH SINYAL AKTIF
         updateLevels(active, action);
         
-        // UPDATE OB YANG DITAMPILKAN AGAR SEARAH DENGAN SINYAL
-        if (active && orderBlocks.length) {
-            const targetDirection = (action === "BUY") ? "BULLISH" : "BEARISH";
-            const alignedOB = orderBlocks.find(ob => ob.type === targetDirection && !ob.mitigated);
-            if (alignedOB) {
-                activeOB = alignedOB;
-                obEvaluation = evaluateOB(p);
-            }
-        }
+        // Update OB UI dengan filter yang lebih ketat
+        updateOBUI(p, active, action);
         
-        // Tampilkan ulang OB setelah update
-        if (obEvaluation.hasOB && obEvaluation.block) {
-            const b = obEvaluation.block;
-            activeOB = b;
-            UI.obType.textContent = b.type==='BULLISH'?'🟢 BULL':'🔴 BEAR';
-            UI.obBias.textContent = b.type;
-            UI.obBias.className = `ob-bias ${b.type.toLowerCase()}`;
-            UI.obHigh.textContent = b.high.toFixed(prec);
-            UI.obLow.textContent = b.low.toFixed(prec);
-            UI.obMid.textContent = b.price.toFixed(prec);
-            let fill = 0;
-            if (p>=b.high) fill=100;
-            else if (p<=b.low) fill=0;
-            else fill = ((p-b.low)/(b.high-b.low))*100;
-            UI.obRangeFill.style.width = Math.min(100,Math.max(0,fill))+'%';
-            UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
-            UI.obStrength.textContent = `${obEvaluation.score.toFixed(1)} (${obEvaluation.strength})`;
-            UI.obMitigation.textContent = obEvaluation.isActive ? `${obEvaluation.mitigation.toFixed(0)}%` : 'OUT';
-            UI.obDistance.textContent = Math.abs(p-b.price).toFixed(prec);
-        } else {
-            UI.obType.textContent = 'SCANNING';
-            UI.obBias.textContent = 'NEUTRAL';
-            UI.obBias.className = 'ob-bias';
-            UI.obHigh.textContent = UI.obLow.textContent = UI.obMid.textContent = '—';
-            UI.obRangeFill.style.width = '0%';
-            UI.obStrength.textContent = UI.obMitigation.textContent = UI.obDistance.textContent = '—';
-        }
-        
-        // Tampilan signal bar
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             UI.decision.textContent = `${action} NOW 🔥`;
         } else {
