@@ -3,11 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · BIAS ENGINE v22.7</title>
+    <title>SMC APEX · BIAS ENGINE v23.7</title>
     <style>
-        /* ============================================================
-           STYLE ASLI + PERBAIKAN VISUAL
-           ============================================================ */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -26,7 +23,6 @@
             --accent-blue: #3B82F6;
             --accent-purple: #8B5CF6;
             --accent-orange: #F59E0B;
-            --accent-pink: #EC4899;
             --accent-gold: #FBBF24;
             --accent-cyan: #00BFFF;
             --success: #22C55E;
@@ -41,8 +37,6 @@
             height: 100vh; 
             width: 100vw; 
             overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
             position: fixed; 
             top: 0; 
             left: 0; 
@@ -55,7 +49,8 @@
             width: 100%;
             padding: 12px 16px;
             gap: 8px;
-            overflow: hidden;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
         .header {
@@ -117,12 +112,12 @@
         .status-dot.reconnect { background: var(--accent-orange); animation: pulse 1s infinite; }
         .status-dot.fallback { background: var(--accent-blue); animation: pulse 1.5s infinite; }
         .status-dot.stale { background: var(--danger); animation: pulse 1.5s infinite; }
-        .status-dot.offline { background: var(--danger); }
         
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         
         .nav-bar {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
@@ -136,6 +131,7 @@
             padding: 3px;
             border-radius: 8px;
             border: 1px solid var(--border-subtle);
+            flex-wrap: wrap;
         }
         
         .tab-btn {
@@ -148,9 +144,40 @@
             cursor: pointer;
             border-radius: 6px;
             transition: all 0.15s ease;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: baseline;
+            gap: 2px;
         }
         
-        .tab-btn.active { color: var(--text-primary); background: var(--bg-tertiary); }
+        .tab-btn.active {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+        
+        .tab-btn[data-pair] {
+            /* normal */
+        }
+        
+        .tf-label {
+            transition: color 0.15s ease;
+        }
+        
+        .tab-btn.active .tf-label {
+            color: var(--text-primary);
+        }
+        
+        .tab-btn:not(.active) .tf-label {
+            color: var(--text-tertiary);
+        }
+        
+        .tf-bias-symbol {
+            font-weight: 600;
+        }
+        .tf-bias-symbol.bullish { color: var(--accent-green); }
+        .tf-bias-symbol.bearish { color: var(--accent-red); }
+        .tf-bias-symbol.neutral { color: var(--text-tertiary); }
+        
         .tab-btn.disabled { opacity: 0.5; cursor: wait; pointer-events: none; }
         
         .mode-row {
@@ -178,11 +205,12 @@
             letter-spacing: 0.3px;
         }
         
-        .mode-btn-large.conservative.active { background: rgba(16, 185, 129, 0.12); border-color: var(--accent-green); color: var(--accent-green); }
-        .mode-btn-large.sniper.active { background: rgba(139, 92, 246, 0.12); border-color: var(--accent-purple); color: var(--accent-purple); }
-        .mode-btn-large.semiretail.active { background: rgba(245, 158, 11, 0.12); border-color: var(--accent-orange); color: var(--accent-orange); }
-        
-        .mode-group { display: none; }
+        .mode-btn-large.active { 
+            background: var(--bg-tertiary);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 6px rgba(0,191,255,0.3);
+        }
         
         .signal-bar {
             background: var(--bg-secondary);
@@ -194,6 +222,7 @@
             justify-content: space-between;
             flex-shrink: 0;
             cursor: pointer;
+            transition: all 0.2s;
         }
         
         .signal-content {
@@ -286,7 +315,6 @@
             color: var(--text-secondary);
         }
         
-        /* FIX: ADX Warning Style */
         .adx-warning {
             color: var(--warning) !important;
         }
@@ -348,11 +376,6 @@
             color: var(--text-tertiary);
         }
         
-        .rsi-labels span:nth-child(1) { color: var(--accent-green); }
-        .rsi-labels span:nth-child(3) { color: var(--accent-red); }
-        
-        .factors-row { display: none; }
-        
         .ob-card {
             background: linear-gradient(135deg, rgba(0, 191, 255, 0.03) 0%, transparent 100%);
             border: 1px solid rgba(0, 191, 255, 0.15);
@@ -412,12 +435,6 @@
             color: var(--text-tertiary);
         }
         
-        .ob-value {
-            font-weight: 700;
-            color: var(--text-secondary);
-        }
-        
-        /* FIX: Zone Warning */
         .zone-warning {
             background: rgba(245, 158, 11, 0.15) !important;
             border-color: var(--warning) !important;
@@ -450,51 +467,16 @@
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            flex-shrink: 0;
         }
         
         .level-value-lg {
             font-size: 0.65rem;
             font-weight: 700;
             color: var(--text-primary);
-        }
-        
-        .mtf-panel {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 6px 12px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        
-        .mtf-title {
-            font-size: 0.5rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: var(--text-tertiary);
-            margin-bottom: 4px;
-        }
-        
-        .mtf-tfs {
-            display: flex;
-            gap: 16px;
-        }
-        
-        .mtf-item {
-            display: flex;
-            align-items: baseline;
-            gap: 5px;
-        }
-        
-        .mtf-tf {
-            font-size: 0.6rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        
-        .mtf-bias {
-            font-size: 0.65rem;
-            font-weight: 700;
+            text-align: right;
+            font-family: 'Inter', monospace;
+            letter-spacing: 0.2px;
         }
         
         .footer-bar {
@@ -504,11 +486,20 @@
             padding-top: 5px;
             border-top: 1px solid var(--border-subtle);
             flex-shrink: 0;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
         
         .session-info {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             font-size: 0.55rem;
         }
         
@@ -523,30 +514,25 @@
         }
         
         .clock {
-            font-size: 0.6rem;
-            font-weight: 600;
+            font-size: 0.65rem;
+            font-weight: 700;
             color: var(--text-tertiary);
         }
         
         .copied { background: rgba(0, 191, 255, 0.15) !important; }
         .decision-animate { animation: decisionPulse 0.3s ease; }
         @keyframes decisionPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.01); } }
-        .signal-active { animation: signalPulse 1s ease infinite; }
-        @keyframes signalPulse { 0%, 100% { opacity: 0.9; } 50% { opacity: 1; } }
-        .stale-warning { background: rgba(220, 38, 38, 0.15) !important; }
         
         .text-green { color: var(--accent-green); }
         .text-red { color: var(--accent-red); }
         .text-gold { color: var(--accent-gold); }
         .text-blue { color: var(--accent-blue); }
         .text-cyan { color: var(--accent-cyan); }
-        .text-warning { color: var(--warning); }
         
-        .badge {
-            font-size: 0.45rem;
-            padding: 1px 5px;
-            border-radius: 100px;
-            margin-left: 4px;
+        @media (max-width: 480px) {
+            .footer-left { gap: 8px; }
+            .session-info { gap: 6px; }
+            .tab-btn { padding: 4px 8px; font-size: 0.65rem; }
         }
     </style>
 </head>
@@ -555,7 +541,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">v22.7 FIX</span>
+            <span class="version-tag">v23.7</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -565,22 +551,21 @@
 
     <nav class="nav-bar">
         <div class="tab-group">
-            <button class="tab-btn active" data-pair="XAUUSDT">XAUUSD</button>
+            <button class="tab-btn" data-pair="XAUUSDT">XAUUSD</button>
             <button class="tab-btn" data-pair="BTCUSDT">BTCUSD</button>
         </div>
-        <div class="tab-group">
-            <button class="tab-btn" data-tf="4h">H4</button>
-            <button class="tab-btn" data-tf="1h">H1</button>
-            <button class="tab-btn active" data-tf="15m">M15</button>
-            <button class="tab-btn" data-tf="5m">M5</button>
+        <div class="tab-group" id="tf-group">
+            <button class="tab-btn tf-btn" data-tf="4h"><span class="tf-label">H4</span><span class="tf-bias-symbol"></span></button>
+            <button class="tab-btn tf-btn" data-tf="1h"><span class="tf-label">H1</span><span class="tf-bias-symbol"></span></button>
+            <button class="tab-btn tf-btn active" data-tf="15m"><span class="tf-label">M15</span><span class="tf-bias-symbol"></span></button>
+            <button class="tab-btn tf-btn" data-tf="5m"><span class="tf-label">M5</span><span class="tf-bias-symbol"></span></button>
         </div>
-        <div class="mode-group"></div>
     </nav>
 
     <div class="mode-row">
-        <button class="mode-btn-large conservative" data-mode="conservative">🛡️ CONSERVATIVE</button>
-        <button class="mode-btn-large sniper" data-mode="sniper">🎯 SNIPER <span id="sniper-badge"></span></button>
-        <button class="mode-btn-large semiretail" data-mode="semiretail">🔵 RETAIL</button>
+        <button class="mode-btn-large" data-mode="conservative">🛡️ CONSERVATIVE</button>
+        <button class="mode-btn-large" data-mode="sniper">🎯 SNIPER</button>
+        <button class="mode-btn-large" data-mode="retail">🔵 RETAIL</button>
     </div>
 
     <div class="signal-bar" id="signal-bar" onclick="smartCopy('decision-status')">
@@ -618,13 +603,6 @@
         <div class="rsi-labels"><span>OVERSOLD (30)</span><span>NEUTRAL</span><span>OVERBOUGHT (70)</span></div>
     </div>
 
-    <div class="factors-row" style="display: none;">
-        <div class="factor-chip ema" id="ema-chip"><span class="factor-label">EMA</span><span class="factor-value" id="ema-chip-value">—</span></div>
-        <div class="factor-chip" id="adx-chip"><span class="factor-label">ADX</span><span class="factor-value" id="adx-chip-value">—</span></div>
-        <div class="factor-chip rsi" id="rsi-chip"><span class="factor-label">RSI</span><span class="factor-value" id="rsi-chip-value">—</span></div>
-        <div class="factor-chip" id="ob-chip"><span class="factor-label">OB</span><span class="factor-value" id="ob-chip-value">—</span></div>
-    </div>
-
     <div class="ob-card" id="ob-card" onclick="smartCopy('ob-card')">
         <div class="ob-header">
             <span class="ob-title">📦 ORDER BLOCK <span id="ob-type">SCANNING</span></span>
@@ -642,94 +620,92 @@
     </div>
 
     <div class="levels-grid-vertical" id="levels-grid">
-        <div class="level-row" onclick="copySwingHL()"><span class="level-label-lg">SWING H/L</span><span class="level-value-lg"><span id="swing-high">—</span> / <span id="swing-low">—</span></span></div>
-        <div class="level-row" onclick="smartCopy('sl-value')"><span class="level-label-lg">SL (50%)</span><span class="level-value-lg text-red" id="sl-value">—</span></div>
-        <div class="level-row" onclick="copyEntryZone()"><span class="level-label-lg">ENTRY ZONE</span><span class="level-value-lg"><span class="text-gold" id="r618">—</span> / <span class="text-gold" id="r786">—</span></span></div>
-        <div class="level-row" onclick="smartCopy('rTP')"><span class="level-label-lg">TP (27%)</span><span class="level-value-lg text-blue" id="rTP">—</span></div>
-        <div class="level-row" onclick="smartCopy('pips-display')"><span class="level-label-lg">RANGE</span><span class="level-value-lg" id="pips-display">—</span></div>
-    </div>
-
-    <div class="mtf-panel" onclick="smartCopy('mtf-content')">
-        <div class="mtf-title">Multi-Timeframe</div>
-        <div class="mtf-tfs" id="mtf-content">
-            <div class="mtf-item"><span class="mtf-tf">H4</span><span class="mtf-bias" id="mtf-h4">—</span></div>
-            <div class="mtf-item"><span class="mtf-tf">H1</span><span class="mtf-bias" id="mtf-h1">—</span></div>
-            <div class="mtf-item"><span class="mtf-tf">M15</span><span class="mtf-bias" id="mtf-m15">—</span></div>
-            <div class="mtf-item"><span class="mtf-tf">M5</span><span class="mtf-bias" id="mtf-m5">—</span></div>
+        <div class="level-row" onclick="copySwingHL()">
+            <span class="level-label-lg">SWING H/L</span>
+            <span class="level-value-lg"><span id="swing-high">—</span> / <span id="swing-low">—</span></span>
+        </div>
+        <div class="level-row" onclick="smartCopy('sl-value')">
+            <span class="level-label-lg">SL (1.5 ATR)</span>
+            <span class="level-value-lg text-red" id="sl-value">—</span>
+        </div>
+        <div class="level-row" onclick="copyEntryZone()">
+            <span class="level-label-lg">ENTRY ZONE</span>
+            <span class="level-value-lg"><span class="text-gold" id="entry-zone-low">—</span> / <span class="text-gold" id="entry-zone-high">—</span></span>
+        </div>
+        <div class="level-row" onclick="smartCopy('tp-value')">
+            <span class="level-label-lg">TP (27%)</span>
+            <span class="level-value-lg text-blue" id="tp-value">—</span>
+        </div>
+        <div class="level-row" onclick="smartCopy('range-value')">
+            <span class="level-label-lg">RANGE (points)</span>
+            <span class="level-value-lg" id="range-value">—</span>
+        </div>
+        <div class="level-row" onclick="smartCopy('atr-value')">
+            <span class="level-label-lg">ATR (14)</span>
+            <span class="level-value-lg" id="atr-value">—</span>
         </div>
     </div>
-
+    
     <footer class="footer-bar">
-        <div class="session-info">
-            <div><span class="session-label">SESSION</span><span class="session-value" id="session-tag">ASIA</span></div>
-            <div><span class="session-label">DATE</span><span class="session-value" id="date-display">—</span></div>
+        <div class="footer-left">
+            <div class="session-info">
+                <div><span class="session-label">SESSION</span><span class="session-value" id="session-tag">ASIA</span></div>
+                <div><span class="session-label">DATE</span><span class="session-value" id="date-display">—</span></div>
+            </div>
+            <div class="clock" id="clock-display">00:00:00</div>
         </div>
-        <div class="clock" id="clock-display">00:00:00</div>
     </footer>
 </div>
 
 <script>
 (function() {
     'use strict';
+    console.log('%c🔥 SMC APEX v23.7 | Per-timeframe MTF bias (EMA21 based) | No tooltip | Presisi', 'color: #00BFFF; font-weight: 700;');
     
-    console.log('%c🔥 SMC APEX v22.7 | ADX Fixed + OB Score Fixed + Zone Warning', 'color: #00BFFF; font-weight: 700;');
-    
-    // ==================== DOM CACHE ====================
+    // ==================== DOM Elements ====================
     const UI = {
-        dot: document.getElementById('status-dot'),
-        text: document.getElementById('status-text'),
-        signalBar: document.getElementById('signal-bar'),
-        priceMain: document.getElementById('live-price'),
-        priceChange: document.getElementById('price-change'),
-        decision: document.getElementById('decision-status'),
-        arrow: document.getElementById('direction-arrow'),
-        emaValue: document.getElementById('ema-value'),
-        emaDistance: document.getElementById('ema-distance'),
-        emaTrend: document.getElementById('ema-trend'),
-        adxValue: document.getElementById('adx-value'),
-        diValues: document.getElementById('di-values'),
-        adxTrend: document.getElementById('adx-trend'),
-        rsiValue: document.getElementById('rsi-bar-value'),
-        rsiFill: document.getElementById('rsi-fill'),
-        swingHigh: document.getElementById('swing-high'),
-        swingLow: document.getElementById('swing-low'),
-        r618: document.getElementById('r618'),
-        r786: document.getElementById('r786'),
-        rTP: document.getElementById('rTP'),
-        slValue: document.getElementById('sl-value'),
-        pipsDisplay: document.getElementById('pips-display'),
-        obType: document.getElementById('ob-type'),
-        obBias: document.getElementById('ob-bias'),
-        obHigh: document.getElementById('ob-high'),
-        obMid: document.getElementById('ob-mid'),
-        obLow: document.getElementById('ob-low'),
-        obRangeFill: document.getElementById('ob-range-fill'),
-        obStrength: document.getElementById('ob-strength'),
-        obMitigation: document.getElementById('ob-mitigation'),
-        obDistance: document.getElementById('ob-distance'),
-        mtfH4: document.getElementById('mtf-h4'),
-        mtfH1: document.getElementById('mtf-h1'),
-        mtfM15: document.getElementById('mtf-m15'),
-        mtfM5: document.getElementById('mtf-m5'),
-        consBtn: document.querySelector('[data-mode="conservative"]'),
-        snipBtn: document.querySelector('[data-mode="sniper"]'),
-        semiBtn: document.querySelector('[data-mode="semiretail"]'),
-        sniperBadge: document.getElementById('sniper-badge'),
-        clock: document.getElementById('clock-display'),
-        date: document.getElementById('date-display'),
-        session: document.getElementById('session-tag'),
-        emaChip: document.getElementById('ema-chip-value'),
-        adxChip: document.getElementById('adx-chip-value'),
-        rsiChip: document.getElementById('rsi-chip-value'),
-        obChip: document.getElementById('ob-chip-value'),
-        obChipEl: document.getElementById('ob-chip'),
+        dot: document.getElementById('status-dot'), text: document.getElementById('status-text'),
+        signalBar: document.getElementById('signal-bar'), priceMain: document.getElementById('live-price'),
+        priceChange: document.getElementById('price-change'), decision: document.getElementById('decision-status'),
+        arrow: document.getElementById('direction-arrow'), emaValue: document.getElementById('ema-value'),
+        emaDistance: document.getElementById('ema-distance'), emaTrend: document.getElementById('ema-trend'),
+        adxValue: document.getElementById('adx-value'), diValues: document.getElementById('di-values'),
+        adxTrend: document.getElementById('adx-trend'), rsiValue: document.getElementById('rsi-bar-value'),
+        rsiFill: document.getElementById('rsi-fill'), swingHigh: document.getElementById('swing-high'),
+        swingLow: document.getElementById('swing-low'), entryZoneLow: document.getElementById('entry-zone-low'),
+        entryZoneHigh: document.getElementById('entry-zone-high'), tpValue: document.getElementById('tp-value'),
+        slValue: document.getElementById('sl-value'), atrValue: document.getElementById('atr-value'),
+        rangeValue: document.getElementById('range-value'),
+        obType: document.getElementById('ob-type'), obBias: document.getElementById('ob-bias'),
+        obHigh: document.getElementById('ob-high'), obMid: document.getElementById('ob-mid'),
+        obLow: document.getElementById('ob-low'), obRangeFill: document.getElementById('ob-range-fill'),
+        obStrength: document.getElementById('ob-strength'), obMitigation: document.getElementById('ob-mitigation'),
+        obDistance: document.getElementById('ob-distance'), clock: document.getElementById('clock-display'),
+        date: document.getElementById('date-display'), session: document.getElementById('session-tag'),
         levelsGrid: document.getElementById('levels-grid')
     };
-
+    
     // ==================== CONFIG ====================
-    const safeValue = (val, fallback = 0) => (val === null || val === undefined || typeof val !== 'number' || isNaN(val) || !isFinite(val)) ? fallback : val;
-    const STALE_THRESHOLD = 10000;
-    const THROTTLE_MINUTES = 2;
+    const PAIR_CONFIG = {
+        XAUUSDT: { adxThreshold: 22, rsiOverbought: 75, rsiOversold: 25, atrPeriod: 14, entryZoneATRFactor: 0.4, slATRFactor: 1.6, minOBStrength: 5 },
+        BTCUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, entryZoneATRFactor: 0.5, slATRFactor: 1.8, minOBStrength: 4 }
+    };
+    
+    // Konfigurasi MTF per-timeframe (semua menggunakan EMA21 sebagai base)
+    const MTF_CONFIG = {
+        XAUUSDT: {
+            '4h': { emaFast: 21, emaSlow: 200, useStructure: true, weight: 3 },
+            '1h': { emaFast: 21, emaSlow: null, useOB: true, weight: 2 },
+            '15m': { emaFast: 21, emaSlow: 50, useFibonacci: true, weight: 1 },
+            '5m': { emaFast: 21, emaSlow: null, usePriceAction: true, weight: 0.5 }
+        },
+        BTCUSDT: {
+            '4h': { emaFast: 21, emaSlow: 200, useStructure: true, weight: 3 },
+            '1h': { emaFast: 21, emaSlow: null, useOB: true, weight: 2 },
+            '15m': { emaFast: 21, emaSlow: 50, useFibonacci: true, weight: 1 },
+            '5m': { emaFast: 21, emaSlow: null, usePriceAction: true, weight: 0.5 }
+        }
+    };
     
     let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
     let currentTF = localStorage.getItem('lastTF') || "15m";
@@ -737,554 +713,562 @@
     let lastPrice = 0, prevPrice = 0;
     let candleData = [];
     let isReloading = false;
-    let lastSignalExpiry = 0, lastSignalDecision = "";
     let mtfBiasCache = { m5: "NEUTRAL", m15: "NEUTRAL", h1: "NEUTRAL", h4: "NEUTRAL" };
-    let lastPriceUpdateTime = 0;
-    let isDataStale = false;
-    
-    let reconnectDelay = 1000;
-    let lastWSMessageTime = Date.now();
-    let isUsingFallback = false;
-    let isManualDisconnect = false;
-    let reconnectTimer = null;
-    let heartbeatInterval = null, stuckCheckInterval = null, restFallbackInterval = null;
-    
-    let activeModes = { conservative: false, sniper: false, semiretail: false, sniperQuality: null };
-    let orderBlocks = [];
-    let activeOB = null;
-    let obEvaluation = { hasOB: false, score: 0, strength: 'NONE' };
-    
+    let lastPriceUpdateTime = 0, lastWSMessageTime = 0;
+    let isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
+    let reconnectDelay = 1000, reconnectTimer = null;
+    let activeMode = null;
     let engine = {
-        swingHigh: 0, swingLow: 0, f618: 0, deep: 0, tp: 0, sl: 0,
-        bias: "NEUTRAL", adxBias: "NEUTRAL",
-        adx: 0, ema21: 0, plusDI: 0, minusDI: 0,
-        trSmooth: 0, pdmSmooth: 0, mdmSmooth: 0
+        swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL",
+        adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0,
+        entryZoneLow: 0, entryZoneHigh: 0, tp: 0, sl: 0
     };
-    
+    let orderBlocks = [], activeOB = null;
+    let obEvaluation = { hasOB: false, score: 0, strength: 'NONE', isActive: false };
     let factorStatus = { f1: false, f2: false, f3: false, ob: false };
     
-    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : (currentPair === "BTCUSDT" ? 1 : 2); }
+    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
+    function getConfig() { return PAIR_CONFIG[currentPair]; }
     
-    // ==================== SINGLE EMA FUNCTION ====================
     function calculateEMA(data, period) {
         if (!data || data.length < period) return 0;
         const closes = data.slice(-period * 2).map(c => c.c);
         if (closes.length < period) return 0;
-        let ema = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
-        const multiplier = 2 / (period + 1);
-        for (let i = period; i < closes.length; i++) ema = (closes[i] - ema) * multiplier + ema;
+        let ema = closes.slice(0, period).reduce((a,b) => a+b,0) / period;
+        const multiplier = 2/(period+1);
+        for (let i=period; i<closes.length; i++) ema = (closes[i]-ema)*multiplier + ema;
         return ema;
     }
     
-    // ==================== ORDER BLOCK (FIX: MAX SCORE 10) ====================
-    function detectOrderBlocks(data) {
-        if (!data || data.length < 10) return [];
-        const blocks = [];
-        for (let i = 5; i < data.length - 1; i++) {
-            const candle = data[i], prev = data[i-1];
-            if (prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
-                let isHighest = true;
-                for (let j = i - 3; j < i; j++) if (data[j].h > candle.h) isHighest = false;
-                if (isHighest) {
-                    const rawStrength = Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3;
-                    blocks.push({ type: 'BULLISH', high: candle.h, low: candle.o, price: (candle.h + candle.o) / 2, strength: Math.min(10, rawStrength), mitigated: false });
-                }
+    function calculateATR(period=14) {
+        if (candleData.length < period+1) return 0;
+        let tr = [];
+        for (let i=1; i<candleData.length; i++) {
+            const h = candleData[i].h, l = candleData[i].l, pc = candleData[i-1].c;
+            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
+        }
+        if (tr.length < period) return 0;
+        let atr = tr.slice(-period).reduce((a,b)=>a+b,0)/period;
+        return atr;
+    }
+    
+    function findSwingPoints() {
+        if (candleData.length < 20) return { swingHigh: 0, swingLow: 0 };
+        let sh = 0, sl = Infinity;
+        const left=5, right=5;
+        for (let i=left; i<candleData.length-right; i++) {
+            let isHigh=true, isLow=true;
+            for (let j=i-left; j<=i+right; j++) {
+                if (j===i) continue;
+                if (candleData[j].h >= candleData[i].h) isHigh=false;
+                if (candleData[j].l <= candleData[i].l) isLow=false;
             }
-            if (prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
-                let isLowest = true;
-                for (let j = i - 3; j < i; j++) if (data[j].l < candle.l) isLowest = false;
-                if (isLowest) {
-                    const rawStrength = Math.floor(Math.abs(candle.c - candle.o) / Math.abs(prev.c - prev.o) * 3) + 3;
-                    blocks.push({ type: 'BEARISH', high: candle.o, low: candle.l, price: (candle.o + candle.l) / 2, strength: Math.min(10, rawStrength), mitigated: false });
-                }
+            if (isHigh && candleData[i].h > sh) sh = candleData[i].h;
+            if (isLow && candleData[i].l < sl) sl = candleData[i].l;
+        }
+        if (sh===0) sh = Math.max(...candleData.slice(-50).map(c=>c.h));
+        if (sl===Infinity) sl = Math.min(...candleData.slice(-50).map(c=>c.l));
+        if (sh <= sl) sh = sl + (currentPair==="XAUUSDT"?5:100);
+        return { swingHigh: sh, swingLow: sl };
+    }
+    
+    // Market Structure untuk H4
+    function getMarketStructureBias(data) {
+        if (data.length < 20) return "NEUTRAL";
+        const swings = findSwingPointsFromData(data);
+        if (swings.higherHigh && swings.higherLow) return "BULLISH";
+        if (swings.lowerHigh && swings.lowerLow) return "BEARISH";
+        return "NEUTRAL";
+    }
+    
+    function findSwingPointsFromData(data) {
+        let higherHigh = false, higherLow = false, lowerHigh = false, lowerLow = false;
+        if (data.length < 15) return { higherHigh:false, higherLow:false, lowerHigh:false, lowerLow:false };
+        const recentHigh = Math.max(...data.slice(-10).map(c=>c.h));
+        const recentLow = Math.min(...data.slice(-10).map(c=>c.l));
+        const previousHigh = Math.max(...data.slice(-20, -10).map(c=>c.h));
+        const previousLow = Math.min(...data.slice(-20, -10).map(c=>c.l));
+        if (recentHigh > previousHigh) higherHigh = true;
+        if (recentLow > previousLow) higherLow = true;
+        if (recentHigh < previousHigh) lowerHigh = true;
+        if (recentLow < previousLow) lowerLow = true;
+        return { higherHigh, higherLow, lowerHigh, lowerLow };
+    }
+    
+    // Order Block alignment untuk H1
+    function checkOBAlignment(data, direction) {
+        if (!orderBlocks.length || direction === "NEUTRAL") return false;
+        const latestOB = orderBlocks[orderBlocks.length-1];
+        if (direction === "BULLISH" && latestOB.type === "BULLISH") return true;
+        if (direction === "BEARISH" && latestOB.type === "BEARISH") return true;
+        return false;
+    }
+    
+    // Fibonacci zone untuk M15
+    function checkFibonacciZone(data) {
+        if (candleData.length < 30) return false;
+        const { swingHigh, swingLow } = findSwingPoints();
+        const range = swingHigh - swingLow;
+        if (range <= 0) return false;
+        const price = data[data.length-1].c;
+        const f618 = engine.bias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
+        const f786 = engine.bias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
+        const inZone = (price >= Math.min(f618, f786) && price <= Math.max(f618, f786));
+        return inZone;
+    }
+    
+    // Price Action untuk M5
+    function checkPriceAction(data) {
+        if (data.length < 5) return false;
+        const last = data[data.length-1];
+        const prev = data[data.length-2];
+        const isBullishCandle = last.c > last.o;
+        const isEngulfing = (last.c > prev.h && last.o < prev.l);
+        return isBullishCandle || isEngulfing;
+    }
+    
+    // Fungsi utama penentuan bias per timeframe (presisi)
+    function getTimeframeBias(data, tf, currentPairName) {
+        if (!data || data.length < 50) return "NEUTRAL";
+        const cfg = MTF_CONFIG[currentPairName][tf];
+        if (!cfg) return "NEUTRAL";
+        
+        const price = data[data.length-1].c;
+        let bullishScore = 0, bearishScore = 0;
+        
+        // 1. EMA21 (Fast) - selalu dipakai
+        const ema21 = calculateEMA(data, 21);
+        if (price > ema21) bullishScore += 2;
+        else if (price < ema21) bearishScore += 2;
+        
+        // 2. EMA Slow (jika ada)
+        if (cfg.emaSlow) {
+            const emaSlow = calculateEMA(data, cfg.emaSlow);
+            if (price > emaSlow) bullishScore += 2;
+            else if (price < emaSlow) bearishScore += 2;
+        }
+        
+        // 3. Market Structure (khusus H4)
+        if (cfg.useStructure) {
+            const structBias = getMarketStructureBias(data);
+            if (structBias === "BULLISH") bullishScore += 2;
+            else if (structBias === "BEARISH") bearishScore += 2;
+        }
+        
+        // 4. Order Block alignment (khusus H1)
+        if (cfg.useOB && engine.adxBias !== "NEUTRAL") {
+            const obAlign = checkOBAlignment(data, engine.adxBias);
+            if (obAlign) {
+                if (engine.adxBias === "BULLISH") bullishScore += 2;
+                else if (engine.adxBias === "BEARISH") bearishScore += 2;
+            }
+        }
+        
+        // 5. Fibonacci zone (khusus M15)
+        if (cfg.useFibonacci) {
+            const inFibZone = checkFibonacciZone(data);
+            if (inFibZone) {
+                if (engine.bias === "BULLISH") bullishScore += 1;
+                else if (engine.bias === "BEARISH") bearishScore += 1;
+            }
+        }
+        
+        // 6. Price Action (khusus M5)
+        if (cfg.usePriceAction) {
+            const paBullish = checkPriceAction(data);
+            if (paBullish) bullishScore += 1;
+            else if (!paBullish && price < ema21) bearishScore += 1;
+        }
+        
+        // Threshold: minimal 3 poin untuk menentukan bias
+        if (bullishScore >= 3 && bullishScore > bearishScore) return "BULLISH";
+        if (bearishScore >= 3 && bearishScore > bullishScore) return "BEARISH";
+        return "NEUTRAL";
+    }
+    
+    function detectOrderBlocks() {
+        if (candleData.length < 20) return [];
+        const avgVolume = candleData.slice(-20).reduce((s,d)=>s+d.v,0)/20;
+        const blocks = [];
+        for (let i=5; i<candleData.length-2; i++) {
+            const candle = candleData[i];
+            const prev = candleData[i-1];
+            const bodyRange = Math.abs(candle.c - candle.o);
+            const totalRange = candle.h - candle.l;
+            const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= 0.6 && candle.v >= avgVolume * 1.5;
+            if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
+                const obLow = Math.min(prev.l, candleData[i-2]?.l || prev.l);
+                const obHigh = prev.h;
+                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
+                blocks.push({ type: 'BULLISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
+            }
+            if (isImpulsive && prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
+                const obHigh = Math.max(prev.h, candleData[i-2]?.h || prev.h);
+                const obLow = prev.l;
+                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
+                blocks.push({ type: 'BEARISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
             }
         }
         return blocks;
     }
     
     function evaluateOB(price) {
-        const p = safeValue(price, 0);
-        const relevant = orderBlocks.filter(b => !b.mitigated);
-        if (!relevant.length) return { hasOB: false, score: 0, strength: 'NONE', block: null, mitigation: 0 };
-        
-        let best = null, maxScore = 0, mitigation = 0;
-        const tol = currentPair === "XAUUSDT" ? 0.6 : (currentPair === "BTCUSDT" ? 80 : 2);
-        
+        const p = safeValue(price,0);
+        const relevant = orderBlocks.filter(b=>!b.mitigated);
+        if (!relevant.length) return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
+        let best=null, maxScore=0, mitigation=0, isActive=false;
         for (const b of relevant) {
-            let score = 0;
-            if ((engine.bias.includes("BULL") && b.type === 'BULLISH') || (engine.bias.includes("BEAR") && b.type === 'BEARISH')) score += 3;
-            if (p >= b.low - tol && p <= b.high + tol) { score += 2; if (p >= b.low && p <= b.high) { score += 2; mitigation = ((p - b.low) / (b.high - b.low)) * 100; } }
-            score += b.strength / 2;
-            if (score > maxScore) { maxScore = score; best = b; }
+            let score = b.strength;
+            const inZone = p>=b.low && p<=b.high;
+            if ((engine.bias==="BULLISH" && b.type==='BULLISH') || (engine.bias==="BEARISH" && b.type==='BEARISH')) score += 3;
+            if (inZone) { score += 4; mitigation = ((p-b.low)/(b.high-b.low))*100; isActive=true; }
+            else if (p >= b.low - (b.high-b.low)*0.3 && p <= b.high + (b.high-b.low)*0.3) score += 1;
+            if (score > maxScore) { maxScore=score; best=b; }
         }
-        
-        // FIX: Batasi maxScore maksimal 10
         maxScore = Math.min(10, maxScore);
-        
-        if (best) return { hasOB: true, score: maxScore, strength: maxScore >= 7 ? 'STRONG' : (maxScore >= 4 ? 'MEDIUM' : 'WEAK'), block: best, mitigation: Math.min(100, Math.max(0, mitigation)), isActive: p >= best.low && p <= best.high };
-        return { hasOB: false, score: 0, strength: 'NONE', block: null, mitigation: 0 };
+        if (best) return { hasOB:true, score:maxScore, strength: maxScore>=7?'STRONG':(maxScore>=4?'MEDIUM':'WEAK'), block:best, mitigation:Math.min(100,Math.max(0,mitigation)), isActive };
+        return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
     }
     
-    function updateOBUI(price) {
-        const p = safeValue(price, 0);
-        obEvaluation = evaluateOB(p);
-        factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= 3;
+    function calculateADX() {
+        if (candleData.length < 28) return 15;
+        const period=14;
+        let tr=[], plusDM=[], minusDM=[];
+        for (let i=1; i<candleData.length; i++) {
+            const h=candleData[i].h, l=candleData[i].l, ph=candleData[i-1].h, pl=candleData[i-1].l, pc=candleData[i-1].c;
+            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
+            const upMove = h-ph, downMove = pl-l;
+            if (upMove > downMove && upMove>0) { plusDM.push(upMove); minusDM.push(0); }
+            else if (downMove > upMove && downMove>0) { plusDM.push(0); minusDM.push(downMove); }
+            else { plusDM.push(0); minusDM.push(0); }
+        }
+        let atr = tr.slice(0,period).reduce((a,b)=>a+b,0);
+        let pDM = plusDM.slice(0,period).reduce((a,b)=>a+b,0);
+        let mDM = minusDM.slice(0,period).reduce((a,b)=>a+b,0);
+        let dxValues=[];
+        let lastPDI=0, lastMDI=0;
+        for (let i=period; i<tr.length; i++) {
+            atr = (atr*(period-1)+tr[i])/period;
+            pDM = (pDM*(period-1)+plusDM[i])/period;
+            mDM = (mDM*(period-1)+minusDM[i])/period;
+            lastPDI = atr>0 ? (pDM/atr)*100 : 0;
+            lastMDI = atr>0 ? (mDM/atr)*100 : 0;
+            const dx = (lastPDI+lastMDI)>0 ? (Math.abs(lastPDI-lastMDI)/(lastPDI+lastMDI))*100 : 0;
+            dxValues.push(dx);
+        }
+        let adxValue;
+        if (dxValues.length>=period) {
+            let smoothedADX = dxValues.slice(0,period).reduce((a,b)=>a+b,0)/period;
+            for (let i=period; i<dxValues.length; i++) smoothedADX = (smoothedADX*(period-1)+dxValues[i])/period;
+            adxValue = smoothedADX;
+        } else adxValue=15;
+        adxValue = Math.max(5, Math.min(100, adxValue));
+        engine.plusDI = Math.round(lastPDI);
+        engine.minusDI = Math.round(lastMDI);
+        engine.adxBias = lastPDI>lastMDI ? "BULLISH" : (lastMDI>lastPDI ? "BEARISH" : "NEUTRAL");
+        return adxValue;
+    }
+    
+    function computeRSI() {
+        if (candleData.length<15) return 50;
+        const closes = candleData.map(c=>c.c);
+        let gains=[], losses=[];
+        for (let i=1; i<closes.length; i++) {
+            const diff = closes[i]-closes[i-1];
+            gains.push(diff>0?diff:0);
+            losses.push(diff<0?-diff:0);
+        }
+        let avgG = gains.slice(0,14).reduce((a,b)=>a+b,0)/14;
+        let avgL = losses.slice(0,14).reduce((a,b)=>a+b,0)/14;
+        for (let i=14; i<gains.length; i++) {
+            avgG = (avgG*13+gains[i])/14;
+            avgL = (avgL*13+losses[i])/14;
+        }
+        return avgL===0?100:100-(100/(1+avgG/avgL));
+    }
+    
+    function updateTimeframeBiasUI() {
+        const tfMap = {
+            '4h': mtfBiasCache.h4,
+            '1h': mtfBiasCache.h1,
+            '15m': mtfBiasCache.m15,
+            '5m': mtfBiasCache.m5
+        };
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            const tf = btn.getAttribute('data-tf');
+            const bias = tfMap[tf] || 'NEUTRAL';
+            const symbolSpan = btn.querySelector('.tf-bias-symbol');
+            if (!symbolSpan) return;
+            let symbol = '';
+            let biasClass = '';
+            if (bias === 'BULLISH') { symbol = '▲'; biasClass = 'bullish'; }
+            else if (bias === 'BEARISH') { symbol = '▼'; biasClass = 'bearish'; }
+            else { symbol = '●'; biasClass = 'neutral'; }
+            symbolSpan.textContent = ` ${symbol}`;
+            symbolSpan.className = `tf-bias-symbol ${biasClass}`;
+        });
+    }
+    
+    async function fetchMTFData() {
+        const tfs = ['4h', '1h', '15m', '5m'];
+        await Promise.all(tfs.map(async tf => {
+            try {
+                const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf}&limit=150`);
+                const data = await resp.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    const formattedData = data.map(d => ({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }));
+                    // Gunakan fungsi per-timeframe yang presisi
+                    let bias = getTimeframeBias(formattedData, tf, currentPair);
+                    if (tf==='4h') mtfBiasCache.h4 = bias;
+                    else if (tf==='1h') mtfBiasCache.h1 = bias;
+                    else if (tf==='15m') mtfBiasCache.m15 = bias;
+                    else if (tf==='5m') mtfBiasCache.m5 = bias;
+                }
+            } catch(e) { console.warn(`MTF ${tf} error:`, e); }
+        }));
+        updateTimeframeBiasUI();
+        const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
+        const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
+        factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
+    }
+    
+    function updateLevels() {
+        const { swingHigh, swingLow } = findSwingPoints();
+        engine.swingHigh = swingHigh;
+        engine.swingLow = swingLow;
+        const range = swingHigh - swingLow;
+        if (range <= 0) return;
+        const price = lastPrice;
+        engine.bias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        const f618 = engine.bias==="BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
+        const f786 = engine.bias==="BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
+        const atr = calculateATR(getConfig().atrPeriod);
+        engine.atr = atr;
+        const entryFactor = getConfig().entryZoneATRFactor;
+        engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
+        engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
+        engine.tp = engine.bias==="BULLISH" ? swingHigh + range*0.27 : swingLow - range*0.27;
+        engine.sl = engine.bias==="BULLISH" ? engine.entryZoneLow - atr * getConfig().slATRFactor : engine.entryZoneHigh + atr * getConfig().slATRFactor;
         
         const prec = getPrecision();
+        UI.swingHigh.textContent = swingHigh.toFixed(prec);
+        UI.swingLow.textContent = swingLow.toFixed(prec);
+        UI.entryZoneLow.textContent = engine.entryZoneLow.toFixed(prec);
+        UI.entryZoneHigh.textContent = engine.entryZoneHigh.toFixed(prec);
+        UI.tpValue.textContent = engine.tp.toFixed(prec);
+        UI.slValue.textContent = engine.sl.toFixed(prec);
+        UI.atrValue.textContent = atr.toFixed(prec);
+        const rangePoints = currentPair === "XAUUSDT" ? range.toFixed(2) : range.toFixed(1);
+        UI.rangeValue.textContent = `${rangePoints} pts`;
+    }
+    
+    function updateDecision() {
+        if (isDataStale) {
+            UI.decision.textContent = 'DATA STALE';
+            UI.decision.style.color = 'var(--warning)';
+            UI.signalBar.style.background = 'rgba(220,38,38,0.1)';
+            return;
+        }
+        const p = lastPrice;
+        const config = getConfig();
+        const prec = getPrecision();
+        engine.ema21 = calculateEMA(candleData, 21);
+        engine.adx = calculateADX();
+        updateLevels();
+        obEvaluation = evaluateOB(p);
+        factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= config.minOBStrength;
+        const rsi = computeRSI();
+        
+        UI.rsiValue.textContent = rsi.toFixed(1);
+        UI.rsiFill.style.width = Math.min(100, Math.max(0, rsi)) + '%';
+        UI.rsiFill.className = 'rsi-fill';
+        if (rsi<config.rsiOversold) UI.rsiFill.classList.add('oversold');
+        else if (rsi>config.rsiOverbought) UI.rsiFill.classList.add('overbought');
+        else UI.rsiFill.classList.add('neutral');
+        
+        UI.emaValue.textContent = engine.ema21.toFixed(prec);
+        UI.emaDistance.textContent = `${(p>engine.ema21?'+':'')}${(p-engine.ema21).toFixed(prec)} (${((p-engine.ema21)/engine.ema21*100).toFixed(2)}%)`;
+        UI.emaTrend.textContent = p>engine.ema21?'▲':'▼';
+        UI.emaTrend.style.color = p>engine.ema21?'var(--accent-green)':'var(--accent-red)';
+        UI.adxValue.textContent = Math.round(engine.adx);
+        if (engine.adx<config.adxThreshold) UI.adxValue.classList.add('adx-warning');
+        else UI.adxValue.classList.remove('adx-warning');
+        UI.diValues.textContent = `+DI ${engine.plusDI} | -DI ${engine.minusDI}`;
+        UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
+        UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
+        
         if (obEvaluation.hasOB && obEvaluation.block) {
             const b = obEvaluation.block;
             activeOB = b;
-            UI.obType.textContent = b.type === 'BULLISH' ? '🟢 BULL' : '🔴 BEAR';
-            UI.obType.style.color = b.type === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
+            UI.obType.textContent = b.type==='BULLISH'?'🟢 BULL':'🔴 BEAR';
             UI.obBias.textContent = b.type;
             UI.obBias.className = `ob-bias ${b.type.toLowerCase()}`;
             UI.obHigh.textContent = b.high.toFixed(prec);
             UI.obLow.textContent = b.low.toFixed(prec);
             UI.obMid.textContent = b.price.toFixed(prec);
-            
-            const range = b.high - b.low;
             let fill = 0;
-            if (p >= b.high) fill = 100;
-            else if (p <= b.low) fill = 0;
-            else fill = ((p - b.low) / range) * 100;
-            UI.obRangeFill.style.width = Math.min(100, Math.max(0, fill)) + '%';
+            if (p>=b.high) fill=100;
+            else if (p<=b.low) fill=0;
+            else fill = ((p-b.low)/(b.high-b.low))*100;
+            UI.obRangeFill.style.width = Math.min(100,Math.max(0,fill))+'%';
             UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
-            
             UI.obStrength.textContent = `${obEvaluation.score.toFixed(1)} (${obEvaluation.strength})`;
             UI.obMitigation.textContent = obEvaluation.isActive ? `${obEvaluation.mitigation.toFixed(0)}%` : 'OUT';
-            UI.obDistance.textContent = Math.abs(p - b.price).toFixed(prec);
-            
-            if (UI.obChip) UI.obChip.textContent = obEvaluation.isActive ? '✅' : '📍';
-            if (UI.obChipEl) UI.obChipEl.classList.toggle('active', factorStatus.ob);
+            UI.obDistance.textContent = Math.abs(p-b.price).toFixed(prec);
         } else {
-            UI.obType.textContent = 'SCANNING'; UI.obType.style.color = 'var(--text-tertiary)';
-            UI.obBias.textContent = 'NEUTRAL'; UI.obBias.className = 'ob-bias';
+            UI.obType.textContent = 'SCANNING';
+            UI.obBias.textContent = 'NEUTRAL';
+            UI.obBias.className = 'ob-bias';
             UI.obHigh.textContent = UI.obLow.textContent = UI.obMid.textContent = '—';
             UI.obRangeFill.style.width = '0%';
             UI.obStrength.textContent = UI.obMitigation.textContent = UI.obDistance.textContent = '—';
-            if (UI.obChip) UI.obChip.textContent = '—';
-            if (UI.obChipEl) UI.obChipEl.classList.remove('active');
-        }
-    }
-    
-    // ==================== SMC LEVELS ====================
-    function calculateSMCLevels() {
-        if (candleData.length < 30) return;
-        const slice = candleData.slice(-50);
-        let sh = 0, sl = Infinity;
-        for (let i = 3; i < slice.length - 3; i++) {
-            let isSH = true, isSL = true;
-            for (let j = i - 3; j <= i + 3; j++) {
-                if (j !== i && slice[j].h >= slice[i].h) isSH = false;
-                if (j !== i && slice[j].l <= slice[i].l) isSL = false;
-            }
-            if (isSH && slice[i].h > sh) sh = slice[i].h;
-            if (isSL && slice[i].l < sl) sl = slice[i].l;
-        }
-        if (sh === 0) sh = Math.max(...slice.map(c => c.h));
-        if (sl === Infinity) sl = Math.min(...slice.map(c => c.l));
-        
-        if (sh <= sl) sh = sl + (currentPair === "XAUUSDT" ? 5 : (currentPair === "BTCUSDT" ? 100 : 2));
-        
-        engine.swingHigh = sh;
-        engine.swingLow = sl;
-        const range = sh - sl;
-        if (range <= 0) return;
-        
-        engine.bias = candleData[candleData.length-1].c > (sh + sl)/2 ? "BULLISH" : "BEARISH";
-        
-        const isBull = engine.bias.includes("BULL");
-        if (isBull) {
-            engine.f618 = sl + range * 0.618;
-            engine.deep = sl + range * 0.786;
-            engine.tp = sh + range * 0.27;
-            engine.sl = Math.max(sl, (engine.f618 + engine.deep)/2 - Math.abs(engine.tp - (engine.f618 + engine.deep)/2) * 0.5);
-        } else {
-            engine.f618 = sh - range * 0.618;
-            engine.deep = sh - range * 0.786;
-            engine.tp = sl - range * 0.27;
-            engine.sl = Math.min(sh, (engine.f618 + engine.deep)/2 + Math.abs((engine.f618 + engine.deep)/2 - engine.tp) * 0.5);
         }
         
-        const prec = getPrecision();
-        UI.swingHigh.textContent = sh.toFixed(prec);
-        UI.swingLow.textContent = sl.toFixed(prec);
-        UI.r618.textContent = engine.f618.toFixed(prec);
-        UI.r786.textContent = engine.deep.toFixed(prec);
-        UI.rTP.textContent = engine.tp.toFixed(prec);
-        UI.slValue.textContent = engine.sl.toFixed(prec);
-        UI.pipsDisplay.textContent = Math.abs(engine.tp - (engine.f618 + engine.deep)/2).toFixed(prec);
-    }
-    
-    // ==================== FIX: ADX DENGAN WILDER SMOOTHING FULL (TR/DM + DX) ====================
-function calculateADX() {
-    if (candleData.length < 28) return 15; // Default ADX saat data belum cukup
-    
-    const period = 14;
-    
-    // 1. Kumpulkan True Range, +DM, -DM
-    let tr = [], plusDM = [], minusDM = [];
-    for (let i = 1; i < candleData.length; i++) {
-        const h = candleData[i].h, l = candleData[i].l;
-        const ph = candleData[i-1].h, pl = candleData[i-1].l, pc = candleData[i-1].c;
-        
-        const trueRange = Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
-        tr.push(trueRange);
-        
-        const upMove = h - ph;
-        const downMove = pl - l;
-        
-        if (upMove > downMove && upMove > 0) {
-            plusDM.push(upMove);
-            minusDM.push(0);
-        } else if (downMove > upMove && downMove > 0) {
-            plusDM.push(0);
-            minusDM.push(downMove);
-        } else {
-            plusDM.push(0);
-            minusDM.push(0);
-        }
-    }
-    
-    // 2. Wilder's Smoothing untuk TR, +DM, -DM
-    let atr = tr.slice(0, period).reduce((a, b) => a + b, 0);
-    let pDM = plusDM.slice(0, period).reduce((a, b) => a + b, 0);
-    let mDM = minusDM.slice(0, period).reduce((a, b) => a + b, 0);
-    
-    let dxValues = [];
-    let lastPDI = 0, lastMDI = 0;
-    
-    for (let i = period; i < tr.length; i++) {
-        // Wilder's Smoothing untuk TR, +DM, -DM
-        atr = (atr * (period - 1) + tr[i]) / period;
-        pDM = (pDM * (period - 1) + plusDM[i]) / period;
-        mDM = (mDM * (period - 1) + minusDM[i]) / period;
-        
-        // Hitung +DI dan -DI
-        const pDI = atr > 0 ? (pDM / atr) * 100 : 0;
-        const mDI = atr > 0 ? (mDM / atr) * 100 : 0;
-        
-        // Simpan DI terakhir untuk bias dan tampilan
-        lastPDI = pDI;
-        lastMDI = mDI;
-        
-        // Hitung DX (Directional Movement Index)
-        const dx = (pDI + mDI) > 0 
-            ? (Math.abs(pDI - mDI) / (pDI + mDI)) * 100 
-            : 0;
-        dxValues.push(dx);
-    }
-    
-    // 3. Smoothing DX untuk mendapatkan ADX (Sesuai Standar Welles Wilder)
-    let adxValue;
-    if (dxValues.length >= period) {
-        // ADX pertama: simple average dari 14 DX pertama
-        let smoothedADX = dxValues.slice(0, period).reduce((a, b) => a + b, 0) / period;
-        
-        // ADX selanjutnya: Wilder's Smoothing
-        for (let i = period; i < dxValues.length; i++) {
-            smoothedADX = (smoothedADX * (period - 1) + dxValues[i]) / period;
-        }
-        adxValue = smoothedADX;
-    } else {
-        adxValue = 15; // Default jika DX belum cukup
-    }
-    
-    // 4. Batasan nilai ADX (tidak pernah 0, minimal 5)
-    adxValue = Math.max(5, Math.min(100, adxValue));
-    
-    // 5. Set engine values untuk digunakan di tempat lain
-    engine.plusDI = Math.round(lastPDI);
-    engine.minusDI = Math.round(lastMDI);
-    engine.adxBias = lastPDI > lastMDI ? "BULLISH" : (lastMDI > lastPDI ? "BEARISH" : "NEUTRAL");
-    
-    return adxValue;
-}
-    
-    function computeRSI() {
-        if (candleData.length < 15) return 50;
-        const closes = candleData.map(c => c.c);
-        let gains = [], losses = [];
-        for (let i = 1; i < closes.length; i++) {
-            const diff = closes[i] - closes[i-1];
-            gains.push(diff > 0 ? diff : 0);
-            losses.push(diff < 0 ? -diff : 0);
-        }
-        let avgG = gains.slice(0, 14).reduce((a, b) => a + b, 0) / 14;
-        let avgL = losses.slice(0, 14).reduce((a, b) => a + b, 0) / 14;
-        for (let i = 14; i < gains.length; i++) {
-            avgG = (avgG * 13 + gains[i]) / 14;
-            avgL = (avgL * 13 + losses[i]) / 14;
-        }
-        return avgL === 0 ? 100 : 100 - (100 / (1 + avgG / avgL));
-    }
-    
-    // ==================== MTF ====================
-    async function fetchMTFData() {
-        const tfs = ['4h', '1h', '15m', '5m'];
-        await Promise.all(tfs.map(async tf => {
-            try {
-                const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf}&limit=100`);
-                const data = await resp.json();
-                if (Array.isArray(data)) {
-                    const closes = data.map(d => parseFloat(d[4]));
-                    const ema = calculateEMA(data.map(d => ({ c: parseFloat(d[4]) })), 21);
-                    const bias = closes[closes.length-1] > ema ? "BULLISH" : "BEARISH";
-                    if (tf === '4h') mtfBiasCache.h4 = bias;
-                    else if (tf === '1h') mtfBiasCache.h1 = bias;
-                    else if (tf === '15m') mtfBiasCache.m15 = bias;
-                    else if (tf === '5m') mtfBiasCache.m5 = bias;
-                }
-            } catch(e) {}
-        }));
-        
-        const setMTF = (el, bias) => { if (el) { el.textContent = bias === 'BULLISH' ? '▲' : '▼'; el.style.color = bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)'; } };
-        setMTF(UI.mtfH4, mtfBiasCache.h4);
-        setMTF(UI.mtfH1, mtfBiasCache.h1);
-        setMTF(UI.mtfM15, mtfBiasCache.m15);
-        setMTF(UI.mtfM5, mtfBiasCache.m5);
-        
-        factorStatus.f2 = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b => b === "BULLISH").length >= 3 ||
-                         [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b => b === "BEARISH").length >= 3;
-    }
-    
-            // ==================== DECISION ENGINE (FIXED: AUTO-RESET + HIERARKI BENAR) ====================
-    function updateDecision() {
-        const p = lastPrice;
-        const prec = getPrecision();
-        
-        // 1. Cek data stale
-        if (isDataStale) {
-            UI.decision.textContent = 'DATA STALE';
-            UI.decision.style.color = 'var(--warning)';
-            UI.signalBar.style.background = 'rgba(220, 38, 38, 0.1)';
-            return;
-        }
-        
-        // 2. Hitung ulang SEMUA indikator setiap tick
-        calculateSMCLevels();
-        engine.ema21 = calculateEMA(candleData, 21);
-        engine.adx = calculateADX();
-        updateOBUI(p);
-        
-        const rsi = computeRSI();
-        
-        // 3. Update UI indikator
-        UI.rsiValue.textContent = rsi.toFixed(1);
-        UI.rsiFill.style.width = Math.min(100, Math.max(0, rsi)) + '%';
-        UI.rsiFill.className = 'rsi-fill';
-        if (rsi < 30) UI.rsiFill.classList.add('oversold');
-        else if (rsi > 70) UI.rsiFill.classList.add('overbought');
-        else UI.rsiFill.classList.add('neutral');
-        if (UI.rsiChip) UI.rsiChip.textContent = rsi.toFixed(0);
-        
-        UI.emaValue.textContent = engine.ema21.toFixed(prec);
-        UI.emaDistance.textContent = `${(p > engine.ema21 ? '+' : '')}${(p - engine.ema21).toFixed(prec)} (${((p - engine.ema21)/engine.ema21*100).toFixed(2)}%)`;
-        UI.emaTrend.textContent = p > engine.ema21 ? '▲' : '▼';
-        UI.emaTrend.style.color = p > engine.ema21 ? 'var(--accent-green)' : 'var(--accent-red)';
-        if (UI.emaChip) UI.emaChip.textContent = engine.ema21.toFixed(prec);
-        
-        UI.adxValue.textContent = Math.round(engine.adx);
-        if (engine.adx < 20) {
-            UI.adxValue.classList.add('adx-warning');
-        } else {
-            UI.adxValue.classList.remove('adx-warning');
-        }
-        UI.diValues.textContent = `+DI ${engine.plusDI} | -DI ${engine.minusDI}`;
-        UI.adxTrend.textContent = engine.plusDI > engine.minusDI ? '▲' : '▼';
-        UI.adxTrend.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
-        if (UI.adxChip) UI.adxChip.textContent = Math.round(engine.adx);
-        
-        // 4. Hitung variabel dasar
-        const inZone = p >= Math.min(engine.f618, engine.deep) && p <= Math.max(engine.f618, engine.deep);
-        const adxValid = engine.adx >= 20;
-        const isInValidArea = inZone || obEvaluation.isActive;
-        
-        // 5. Zone Warning Visual
-        if (!inZone && !obEvaluation.isActive) {
-            UI.levelsGrid.classList.add('zone-warning');
-        } else {
-            UI.levelsGrid.classList.remove('zone-warning');
-        }
-        
-        // 6. Evaluasi factor status
+        const inZone = p >= engine.entryZoneLow && p <= engine.entryZoneHigh;
+        const adxValid = engine.adx >= config.adxThreshold;
         factorStatus.f1 = engine.bias !== "NEUTRAL";
         factorStatus.f3 = adxValid && (inZone || obEvaluation.isActive);
+        const obAligned = obEvaluation.hasOB && ((engine.adxBias==="BULLISH" && activeOB?.type==='BULLISH') || (engine.adxBias==="BEARISH" && activeOB?.type==='BEARISH'));
         
-        // 7. Cek keselarasan OB
-        const obAligned = (activeOB && obEvaluation.isActive) ? 
-            ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') ||
-             (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH')) : false;
-        
-        // 8. Hitung skor
         let score = 0;
-        if (factorStatus.f1) score += 3;
-        if (factorStatus.f2) score += 2;
-        if (factorStatus.f3) score += 2;
-        if (factorStatus.ob) score += obEvaluation.strength === 'STRONG' ? 3 : (obEvaluation.strength === 'MEDIUM' ? 2 : 1);
+        if (factorStatus.f1) score+=3;
+        if (factorStatus.f2) score+=2;
+        if (factorStatus.f3) score+=2;
+        if (factorStatus.ob) score += obEvaluation.strength==='STRONG'?3:(obEvaluation.strength==='MEDIUM'?2:1);
         
-        // 9. Tentukan arah sinyal
-        const signalDirection = engine.adxBias;
-        const isBullish = signalDirection === "BULLISH";
-        const action = isBullish ? 'BUY' : 'SELL';
+        const direction = engine.adxBias;
+        const action = direction==="BULLISH"?"BUY":"SELL";
+        UI.arrow.innerHTML = direction==="BULLISH"? '▲' : '▼';
+        UI.arrow.style.color = direction==="BULLISH"? 'var(--accent-green)' : 'var(--accent-red)';
         
-        UI.arrow.innerHTML = isBullish ? '▲' : '▼';
-        UI.arrow.style.color = isBullish ? 'var(--accent-green)' : 'var(--accent-red)';
+        let active = null;
+        let decisionText = '', color = '', bgColor = '';
+        const isInValidZone = inZone || obEvaluation.isActive;
         
-        // 10. Evaluasi mode (SEKALI SAJA)
-        const CONSERVATIVE = adxValid && factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score >= 6 && isInValidArea;
-        const SNIPER = adxValid && factorStatus.f1 && factorStatus.ob && score >= 5 && isInValidArea && obAligned;
-        const RETAIL = adxValid && factorStatus.f1 && isInValidArea && rsi >= 40 && rsi <= 60;
-        const SNIPER_QUALITY = obEvaluation.strength === 'STRONG' ? 'GOLDEN' : 'SILVER';
-        
-        // 11. Simpan ke activeModes (untuk kompatibilitas)
-        activeModes = {
-            conservative: CONSERVATIVE,
-            sniper: SNIPER,
-            semiretail: RETAIL,
-            sniperQuality: SNIPER_QUALITY
-        };
-        
-        // 12. Update UI tombol
-        UI.consBtn.classList.toggle('active', CONSERVATIVE);
-        UI.snipBtn.classList.toggle('active', SNIPER);
-        UI.semiBtn.classList.toggle('active', RETAIL);
-        UI.sniperBadge.textContent = (SNIPER && SNIPER_QUALITY === 'GOLDEN') ? '🏆' : '';
-        
-        // 13. Tentukan teks sinyal berdasarkan hierarki
-        let decision = '', color = '', bgColor = '';
-        
-        if (!adxValid) {
-            decision = 'ADX LOW';
-            color = 'var(--warning)';
-            bgColor = 'rgba(245, 158, 11, 0.1)';
-        } else if (!isInValidArea) {
-            decision = 'OUT OF ZONE';
-            color = 'var(--warning)';
-            bgColor = 'rgba(245, 158, 11, 0.1)';
-        } else if (CONSERVATIVE) {
-            decision = `CONSERVATIVE ${action}`;
-            color = 'var(--accent-green)';
-            bgColor = 'rgba(16, 185, 129, 0.08)';
-        } else if (SNIPER) {
-            decision = `SNIPER ${action}`;
-            color = 'var(--accent-purple)';
-            bgColor = 'rgba(139, 92, 246, 0.08)';
-        } else if (RETAIL) {
-            decision = `RETAIL ${action}`;
-            color = 'var(--accent-orange)';
-            bgColor = 'rgba(245, 158, 11, 0.08)';
-        } else if (factorStatus.ob && obEvaluation.strength === 'STRONG' && score >= 6 && obAligned) {
-            decision = `OB CONFLUENCE ${action}`;
-            color = 'var(--accent-cyan)';
-            bgColor = 'rgba(0, 191, 255, 0.05)';
-        } else if (score >= 4) {
-            decision = 'WAITING';
-            color = 'var(--accent-gold)';
-            bgColor = 'var(--bg-secondary)';
-        } else {
-            decision = 'NO SETUP';
-            color = 'var(--text-tertiary)';
-            bgColor = 'var(--bg-secondary)';
-        }
-        
-        // 14. Simpan teks keputusan
-        const currentDecision = decision;
-        const currentColor = color;
-        const currentBgColor = bgColor;
-        
-        // 15. Cek throttle
-        const isThrottled = Date.now() < lastSignalExpiry;
-        
-        if (isThrottled) {
-            const rem = Math.ceil((lastSignalExpiry - Date.now()) / 1000);
-            UI.decision.textContent = `${lastSignalDecision} (${Math.floor(rem/60)}m${rem%60}s)`;
-            UI.decision.style.color = 'var(--accent-gold)';
-            UI.signalBar.style.background = 'var(--bg-secondary)';
-            UI.signalBar.style.borderColor = (CONSERVATIVE || SNIPER || RETAIL) ? currentColor : 'var(--border-subtle)';
-        } else {
-            UI.decision.textContent = `${currentDecision} [${score}/10]`;
-            UI.decision.style.color = currentColor;
-            UI.signalBar.style.background = currentBgColor;
-            UI.signalBar.style.borderColor = (CONSERVATIVE || SNIPER || RETAIL) ? currentColor : 'var(--border-subtle)';
-            
-            if (adxValid && isInValidArea && (CONSERVATIVE || SNIPER || RETAIL)) {
-                lastSignalExpiry = Date.now() + THROTTLE_MINUTES * 60000;
-                lastSignalDecision = currentDecision;
-                UI.signalBar.classList.add('decision-animate');
-                setTimeout(() => UI.signalBar.classList.remove('decision-animate'), 300);
+        if (!adxValid) { decisionText = `LOW ADX (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
+        else if (!isInValidZone) { decisionText = 'OUT OF ZONE'; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
+        else {
+            if (adxValid && factorStatus.f1 && factorStatus.f2 && factorStatus.f3 && score>=8 && engine.adx>=25) {
+                active = 'conservative';
+                decisionText = `CONSERVATIVE ${action}`;
+                color = 'var(--accent-green)';
+                bgColor = 'rgba(16,185,129,0.08)';
             }
+            else if (adxValid && factorStatus.f1 && factorStatus.ob && obAligned && score>=7 && inZone) {
+                active = 'sniper';
+                decisionText = `SNIPER ${action}`;
+                color = 'var(--accent-purple)';
+                bgColor = 'rgba(139,92,246,0.08)';
+            }
+            else if (adxValid && factorStatus.f1 && score>=5 && inZone && rsi>=40 && rsi<=60) {
+                active = 'retail';
+                decisionText = `RETAIL ${action}`;
+                color = 'var(--accent-orange)';
+                bgColor = 'rgba(245,158,11,0.08)';
+            }
+            else if (score>=4) { decisionText = 'WAITING'; color='var(--accent-gold)'; bgColor='var(--bg-secondary)'; active=null; }
+            else { decisionText = 'NO SETUP'; color='var(--text-tertiary)'; bgColor='var(--bg-secondary)'; active=null; }
         }
+        
+        document.querySelectorAll('.mode-btn-large').forEach(btn => btn.classList.remove('active'));
+        if (active === 'conservative') document.querySelector('[data-mode="conservative"]')?.classList.add('active');
+        else if (active === 'sniper') document.querySelector('[data-mode="sniper"]')?.classList.add('active');
+        else if (active === 'retail') document.querySelector('[data-mode="retail"]')?.classList.add('active');
+        
+        UI.decision.textContent = `${decisionText} [${score}/10]`;
+        UI.decision.style.color = color;
+        UI.signalBar.style.background = bgColor;
+        UI.signalBar.style.borderColor = active ? color : 'var(--border-subtle)';
+        UI.levelsGrid.classList.toggle('zone-warning', !isInValidZone && adxValid);
     }
     
-    // ==================== UI UPDATE ====================
     function updateUI(price) {
-        const p = safeValue(price, 0);
+        const p = safeValue(price,0);
         const prec = getPrecision();
-        
-        if (UI.priceMain) {
-            const fixed = p.toFixed(prec);
-            const parts = fixed.split('.');
-            UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`;
-            UI.priceMain.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
+        const fixed = p.toFixed(prec);
+        const parts = fixed.split('.');
+        UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1]||'00'}</span>`;
+        UI.priceMain.style.color = p>prevPrice ? 'var(--accent-green)' : (p<prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
+        if (prevPrice>0) {
+            const change = p-prevPrice;
+            const pct = (change/prevPrice)*100;
+            UI.priceChange.innerHTML = `${change>0?'+':''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`;
+            UI.priceChange.style.color = change>0?'var(--accent-green)':'var(--accent-red)';
         }
-        if (UI.priceChange && prevPrice > 0) {
-            const change = p - prevPrice;
-            const pct = (change / prevPrice) * 100;
-            UI.priceChange.innerHTML = `${change > 0 ? '+' : ''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`;
-            UI.priceChange.style.color = change > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-        }
-        
-        updateDecision();
-        prevPrice = p;
         lastPrice = p;
+        prevPrice = p;
+        updateDecision();
     }
     
-    // ==================== WEBSOCKET ====================
+    function safeValue(val, fallback=0) { return (typeof val==='number' && !isNaN(val) && isFinite(val)) ? val : fallback; }
+    
     function updateWSStatus(status, message) {
         if (!UI.dot || !UI.text) return;
         UI.dot.className = 'status-dot';
-        if (status === 'live') { UI.dot.classList.add('live'); UI.text.innerText = message || 'LIVE'; reconnectDelay = 1000; isUsingFallback = false; isDataStale = false; }
-        else if (status === 'connecting') { UI.dot.classList.add('connecting'); UI.text.innerText = message || 'CONNECTING'; }
-        else if (status === 'reconnect') { UI.dot.classList.add('reconnect'); UI.text.innerText = message || 'RECONNECT'; }
-        else if (status === 'fallback') { UI.dot.classList.add('fallback'); UI.text.innerText = message || 'FALLBACK'; isUsingFallback = true; }
-        else if (status === 'stale') { UI.dot.classList.add('stale'); UI.text.innerText = message || 'DATA STALE'; isDataStale = true; }
-        else { UI.dot.classList.add('offline'); UI.text.innerText = message || 'OFFLINE'; }
-        
+        if (status==='live') { UI.dot.classList.add('live'); UI.text.innerText=message||'LIVE'; reconnectDelay=1000; isUsingFallback=false; isDataStale=false; }
+        else if (status==='connecting') { UI.dot.classList.add('connecting'); UI.text.innerText=message||'CONNECTING'; }
+        else if (status==='reconnect') { UI.dot.classList.add('reconnect'); UI.text.innerText=message||'RECONNECT'; }
+        else if (status==='fallback') { UI.dot.classList.add('fallback'); UI.text.innerText=message||'FALLBACK'; isUsingFallback=true; }
+        else if (status==='stale') { UI.dot.classList.add('stale'); UI.text.innerText=message||'DATA STALE'; isDataStale=true; }
+        else { UI.dot.classList.add('offline'); UI.text.innerText=message||'OFFLINE'; }
         if (UI.signalBar) UI.signalBar.classList.toggle('stale-warning', isDataStale);
     }
-
+    
     function cleanupWebSocket() {
         if (wsConnection) {
-            isManualDisconnect = true;
-            try {
-                wsConnection.onopen = wsConnection.onmessage = wsConnection.onclose = wsConnection.onerror = null;
-                if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) wsConnection.close();
-            } catch(e) {}
-            wsConnection = null;
+            isManualDisconnect=true;
+            try { wsConnection.onopen=wsConnection.onmessage=wsConnection.onclose=wsConnection.onerror=null; if (wsConnection.readyState===WebSocket.OPEN || wsConnection.readyState===WebSocket.CONNECTING) wsConnection.close(); } catch(e) {}
+            wsConnection=null;
         }
-        setTimeout(() => { isManualDisconnect = false; }, 100);
+        setTimeout(()=>{ isManualDisconnect=false; },100);
     }
-
+    
+    async function fetchKlines() {
+        try {
+            const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=150`);
+            const data = await resp.json();
+            if (Array.isArray(data)) {
+                candleData = data.map(d => ({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }));
+                if (candleData.length) {
+                    lastPrice = prevPrice = candleData[candleData.length-1].c;
+                    orderBlocks = detectOrderBlocks();
+                    updateUI(lastPrice);
+                }
+                return true;
+            }
+        } catch(e) { console.warn(e); }
+        return false;
+    }
+    
+    async function fetchPriceREST() {
+        try {
+            const resp = await fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentPair}`);
+            const data = await resp.json();
+            if (data?.price) {
+                const price = parseFloat(data.price);
+                if (price>0 && (Date.now()-lastWSMessageTime>3000 || isUsingFallback)) {
+                    lastPriceUpdateTime = Date.now();
+                    updateUI(price);
+                }
+            }
+        } catch(e) {}
+    }
+    
     function initWebSocket() {
         cleanupWebSocket();
-        updateWSStatus('connecting', 'CONNECTING');
-        
+        updateWSStatus('connecting','CONNECTING');
         const streamName = `${currentPair.toLowerCase()}@kline_${currentTF}`;
         const wsUrl = `wss://fstream.binance.com/ws/${streamName}`;
-        
         try {
             wsConnection = new WebSocket(wsUrl);
-            
             wsConnection.onopen = () => {
-                console.log(`✅ WebSocket KLINE connected: ${currentPair} @ ${currentTF}`);
-                reconnectDelay = 1000;
-                lastWSMessageTime = lastPriceUpdateTime = Date.now();
-                if (isUsingFallback) isUsingFallback = false;
-                if (isDataStale) isDataStale = false;
+                console.log(`✅ WebSocket connected: ${currentPair} @ ${currentTF}`);
+                reconnectDelay=1000;
+                lastWSMessageTime=lastPriceUpdateTime=Date.now();
+                isUsingFallback=false;
+                isDataStale=false;
                 updateWSStatus('live', `LIVE ${currentTF}`);
             };
-            
             wsConnection.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
@@ -1295,19 +1279,16 @@ function calculateADX() {
                         const low = parseFloat(k.l);
                         const open = parseFloat(k.o);
                         const isClosed = k.x;
-                        
-                        if (price > 0) {
+                        if (price>0) {
                             lastWSMessageTime = lastPriceUpdateTime = Date.now();
-                            
                             if (isUsingFallback) updateWSStatus('live', `LIVE ${currentTF}`);
                             if (isDataStale) updateWSStatus('live', `LIVE ${currentTF}`);
-                            
                             if (candleData.length) {
                                 const lc = candleData[candleData.length-1];
                                 if (isClosed) {
-                                    candleData.push({ t: k.t, o: open, h: high, l: low, c: price, v: parseFloat(k.v) });
-                                    if (candleData.length > 150) candleData.shift();
-                                    orderBlocks = detectOrderBlocks(candleData);
+                                    candleData.push({ t:k.t, o:open, h:high, l:low, c:price, v:parseFloat(k.v) });
+                                    if (candleData.length>150) candleData.shift();
+                                    orderBlocks = detectOrderBlocks();
                                 } else {
                                     lc.c = price;
                                     lc.h = Math.max(lc.h, high);
@@ -1315,146 +1296,82 @@ function calculateADX() {
                                     lc.o = lc.o || open;
                                 }
                             }
-                            
                             updateUI(price);
                         }
                     }
-                } catch (err) {}
+                } catch(err) {}
             };
-            
-            wsConnection.onclose = (event) => {
+            wsConnection.onclose = () => {
                 if (!isReloading && !isManualDisconnect) {
-                    updateWSStatus('reconnect', 'RECONNECT');
+                    updateWSStatus('reconnect','RECONNECT');
                     if (reconnectTimer) clearTimeout(reconnectTimer);
                     reconnectTimer = setTimeout(() => {
                         if (!isReloading && !isManualDisconnect) {
-                            reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
+                            reconnectDelay = Math.min(reconnectDelay*1.5, 30000);
                             initWebSocket();
                         }
                     }, reconnectDelay);
                 }
             };
-            
-            wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect', 'ERROR'); };
-            
-        } catch (e) {
-            updateWSStatus('fallback', 'FALLBACK');
-            isUsingFallback = true;
-        }
+            wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect','ERROR'); };
+        } catch(e) { updateWSStatus('fallback','FALLBACK'); isUsingFallback=true; }
     }
     
-    async function fetchKlines() {
-        try {
-            const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=150`);
-            const data = await resp.json();
-            if (Array.isArray(data)) {
-                candleData = data.map(d => ({ t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) }));
-                if (candleData.length) { 
-                    lastPrice = prevPrice = candleData[candleData.length-1].c; 
-                    orderBlocks = detectOrderBlocks(candleData); 
-                    updateUI(lastPrice); 
-                }
-                return true;
-            }
-        } catch(e) {}
-        return false;
-    }
-    
-    async function fetchPriceREST() {
-        try {
-            const resp = await fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentPair}`);
-            const data = await resp.json();
-            if (data?.price) {
-                const price = parseFloat(data.price);
-                if (price > 0 && (Date.now() - lastWSMessageTime > 3000 || isUsingFallback)) {
-                    lastPriceUpdateTime = Date.now();
-                    updateUI(price);
-                }
-            }
-        } catch(e) {}
-    }
-    
+    let heartbeatInterval, stuckCheckInterval, restFallbackInterval;
     async function fullReload() {
         if (isReloading) return;
-        isReloading = true;
-        
-        document.querySelectorAll('[data-pair], [data-tf]').forEach(b => b.classList.add('disabled'));
-        
+        isReloading=true;
+        document.querySelectorAll('[data-pair],[data-tf]').forEach(b=>b.classList.add('disabled'));
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         if (stuckCheckInterval) clearInterval(stuckCheckInterval);
         if (restFallbackInterval) clearInterval(restFallbackInterval);
         cleanupWebSocket();
         
-        document.querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('active', b.dataset.pair === currentPair));
-        document.querySelectorAll('[data-tf]').forEach(b => b.classList.toggle('active', b.dataset.tf === currentTF));
+        document.querySelectorAll('[data-pair]').forEach(btn => {
+            if (btn.getAttribute('data-pair') === currentPair) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            const tf = btn.getAttribute('data-tf');
+            if (tf === currentTF) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
         
-        updateWSStatus('connecting', 'LOADING');
-        
-        engine = { swingHigh:0, swingLow:0, f618:0, deep:0, tp:0, sl:0, bias:"NEUTRAL", adxBias:"NEUTRAL", adx:0, ema21:0, plusDI:0, minusDI:0 };
+        updateWSStatus('connecting','LOADING');
+        engine = { swingHigh:0, swingLow:0, bias:"NEUTRAL", adxBias:"NEUTRAL", adx:0, ema21:0, plusDI:0, minusDI:0, atr:0, entryZoneLow:0, entryZoneHigh:0, tp:0, sl:0 };
         factorStatus = { f1:false, f2:false, f3:false, ob:false };
-        orderBlocks = []; activeOB = null;
-        lastSignalExpiry = 0;
-        
+        orderBlocks=[]; activeOB=null;
         await fetchKlines();
         await fetchMTFData();
         initWebSocket();
-        
-        heartbeatInterval = setInterval(() => { if (wsConnection?.readyState === WebSocket.OPEN) try { wsConnection.send(JSON.stringify({method:"ping"})); } catch(e) {} }, 30000);
-        
+        heartbeatInterval = setInterval(() => { if (wsConnection?.readyState===WebSocket.OPEN) try { wsConnection.send(JSON.stringify({method:"ping"})); } catch(e) {} }, 30000);
         stuckCheckInterval = setInterval(() => {
-            const now = Date.now();
-            const timeSinceLastPrice = now - lastPriceUpdateTime;
-            
-            if (timeSinceLastPrice > STALE_THRESHOLD && lastPrice > 0) { if (!isDataStale) updateWSStatus('stale'); }
-            else if (isDataStale && timeSinceLastPrice < 5000) updateWSStatus(isUsingFallback ? 'fallback' : 'live');
-            
-            const timeSinceLastMsg = now - lastWSMessageTime;
-            if (wsConnection?.readyState === WebSocket.OPEN && timeSinceLastMsg > 10000 && !isUsingFallback && !isReloading) {
-                updateWSStatus('fallback');
-                isUsingFallback = true;
-                fetchPriceREST();
-            }
-            
-            if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect');
+            const now=Date.now();
+            const timeSinceLastPrice = now-lastPriceUpdateTime;
+            if (timeSinceLastPrice>10000 && lastPrice>0 && !isDataStale) updateWSStatus('stale');
+            else if (isDataStale && timeSinceLastPrice<5000) updateWSStatus(isUsingFallback?'fallback':'live');
+            const timeSinceLastMsg = now-lastWSMessageTime;
+            if (wsConnection?.readyState===WebSocket.OPEN && timeSinceLastMsg>10000 && !isUsingFallback && !isReloading) { updateWSStatus('fallback'); isUsingFallback=true; fetchPriceREST(); }
+            if (wsConnection?.readyState!==WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect');
         }, 5000);
-        
         restFallbackInterval = setInterval(fetchPriceREST, 5000);
-        
-        document.querySelectorAll('[data-pair], [data-tf]').forEach(b => b.classList.remove('disabled'));
-        
-        isReloading = false;
+        document.querySelectorAll('[data-pair],[data-tf]').forEach(b=>b.classList.remove('disabled'));
+        isReloading=false;
     }
     
-    // ==================== EVENT LISTENERS ====================
-    document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => { if (!isReloading) { currentPair = b.dataset.pair; localStorage.setItem('lastPair', currentPair); fullReload(); } });
-    document.querySelectorAll('[data-tf]').forEach(b => b.onclick = () => { if (!isReloading) { currentTF = b.dataset.tf; localStorage.setItem('lastTF', currentTF); fullReload(); } });
-    
-    window.copySwingHL = () => {
-        const swingHigh = UI.swingHigh?.textContent || '—';
-        const swingLow = UI.swingLow?.textContent || '—';
-        navigator.clipboard?.writeText(`Swing H: ${swingHigh} | L: ${swingLow}`);
-    };
-    
-    window.copyEntryZone = () => {
-        const r618 = UI.r618?.textContent || '—';
-        const r786 = UI.r786?.textContent || '—';
-        navigator.clipboard?.writeText(`Entry Zone: ${r618} / ${r786}`);
-    };
-    
-    window.smartCopy = (id) => {
-        const el = document.getElementById(id);
-        if (el) { navigator.clipboard?.writeText(el.textContent.trim()); el.classList.add('copied'); setTimeout(() => el.classList.remove('copied'), 300); }
-    };
-    
-    setInterval(() => {
-        const now = new Date();
-        UI.clock.textContent = now.toLocaleTimeString('id-ID');
-        UI.date.textContent = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`;
-        UI.session.textContent = now.getHours() >= 7 && now.getHours() < 14 ? 'ASIA' : (now.getHours() >= 14 && now.getHours() < 20 ? 'LONDON' : 'NY');
-    }, 1000);
-    
-    setInterval(fetchMTFData, 120000);
-    
+    document.querySelectorAll('[data-pair]').forEach(btn => btn.onclick = () => { if(!isReloading){ currentPair=btn.getAttribute('data-pair'); localStorage.setItem('lastPair',currentPair); fullReload(); } });
+    document.querySelectorAll('.tf-btn').forEach(btn => btn.onclick = () => { if(!isReloading){ currentTF=btn.getAttribute('data-tf'); localStorage.setItem('lastTF',currentTF); fullReload(); } });
+    window.copySwingHL = () => { navigator.clipboard?.writeText(`Swing H: ${UI.swingHigh.textContent} | L: ${UI.swingLow.textContent}`); };
+    window.copyEntryZone = () => { navigator.clipboard?.writeText(`Entry Zone: ${UI.entryZoneLow.textContent} / ${UI.entryZoneHigh.textContent}`); };
+    window.smartCopy = (id) => { const el = document.getElementById(id); if(el){ navigator.clipboard?.writeText(el.textContent.trim()); el.classList.add('copied'); setTimeout(()=>el.classList.remove('copied'),300); } };
+    setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
+    setInterval(() => { fetchMTFData(); }, 120000);
     fullReload();
 })();
 </script>
