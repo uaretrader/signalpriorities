@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · BIAS ENGINE v23.9</title>
+    <title>SMC APEX · CORE v1.0</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -14,7 +14,6 @@
             --bg-secondary: #111114;
             --bg-tertiary: #16161A;
             --border-subtle: #222228;
-            --border-active: #2A2A32;
             --text-primary: #EDEDEF;
             --text-secondary: #9898A0;
             --text-tertiary: #5C5C66;
@@ -541,7 +540,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">v23.9</span>
+            <span class="version-tag">CORE v1.0</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -551,7 +550,7 @@
 
     <nav class="nav-bar">
         <div class="tab-group">
-            <button class="tab-btn" data-pair="XAUUSDT">XAUUSD</button>
+            <button class="tab-btn active" data-pair="XAUUSDT">XAUUSD</button>
             <button class="tab-btn" data-pair="BTCUSDT">BTCUSD</button>
         </div>
         <div class="tab-group" id="tf-group">
@@ -660,7 +659,7 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX v23.9 | OB only unmitigated & aligned with signal | Professional standard', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX CORE v1.0 | Fresh start | Independent MTF per timeframe | Consistent bias', 'color: #00BFFF; font-weight: 700;');
     
     // ==================== DOM Elements ====================
     const UI = {
@@ -691,33 +690,29 @@
         BTCUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, entryZoneATRFactor: 0.5, slATRFactor: 1.8, minOBStrength: 4 }
     };
     
-    const MTF_CONFIG = {
-        XAUUSDT: {
-            '4h': { emaFast: 21, emaSlow: 200, useStructure: true, weight: 3 },
-            '1h': { emaFast: 21, emaSlow: null, useOB: true, weight: 2 },
-            '15m': { emaFast: 21, emaSlow: 50, useFibonacci: true, weight: 1 },
-            '5m': { emaFast: 21, emaSlow: null, usePriceAction: true, weight: 0.5 }
-        },
-        BTCUSDT: {
-            '4h': { emaFast: 21, emaSlow: 200, useStructure: true, weight: 3 },
-            '1h': { emaFast: 21, emaSlow: null, useOB: true, weight: 2 },
-            '15m': { emaFast: 21, emaSlow: 50, useFibonacci: true, weight: 1 },
-            '5m': { emaFast: 21, emaSlow: null, usePriceAction: true, weight: 0.5 }
-        }
-    };
-    
     let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
     let currentTF = localStorage.getItem('lastTF') || "15m";
     let wsConnection = null;
     let lastPrice = 0, prevPrice = 0;
     let candleData = [];
     let isReloading = false;
-    let mtfBiasCache = { m5: "NEUTRAL", m15: "NEUTRAL", h1: "NEUTRAL", h4: "NEUTRAL" };
     let lastPriceUpdateTime = 0, lastWSMessageTime = 0;
     let isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
     let reconnectDelay = 1000, reconnectTimer = null;
     let activeMode = null;
     let currentAction = "BUY";
+    
+    // MTF Bias Cache (independen per timeframe, konsisten di semua tampilan)
+    let mtfBiasCache = {
+        h4: "NEUTRAL",
+        h1: "NEUTRAL",
+        m15: "NEUTRAL",
+        m5: "NEUTRAL",
+        timestamp: 0,
+        pair: null
+    };
+    
+    // Engine untuk chart utama
     let engine = {
         swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL",
         adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0,
@@ -730,6 +725,7 @@
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     function getConfig() { return PAIR_CONFIG[currentPair]; }
     
+    // ==================== CORE FUNCTIONS ====================
     function calculateEMA(data, period) {
         if (!data || data.length < period) return 0;
         const closes = data.slice(-period * 2).map(c => c.c);
@@ -740,178 +736,214 @@
         return ema;
     }
     
-    function calculateATR(period=14) {
-        if (candleData.length < period+1) return 0;
+    function calculateATR(data, period=14) {
+        if (!data || data.length < period+1) return 0;
         let tr = [];
-        for (let i=1; i<candleData.length; i++) {
-            const h = candleData[i].h, l = candleData[i].l, pc = candleData[i-1].c;
+        for (let i=1; i<data.length; i++) {
+            const h = data[i].h, l = data[i].l, pc = data[i-1].c;
             tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
         }
         if (tr.length < period) return 0;
-        let atr = tr.slice(-period).reduce((a,b)=>a+b,0)/period;
-        return atr;
+        return tr.slice(-period).reduce((a,b)=>a+b,0)/period;
     }
     
-    function findSwingPoints() {
-        if (candleData.length < 20) return { swingHigh: 0, swingLow: 0 };
+    function findSwingPoints(data) {
+        if (!data || data.length < 20) return { swingHigh: 0, swingLow: 0 };
         let sh = 0, sl = Infinity;
         const left=5, right=5;
-        for (let i=left; i<candleData.length-right; i++) {
+        for (let i=left; i<data.length-right; i++) {
             let isHigh=true, isLow=true;
             for (let j=i-left; j<=i+right; j++) {
                 if (j===i) continue;
-                if (candleData[j].h >= candleData[i].h) isHigh=false;
-                if (candleData[j].l <= candleData[i].l) isLow=false;
+                if (data[j].h >= data[i].h) isHigh=false;
+                if (data[j].l <= data[i].l) isLow=false;
             }
-            if (isHigh && candleData[i].h > sh) sh = candleData[i].h;
-            if (isLow && candleData[i].l < sl) sl = candleData[i].l;
+            if (isHigh && data[i].h > sh) sh = data[i].h;
+            if (isLow && data[i].l < sl) sl = data[i].l;
         }
-        if (sh===0) sh = Math.max(...candleData.slice(-50).map(c=>c.h));
-        if (sl===Infinity) sl = Math.min(...candleData.slice(-50).map(c=>c.l));
+        if (sh===0) sh = Math.max(...data.slice(-50).map(c=>c.h));
+        if (sl===Infinity) sl = Math.min(...data.slice(-50).map(c=>c.l));
         if (sh <= sl) sh = sl + (currentPair==="XAUUSDT"?5:100);
         return { swingHigh: sh, swingLow: sl };
     }
     
+    // Market Structure untuk H4
     function getMarketStructureBias(data) {
-        if (data.length < 20) return "NEUTRAL";
-        let higherHigh = false, higherLow = false, lowerHigh = false, lowerLow = false;
+        if (!data || data.length < 20) return "NEUTRAL";
+        let higherHigh = false, higherLow = false;
         const recentHigh = Math.max(...data.slice(-10).map(c=>c.h));
         const recentLow = Math.min(...data.slice(-10).map(c=>c.l));
         const previousHigh = Math.max(...data.slice(-20, -10).map(c=>c.h));
         const previousLow = Math.min(...data.slice(-20, -10).map(c=>c.l));
-        if (recentHigh > previousHigh) higherHigh = true;
-        if (recentLow > previousLow) higherLow = true;
-        if (recentHigh < previousHigh) lowerHigh = true;
-        if (recentLow < previousLow) lowerLow = true;
-        if (higherHigh && higherLow) return "BULLISH";
-        if (lowerHigh && lowerLow) return "BEARISH";
+        if (recentHigh > previousHigh && recentLow > previousLow) return "BULLISH";
+        if (recentHigh < previousHigh && recentLow < previousLow) return "BEARISH";
         return "NEUTRAL";
     }
     
-    function checkOBAlignment(data, direction) {
-        if (!orderBlocks.length || direction === "NEUTRAL") return false;
-        const latestOB = orderBlocks[orderBlocks.length-1];
-        if (direction === "BULLISH" && latestOB.type === "BULLISH") return true;
-        if (direction === "BEARISH" && latestOB.type === "BEARISH") return true;
-        return false;
-    }
-    
-    function checkFibonacciZone(data) {
-        if (candleData.length < 30) return false;
-        const { swingHigh, swingLow } = findSwingPoints();
-        const range = swingHigh - swingLow;
-        if (range <= 0) return false;
-        const price = data[data.length-1].c;
-        const f618 = engine.bias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
-        const f786 = engine.bias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
-        const inZone = (price >= Math.min(f618, f786) && price <= Math.max(f618, f786));
-        return inZone;
-    }
-    
-    function checkPriceAction(data) {
-        if (data.length < 5) return false;
-        const last = data[data.length-1];
-        const prev = data[data.length-2];
-        const isBullishCandle = last.c > last.o;
-        const isEngulfing = (last.c > prev.h && last.o < prev.l);
-        return isBullishCandle || isEngulfing;
-    }
-    
-    function getTimeframeBias(data, tf, currentPairName) {
-        if (!data || data.length < 50) return "NEUTRAL";
-        const cfg = MTF_CONFIG[currentPairName][tf];
-        if (!cfg) return "NEUTRAL";
-        
-        const price = data[data.length-1].c;
-        let bullishScore = 0, bearishScore = 0;
-        
-        const ema21 = calculateEMA(data, 21);
-        if (price > ema21) bullishScore += 2;
-        else if (price < ema21) bearishScore += 2;
-        
-        if (cfg.emaSlow) {
-            const emaSlow = calculateEMA(data, cfg.emaSlow);
-            if (price > emaSlow) bullishScore += 2;
-            else if (price < emaSlow) bearishScore += 2;
-        }
-        
-        if (cfg.useStructure) {
-            const structBias = getMarketStructureBias(data);
-            if (structBias === "BULLISH") bullishScore += 2;
-            else if (structBias === "BEARISH") bearishScore += 2;
-        }
-        
-        if (cfg.useOB && engine.adxBias !== "NEUTRAL") {
-            const obAlign = checkOBAlignment(data, engine.adxBias);
-            if (obAlign) {
-                if (engine.adxBias === "BULLISH") bullishScore += 2;
-                else if (engine.adxBias === "BEARISH") bearishScore += 2;
-            }
-        }
-        
-        if (cfg.useFibonacci) {
-            const inFibZone = checkFibonacciZone(data);
-            if (inFibZone) {
-                if (engine.bias === "BULLISH") bullishScore += 1;
-                else if (engine.bias === "BEARISH") bearishScore += 1;
-            }
-        }
-        
-        if (cfg.usePriceAction) {
-            const paBullish = checkPriceAction(data);
-            if (paBullish) bullishScore += 1;
-            else if (!paBullish && price < ema21) bearishScore += 1;
-        }
-        
-        if (bullishScore >= 3 && bullishScore > bearishScore) return "BULLISH";
-        if (bearishScore >= 3 && bearishScore > bullishScore) return "BEARISH";
-        return "NEUTRAL";
-    }
-    
-    function detectOrderBlocks() {
-        if (candleData.length < 20) return [];
-        const avgVolume = candleData.slice(-20).reduce((s,d)=>s+d.v,0)/20;
+    // Order Block detection dari data (independen)
+    function detectOrderBlocksFromData(data) {
+        if (!data || data.length < 20) return [];
+        const avgVolume = data.slice(-20).reduce((s,d)=>s+d.v,0)/20;
         const blocks = [];
-        for (let i=5; i<candleData.length-2; i++) {
-            const candle = candleData[i];
-            const prev = candleData[i-1];
+        for (let i=5; i<data.length-2; i++) {
+            const candle = data[i];
+            const prev = data[i-1];
             const bodyRange = Math.abs(candle.c - candle.o);
             const totalRange = candle.h - candle.l;
             const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= 0.6 && candle.v >= avgVolume * 1.5;
             if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
-                const obLow = Math.min(prev.l, candleData[i-2]?.l || prev.l);
+                const obLow = Math.min(prev.l, data[i-2]?.l || prev.l);
                 const obHigh = prev.h;
                 const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
-                blocks.push({ type: 'BULLISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
+                blocks.push({ type: 'BULLISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength });
             }
             if (isImpulsive && prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
-                const obHigh = Math.max(prev.h, candleData[i-2]?.h || prev.h);
+                const obHigh = Math.max(prev.h, data[i-2]?.h || prev.h);
                 const obLow = prev.l;
                 const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
-                blocks.push({ type: 'BEARISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
+                blocks.push({ type: 'BEARISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength });
             }
         }
         return blocks;
     }
     
-    function evaluateOB(price) {
-        const p = safeValue(price,0);
-        const relevant = orderBlocks.filter(b=>!b.mitigated);
-        if (!relevant.length) return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
-        let best=null, maxScore=0, mitigation=0, isActive=false;
-        for (const b of relevant) {
-            let score = b.strength;
-            const inZone = p>=b.low && p<=b.high;
-            if ((engine.bias==="BULLISH" && b.type==='BULLISH') || (engine.bias==="BEARISH" && b.type==='BEARISH')) score += 3;
-            if (inZone) { score += 4; mitigation = ((p-b.low)/(b.high-b.low))*100; isActive=true; }
-            else if (p >= b.low - (b.high-b.low)*0.3 && p <= b.high + (b.high-b.low)*0.3) score += 1;
-            if (score > maxScore) { maxScore=score; best=b; }
-        }
-        maxScore = Math.min(10, maxScore);
-        if (best) return { hasOB:true, score:maxScore, strength: maxScore>=7?'STRONG':(maxScore>=4?'MEDIUM':'WEAK'), block:best, mitigation:Math.min(100,Math.max(0,mitigation)), isActive };
-        return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
+    // H1 Order Block alignment (independen)
+    function getH1OBBias(data) {
+        const blocks = detectOrderBlocksFromData(data);
+        if (!blocks.length) return "NEUTRAL";
+        const best = blocks.sort((a,b) => b.strength - a.strength)[0];
+        return best.type === "BULLISH" ? "BULLISH" : "BEARISH";
     }
     
+    // Fibonacci zone untuk M15
+    function checkFibonacciZone(data, swingHigh, swingLow, currentPrice, bias) {
+        const range = swingHigh - swingLow;
+        if (range <= 0) return false;
+        const f618 = bias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
+        const f786 = bias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
+        return (currentPrice >= Math.min(f618, f786) && currentPrice <= Math.max(f618, f786));
+    }
+    
+    // Price Action untuk M5
+    function checkPriceAction(data) {
+        if (!data || data.length < 5) return false;
+        const last = data[data.length-1];
+        const prev = data[data.length-2];
+        return (last.c > last.o) || (last.c > prev.h && last.o < prev.l);
+    }
+    
+    // ==================== MTF BIAS INDEPENDEN ====================
+    async function updateMTFBias() {
+        const now = Date.now();
+        // Cache valid selama 2 menit
+        if (mtfBiasCache.timestamp && (now - mtfBiasCache.timestamp) < 120000 && mtfBiasCache.pair === currentPair) {
+            // Gunakan cache
+            updateTimeframeBiasUI();
+            const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
+            const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
+            factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
+            return;
+        }
+        
+        // Ambil data untuk semua timeframe secara independen
+        const tfs = [
+            { id: '4h', label: 'h4', apiInterval: '4h' },
+            { id: '1h', label: 'h1', apiInterval: '1h' },
+            { id: '15m', label: 'm15', apiInterval: '15m' },
+            { id: '5m', label: 'm5', apiInterval: '5m' }
+        ];
+        
+        for (const tf of tfs) {
+            try {
+                const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf.apiInterval}&limit=150`);
+                const data = await resp.json();
+                if (Array.isArray(data) && data.length > 0) {
+                    const formattedData = data.map(d => ({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }));
+                    const price = formattedData[formattedData.length-1].c;
+                    const ema21 = calculateEMA(formattedData, 21);
+                    let bias = "NEUTRAL";
+                    
+                    if (tf.id === '4h') {
+                        const ema200 = calculateEMA(formattedData, 200);
+                        const structBias = getMarketStructureBias(formattedData);
+                        let bullishScore = 0, bearishScore = 0;
+                        if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
+                        if (price > ema200) bullishScore += 2; else if (price < ema200) bearishScore += 2;
+                        if (structBias === "BULLISH") bullishScore += 2; else if (structBias === "BEARISH") bearishScore += 2;
+                        if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
+                        else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
+                        mtfBiasCache.h4 = bias;
+                    }
+                    else if (tf.id === '1h') {
+                        const ema50 = calculateEMA(formattedData, 50);
+                        const obBias = getH1OBBias(formattedData);
+                        let bullishScore = 0, bearishScore = 0;
+                        if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
+                        if (price > ema50) bullishScore += 2; else if (price < ema50) bearishScore += 2;
+                        if (obBias === "BULLISH") bullishScore += 2; else if (obBias === "BEARISH") bearishScore += 2;
+                        if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
+                        else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
+                        mtfBiasCache.h1 = bias;
+                    }
+                    else if (tf.id === '15m') {
+                        const { swingHigh, swingLow } = findSwingPoints(formattedData);
+                        const tempBias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+                        const inFibZone = checkFibonacciZone(formattedData, swingHigh, swingLow, price, tempBias);
+                        let bullishScore = 0, bearishScore = 0;
+                        if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
+                        if (inFibZone) {
+                            if (tempBias === "BULLISH") bullishScore += 2;
+                            else if (tempBias === "BEARISH") bearishScore += 2;
+                        }
+                        if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
+                        else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
+                        mtfBiasCache.m15 = bias;
+                    }
+                    else if (tf.id === '5m') {
+                        const paBullish = checkPriceAction(formattedData);
+                        let bullishScore = 0, bearishScore = 0;
+                        if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
+                        if (paBullish) bullishScore += 2;
+                        else if (!paBullish && price < ema21) bearishScore += 2;
+                        if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
+                        else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
+                        mtfBiasCache.m5 = bias;
+                    }
+                }
+            } catch(e) { console.warn(`MTF ${tf.id} error:`, e); }
+        }
+        
+        mtfBiasCache.timestamp = now;
+        mtfBiasCache.pair = currentPair;
+        
+        updateTimeframeBiasUI();
+        const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
+        const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
+        factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
+    }
+    
+    function updateTimeframeBiasUI() {
+        const tfMap = {
+            '4h': mtfBiasCache.h4,
+            '1h': mtfBiasCache.h1,
+            '15m': mtfBiasCache.m15,
+            '5m': mtfBiasCache.m5
+        };
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            const tf = btn.getAttribute('data-tf');
+            const bias = tfMap[tf] || 'NEUTRAL';
+            const symbolSpan = btn.querySelector('.tf-bias-symbol');
+            if (!symbolSpan) return;
+            let symbol = '', biasClass = '';
+            if (bias === 'BULLISH') { symbol = ' ▲'; biasClass = 'bullish'; }
+            else if (bias === 'BEARISH') { symbol = ' ▼'; biasClass = 'bearish'; }
+            else { symbol = ' ●'; biasClass = 'neutral'; }
+            symbolSpan.textContent = symbol;
+            symbolSpan.className = `tf-bias-symbol ${biasClass}`;
+        });
+    }
+    
+    // ==================== CHART UTAMA (WEBSOCKET) ====================
     function calculateADX() {
         if (candleData.length < 28) return 15;
         const period=14;
@@ -969,108 +1001,67 @@
         return avgL===0?100:100-(100/(1+avgG/avgL));
     }
     
-    function updateTimeframeBiasUI() {
-        const tfMap = {
-            '4h': mtfBiasCache.h4,
-            '1h': mtfBiasCache.h1,
-            '15m': mtfBiasCache.m15,
-            '5m': mtfBiasCache.m5
-        };
-        document.querySelectorAll('.tf-btn').forEach(btn => {
-            const tf = btn.getAttribute('data-tf');
-            const bias = tfMap[tf] || 'NEUTRAL';
-            const symbolSpan = btn.querySelector('.tf-bias-symbol');
-            if (!symbolSpan) return;
-            let symbol = '';
-            let biasClass = '';
-            if (bias === 'BULLISH') { symbol = '▲'; biasClass = 'bullish'; }
-            else if (bias === 'BEARISH') { symbol = '▼'; biasClass = 'bearish'; }
-            else { symbol = '●'; biasClass = 'neutral'; }
-            symbolSpan.textContent = ` ${symbol}`;
-            symbolSpan.className = `tf-bias-symbol ${biasClass}`;
-        });
-    }
-    
-    async function fetchMTFData() {
-        const tfs = ['4h', '1h', '15m', '5m'];
-        await Promise.all(tfs.map(async tf => {
-            try {
-                const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf}&limit=150`);
-                const data = await resp.json();
-                if (Array.isArray(data) && data.length > 0) {
-                    const formattedData = data.map(d => ({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }));
-                    let bias = getTimeframeBias(formattedData, tf, currentPair);
-                    if (tf==='4h') mtfBiasCache.h4 = bias;
-                    else if (tf==='1h') mtfBiasCache.h1 = bias;
-                    else if (tf==='15m') mtfBiasCache.m15 = bias;
-                    else if (tf==='5m') mtfBiasCache.m5 = bias;
-                }
-            } catch(e) { console.warn(`MTF ${tf} error:`, e); }
-        }));
-        updateTimeframeBiasUI();
-        const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
-        const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
-        factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
-    }
-    
-    // Fungsi untuk mendapatkan OB yang akan ditampilkan (hanya yang belum termitigasi dan searah sinyal)
-    function getDisplayOB(active, action, currentPrice) {
-        if (!orderBlocks.length) return null;
-        
-        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
-            const targetDirection = (action === "BUY") ? "BULLISH" : "BEARISH";
-            
-            // Cari OB yang searah sinyal, belum termitigasi, dan masih valid (belum dilewati harga)
-            const validOB = orderBlocks.find(ob => {
-                if (ob.type !== targetDirection) return false;
-                if (ob.mitigated) return false;
-                
-                // Cek apakah OB masih valid (belum dilewati harga)
-                // Bullish OB: harga harus di atas OB (support)
-                // Bearish OB: harga harus di bawah OB (resistance)
-                if (ob.type === 'BULLISH' && currentPrice < ob.low) return false;
-                if (ob.type === 'BEARISH' && currentPrice > ob.high) return false;
-                
-                return true;
-            });
-            
-            if (validOB) return validOB;
-            
-            // Jika tidak ada OB yang valid, cari OB dengan skor tertinggi (tanpa paksaan arah)
-            const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
-            return bestOB || null;
+    function detectOrderBlocks() {
+        if (candleData.length < 20) return [];
+        const avgVolume = candleData.slice(-20).reduce((s,d)=>s+d.v,0)/20;
+        const blocks = [];
+        for (let i=5; i<candleData.length-2; i++) {
+            const candle = candleData[i];
+            const prev = candleData[i-1];
+            const bodyRange = Math.abs(candle.c - candle.o);
+            const totalRange = candle.h - candle.l;
+            const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= 0.6 && candle.v >= avgVolume * 1.5;
+            if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
+                const obLow = Math.min(prev.l, candleData[i-2]?.l || prev.l);
+                const obHigh = prev.h;
+                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
+                blocks.push({ type: 'BULLISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
+            }
+            if (isImpulsive && prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
+                const obHigh = Math.max(prev.h, candleData[i-2]?.h || prev.h);
+                const obLow = prev.l;
+                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
+                blocks.push({ type: 'BEARISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
+            }
         }
-        
-        // Tidak ada sinyal aktif: tampilkan OB dengan skor tertinggi
-        const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
-        return bestOB || null;
+        return blocks;
     }
     
-    function updateLevels(active, action) {
-        const { swingHigh, swingLow } = findSwingPoints();
+    function evaluateOB(price) {
+        const p = safeValue(price,0);
+        const relevant = orderBlocks.filter(b=>!b.mitigated);
+        if (!relevant.length) return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
+        let best=null, maxScore=0, mitigation=0, isActive=false;
+        for (const b of relevant) {
+            let score = b.strength;
+            const inZone = p>=b.low && p<=b.high;
+            if ((engine.bias==="BULLISH" && b.type==='BULLISH') || (engine.bias==="BEARISH" && b.type==='BEARISH')) score += 3;
+            if (inZone) { score += 4; mitigation = ((p-b.low)/(b.high-b.low))*100; isActive=true; }
+            else if (p >= b.low - (b.high-b.low)*0.3 && p <= b.high + (b.high-b.low)*0.3) score += 1;
+            if (score > maxScore) { maxScore=score; best=b; }
+        }
+        maxScore = Math.min(10, maxScore);
+        if (best) return { hasOB:true, score:maxScore, strength: maxScore>=7?'STRONG':(maxScore>=4?'MEDIUM':'WEAK'), block:best, mitigation:Math.min(100,Math.max(0,mitigation)), isActive };
+        return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
+    }
+    
+    function updateLevels() {
+        const { swingHigh, swingLow } = findSwingPoints(candleData);
         engine.swingHigh = swingHigh;
         engine.swingLow = swingLow;
         const range = swingHigh - swingLow;
         if (range <= 0) return;
         const price = lastPrice;
-        
-        let levelBias;
-        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
-            levelBias = (action === "BUY") ? "BULLISH" : "BEARISH";
-        } else {
-            levelBias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
-        }
-        engine.bias = levelBias;
-        
-        const f618 = levelBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
-        const f786 = levelBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
-        const atr = calculateATR(getConfig().atrPeriod);
+        engine.bias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        const f618 = engine.bias==="BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
+        const f786 = engine.bias==="BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
+        const atr = calculateATR(candleData, getConfig().atrPeriod);
         engine.atr = atr;
         const entryFactor = getConfig().entryZoneATRFactor;
         engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
         engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
-        engine.tp = levelBias === "BULLISH" ? swingHigh + range*0.27 : swingLow - range*0.27;
-        engine.sl = levelBias === "BULLISH" ? engine.entryZoneLow - atr * getConfig().slATRFactor : engine.entryZoneHigh + atr * getConfig().slATRFactor;
+        engine.tp = engine.bias==="BULLISH" ? swingHigh + range*0.27 : swingLow - range*0.27;
+        engine.sl = engine.bias==="BULLISH" ? engine.entryZoneLow - atr * getConfig().slATRFactor : engine.entryZoneHigh + atr * getConfig().slATRFactor;
         
         const prec = getPrecision();
         UI.swingHigh.textContent = swingHigh.toFixed(prec);
@@ -1084,12 +1075,19 @@
         UI.rangeValue.textContent = `${rangePoints} pts`;
     }
     
-    function updateOBUI(price, active, action) {
+    function getDisplayOB(price) {
+        if (!orderBlocks.length) return null;
+        const p = safeValue(price, 0);
+        const relevant = orderBlocks.filter(b => !b.mitigated);
+        if (!relevant.length) return null;
+        const best = [...relevant].sort((a,b) => b.strength - a.strength)[0];
+        return best;
+    }
+    
+    function updateOBUI(price) {
         const p = safeValue(price, 0);
         const prec = getPrecision();
-        
-        // Gunakan fungsi getDisplayOB untuk mendapatkan OB yang tepat
-        const displayOB = getDisplayOB(active, action, p);
+        const displayOB = getDisplayOB(p);
         
         if (displayOB) {
             const b = displayOB;
@@ -1100,7 +1098,6 @@
             UI.obHigh.textContent = b.high.toFixed(prec);
             UI.obLow.textContent = b.low.toFixed(prec);
             UI.obMid.textContent = b.price.toFixed(prec);
-            
             let fill = 0;
             if (p >= b.high) fill = 100;
             else if (p <= b.low) fill = 0;
@@ -1108,7 +1105,6 @@
             UI.obRangeFill.style.width = Math.min(100, Math.max(0, fill)) + '%';
             UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
             
-            // Hitung ulang skor untuk OB yang ditampilkan
             let score = b.strength;
             const inZone = p >= b.low && p <= b.high;
             if ((engine.bias === "BULLISH" && b.type === 'BULLISH') || (engine.bias === "BEARISH" && b.type === 'BEARISH')) score += 3;
@@ -1142,12 +1138,7 @@
         const prec = getPrecision();
         engine.ema21 = calculateEMA(candleData, 21);
         engine.adx = calculateADX();
-        
-        const { swingHigh, swingLow } = findSwingPoints();
-        const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
-        engine.bias = tempBias;
-        
-        updateLevels(null, null);
+        updateLevels();
         obEvaluation = evaluateOB(p);
         factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= config.minOBStrength;
         const rsi = computeRSI();
@@ -1170,10 +1161,12 @@
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
-        const inZoneTemp = p >= engine.entryZoneLow && p <= engine.entryZoneHigh;
+        updateOBUI(p);
+        
+        const inZone = p >= engine.entryZoneLow && p <= engine.entryZoneHigh;
         const adxValid = engine.adx >= config.adxThreshold;
         factorStatus.f1 = engine.bias !== "NEUTRAL";
-        factorStatus.f3 = adxValid && (inZoneTemp || obEvaluation.isActive);
+        factorStatus.f3 = adxValid && (inZone || obEvaluation.isActive);
         const obAligned = obEvaluation.hasOB && ((engine.adxBias==="BULLISH" && activeOB?.type==='BULLISH') || (engine.adxBias==="BEARISH" && activeOB?.type==='BEARISH'));
         
         let score = 0;
@@ -1189,7 +1182,7 @@
         
         let active = null;
         let decisionText = '', color = '', bgColor = '';
-        const isInValidZone = inZoneTemp || obEvaluation.isActive;
+        const isInValidZone = inZone || obEvaluation.isActive;
         
         if (!adxValid) { decisionText = `LOW ADX (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
         else if (!isInValidZone) { decisionText = 'OUT OF ZONE'; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
@@ -1200,13 +1193,13 @@
                 color = 'var(--accent-green)';
                 bgColor = 'rgba(16,185,129,0.08)';
             }
-            else if (adxValid && factorStatus.f1 && factorStatus.ob && obAligned && score>=7 && inZoneTemp) {
+            else if (adxValid && factorStatus.f1 && factorStatus.ob && obAligned && score>=7 && inZone) {
                 active = 'sniper';
                 decisionText = `SNIPER ${action}`;
                 color = 'var(--accent-purple)';
                 bgColor = 'rgba(139,92,246,0.08)';
             }
-            else if (adxValid && factorStatus.f1 && score>=5 && inZoneTemp && rsi>=40 && rsi<=60) {
+            else if (adxValid && factorStatus.f1 && score>=5 && inZone && rsi>=40 && rsi<=60) {
                 active = 'retail';
                 decisionText = `RETAIL ${action}`;
                 color = 'var(--accent-orange)';
@@ -1220,11 +1213,6 @@
         if (active === 'conservative') document.querySelector('[data-mode="conservative"]')?.classList.add('active');
         else if (active === 'sniper') document.querySelector('[data-mode="sniper"]')?.classList.add('active');
         else if (active === 'retail') document.querySelector('[data-mode="retail"]')?.classList.add('active');
-        
-        updateLevels(active, action);
-        
-        // Update OB UI dengan filter yang lebih ketat
-        updateOBUI(p, active, action);
         
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             UI.decision.textContent = `${action} NOW 🔥`;
@@ -1257,6 +1245,7 @@
     
     function safeValue(val, fallback=0) { return (typeof val==='number' && !isNaN(val) && isFinite(val)) ? val : fallback; }
     
+    // ==================== WEBSOCKET ====================
     function updateWSStatus(status, message) {
         if (!UI.dot || !UI.text) return;
         UI.dot.className = 'status-dot';
@@ -1403,7 +1392,7 @@
         factorStatus = { f1:false, f2:false, f3:false, ob:false };
         orderBlocks=[]; activeOB=null;
         await fetchKlines();
-        await fetchMTFData();
+        await updateMTFBias();
         initWebSocket();
         heartbeatInterval = setInterval(() => { if (wsConnection?.readyState===WebSocket.OPEN) try { wsConnection.send(JSON.stringify({method:"ping"})); } catch(e) {} }, 30000);
         stuckCheckInterval = setInterval(() => {
@@ -1426,7 +1415,7 @@
     window.copyEntryZone = () => { navigator.clipboard?.writeText(`Entry Zone: ${UI.entryZoneLow.textContent} / ${UI.entryZoneHigh.textContent}`); };
     window.smartCopy = (id) => { const el = document.getElementById(id); if(el){ navigator.clipboard?.writeText(el.textContent.trim()); el.classList.add('copied'); setTimeout(()=>el.classList.remove('copied'),300); } };
     setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
-    setInterval(() => { fetchMTFData(); }, 120000);
+    setInterval(() => { updateMTFBias(); }, 120000);
     fullReload();
 })();
 </script>
