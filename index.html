@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · CORE v1.6</title>
+    <title>SMC APEX · CORE v1.7</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -560,6 +560,7 @@
             border-bottom: 1px solid var(--border-subtle);
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
             gap: 8px;
             font-size: 0.55rem;
         }
@@ -598,6 +599,17 @@
             color: var(--text-tertiary);
         }
         
+        .log-status {
+            font-size: 0.5rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .log-status.active { background: rgba(0, 191, 255, 0.15); color: var(--accent-cyan); }
+        .log-status.tp_hit { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); }
+        .log-status.sl_hit { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); }
+        .log-status.expired { background: rgba(245, 158, 11, 0.15); color: var(--accent-orange); }
+        
         .log-empty {
             color: var(--text-tertiary);
             text-align: center;
@@ -629,7 +641,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">CORE v1.6</span>
+            <span class="version-tag">CORE v1.7</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -758,10 +770,10 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX CORE v1.6 | Fixed decision signal | Persistent log (24h FIFO) | Bug fixes', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX CORE v1.7 | SL/TP Hit tracking | Persistent log | Real-time monitoring', 'color: #00BFFF; font-weight: 700;');
     
-    // ==================== PERFORMANCE LOG with localStorage ====================
-    const STORAGE_KEY = 'smc_apex_performance_logs_v2';
+    // ==================== PERFORMANCE LOG with localStorage & SL/TP Tracking ====================
+    const STORAGE_KEY = 'smc_apex_performance_logs_v3';
     const MAX_LOGS = 100;
     const EXPIRE_HOURS = 24;
     
@@ -791,7 +803,7 @@
         } catch(e) { console.warn("Failed to save logs:", e); }
     }
     
-    function addPerformanceLog(signal, mode, price, adx, score, f1, f2, f3, ob) {
+    function addPerformanceLog(signal, mode, price, adx, score, f1, f2, f3, ob, sl, tp, direction) {
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
         const dateStr = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}`;
@@ -809,7 +821,12 @@
             f1: f1,
             f2: f2,
             f3: f3,
-            ob: ob
+            ob: ob,
+            sl: sl,
+            tp: tp,
+            direction: direction,
+            status: 'ACTIVE',
+            statusTime: null
         };
         
         performanceLogs.unshift(logEntry);
@@ -819,6 +836,68 @@
         
         savePerformanceLogs();
         renderPerformanceLog();
+    }
+    
+    // ==================== MONITOR SL/TP HIT ====================
+    function monitorActiveOrders() {
+        const candleArray = getCandleArray();
+        if (candleArray.length === 0) return;
+        
+        const currentHigh = Math.max(...candleArray.slice(-5).map(c => c.h));
+        const currentLow = Math.min(...candleArray.slice(-5).map(c => c.l));
+        
+        let updated = false;
+        const now = Date.now();
+        
+        for (let i = 0; i < performanceLogs.length; i++) {
+            const log = performanceLogs[i];
+            
+            if (log.status === 'ACTIVE' && (now - log.fullTimestamp) < EXPIRE_HOURS * 60 * 60 * 1000) {
+                const isBuy = log.direction === 'BUY';
+                let hit = false;
+                let newStatus = null;
+                
+                // Cek TP Hit
+                if (isBuy && currentHigh >= log.tp) {
+                    newStatus = 'TP_HIT';
+                    hit = true;
+                    logDebug(`✅ TP HIT: ${log.pair} ${log.timeframe} @ ${log.tp} (Entry: ${log.price})`);
+                } 
+                else if (!isBuy && currentLow <= log.tp) {
+                    newStatus = 'TP_HIT';
+                    hit = true;
+                    logDebug(`✅ TP HIT: ${log.pair} ${log.timeframe} @ ${log.tp} (Entry: ${log.price})`);
+                }
+                // Cek SL Hit (jika belum TP)
+                else if (isBuy && currentLow <= log.sl) {
+                    newStatus = 'SL_HIT';
+                    hit = true;
+                    logDebug(`❌ SL HIT: ${log.pair} ${log.timeframe} @ ${log.sl} (Entry: ${log.price})`);
+                }
+                else if (!isBuy && currentHigh >= log.sl) {
+                    newStatus = 'SL_HIT';
+                    hit = true;
+                    logDebug(`❌ SL HIT: ${log.pair} ${log.timeframe} @ ${log.sl} (Entry: ${log.price})`);
+                }
+                
+                if (hit) {
+                    log.status = newStatus;
+                    log.statusTime = now;
+                    updated = true;
+                }
+            }
+            else if (log.status === 'ACTIVE' && (now - log.fullTimestamp) >= EXPIRE_HOURS * 60 * 60 * 1000) {
+                log.status = 'EXPIRED';
+                log.statusTime = now;
+                updated = true;
+                logDebug(`⏰ EXPIRED: ${log.pair} ${log.timeframe} (24h passed)`);
+            }
+        }
+        
+        if (updated) {
+            savePerformanceLogs();
+            renderPerformanceLog();
+        }
     }
     
     function renderPerformanceLog() {
@@ -834,6 +913,35 @@
             const signalClass = log.signal.includes('BUY') ? 'buy' : 'sell';
             const modeClass = log.mode.toLowerCase();
             
+            let statusText = '';
+            let statusClass = '';
+            let statusDetail = '';
+            
+            switch (log.status) {
+                case 'ACTIVE':
+                    statusText = '🟢 ACTIVE';
+                    statusClass = 'active';
+                    statusDetail = ` | SL:${log.sl} TP:${log.tp}`;
+                    break;
+                case 'TP_HIT':
+                    const tpProfit = log.direction === 'BUY' ? (log.tp - log.price) : (log.price - log.tp);
+                    statusText = `✅ TP HIT +${tpProfit.toFixed(2)}`;
+                    statusClass = 'tp_hit';
+                    break;
+                case 'SL_HIT':
+                    const slLoss = log.direction === 'BUY' ? (log.price - log.sl) : (log.sl - log.price);
+                    statusText = `❌ SL HIT -${slLoss.toFixed(2)}`;
+                    statusClass = 'sl_hit';
+                    break;
+                case 'EXPIRED':
+                    statusText = `⏰ EXPIRED`;
+                    statusClass = 'expired';
+                    break;
+                default:
+                    statusText = '🟢 ACTIVE';
+                    statusClass = 'active';
+            }
+            
             return `
                 <div class="log-entry">
                     <span class="log-time">${log.timestamp}</span>
@@ -841,6 +949,7 @@
                     <span class="log-mode ${modeClass}">${log.mode.toUpperCase()}</span>
                     <span class="log-price">${log.pair} ${log.timeframe} @ ${log.price}</span>
                     <span class="log-stats">ADX:${log.adx} | Score:${log.score}/10</span>
+                    <span class="log-status ${statusClass}">${statusText}</span>
                 </div>
             `;
         }).join('');
@@ -1606,7 +1715,6 @@
         engine.ema21 = calculateEMA(candleArray, 21);
         engine.adx = calculateADX();
         
-        // === FIX: Update MTF confluence setiap tick ===
         const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
         const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
         factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
@@ -1653,7 +1761,6 @@
         const f1 = tempBias !== "NEUTRAL";
         const f3 = adxValid && (inZoneTemp || obEvaluation.isActive);
         
-        // === FIX: Aman saat activeOB null ===
         const obAligned = obEvaluation.hasOB && activeOB && 
             ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') || 
              (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH'));
@@ -1663,7 +1770,7 @@
         if (factorStatus.f2) score += 2;
         if (f3) score += 2;
         if (factorStatus.ob) score += obEvaluation.strength === 'STRONG' ? 3 : (obEvaluation.strength === 'MEDIUM' ? 2 : 1);
-        score = Math.min(10, score); // === FIX: Batasi skor maksimal 10 ===
+        score = Math.min(10, score);
         
         const direction = engine.adxBias;
         const action = direction === "BULLISH" ? "BUY" : "SELL";
@@ -1707,7 +1814,6 @@
         updateLevels(active, action);
         updateOBUI(p, active, action);
         
-        // === FIX: Zone warning menggunakan level final ===
         const finalInZone = (active && (lastPrice >= engine.entryZoneLow && lastPrice <= engine.entryZoneHigh)) || obEvaluation.isActive;
         UI.levelsGrid.classList.toggle('zone-warning', !finalInZone && adxValid);
         
@@ -1728,12 +1834,11 @@
         UI.signalBar.style.background = bgColor;
         UI.signalBar.style.borderColor = active ? color : 'var(--border-subtle)';
         
-        // Performance Log
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             const lastLog = performanceLogs[0];
             const now = Date.now();
             if (!lastLog || (now - lastLog.fullTimestamp) > 5000 || lastLog.signal !== displayText) {
-                addPerformanceLog(displayText, active, lastPrice, engine.adx, score, f1, factorStatus.f2, f3, factorStatus.ob);
+                addPerformanceLog(displayText, active, lastPrice, engine.adx, score, f1, factorStatus.f2, f3, factorStatus.ob, engine.sl, engine.tp, action);
             }
         }
     }
@@ -1974,6 +2079,9 @@
         logDebug("Full reload completed");
     }
     
+    // Start order monitoring
+    setInterval(() => { monitorActiveOrders(); }, 5000);
+    
     // Event listeners
     document.querySelectorAll('[data-pair]').forEach(btn => btn.onclick = () => { if(!isReloading){ currentPair=btn.getAttribute('data-pair'); localStorage.setItem('lastPair',currentPair); fullReload(); } });
     document.querySelectorAll('.tf-btn').forEach(btn => btn.onclick = () => { if(!isReloading){ currentTF=btn.getAttribute('data-tf'); localStorage.setItem('lastTF',currentTF); fullReload(); } });
@@ -1985,9 +2093,7 @@
     
     setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
     
-    // Load performance logs dari localStorage
     loadPerformanceLogs();
-    
     fullReload();
 })();
 </script>
