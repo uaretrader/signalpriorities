@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · CORE v1.0</title>
+    <title>SMC APEX · CORE v1.1</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -540,7 +540,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">CORE v1.0</span>
+            <span class="version-tag">CORE v1.1</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -659,7 +659,7 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX CORE v1.0 | Fresh start | Independent MTF per timeframe | Consistent bias', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX CORE v1.1 | Level SMC sync with active signal | TP/SL sesuai arah sinyal', 'color: #00BFFF; font-weight: 700;');
     
     // ==================== DOM Elements ====================
     const UI = {
@@ -702,7 +702,7 @@
     let activeMode = null;
     let currentAction = "BUY";
     
-    // MTF Bias Cache (independen per timeframe, konsisten di semua tampilan)
+    // MTF Bias Cache (independen per timeframe)
     let mtfBiasCache = {
         h4: "NEUTRAL",
         h1: "NEUTRAL",
@@ -712,7 +712,6 @@
         pair: null
     };
     
-    // Engine untuk chart utama
     let engine = {
         swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL",
         adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0,
@@ -767,7 +766,6 @@
         return { swingHigh: sh, swingLow: sl };
     }
     
-    // Market Structure untuk H4
     function getMarketStructureBias(data) {
         if (!data || data.length < 20) return "NEUTRAL";
         let higherHigh = false, higherLow = false;
@@ -780,7 +778,6 @@
         return "NEUTRAL";
     }
     
-    // Order Block detection dari data (independen)
     function detectOrderBlocksFromData(data) {
         if (!data || data.length < 20) return [];
         const avgVolume = data.slice(-20).reduce((s,d)=>s+d.v,0)/20;
@@ -807,7 +804,6 @@
         return blocks;
     }
     
-    // H1 Order Block alignment (independen)
     function getH1OBBias(data) {
         const blocks = detectOrderBlocksFromData(data);
         if (!blocks.length) return "NEUTRAL";
@@ -815,7 +811,6 @@
         return best.type === "BULLISH" ? "BULLISH" : "BEARISH";
     }
     
-    // Fibonacci zone untuk M15
     function checkFibonacciZone(data, swingHigh, swingLow, currentPrice, bias) {
         const range = swingHigh - swingLow;
         if (range <= 0) return false;
@@ -824,7 +819,6 @@
         return (currentPrice >= Math.min(f618, f786) && currentPrice <= Math.max(f618, f786));
     }
     
-    // Price Action untuk M5
     function checkPriceAction(data) {
         if (!data || data.length < 5) return false;
         const last = data[data.length-1];
@@ -835,9 +829,7 @@
     // ==================== MTF BIAS INDEPENDEN ====================
     async function updateMTFBias() {
         const now = Date.now();
-        // Cache valid selama 2 menit
         if (mtfBiasCache.timestamp && (now - mtfBiasCache.timestamp) < 120000 && mtfBiasCache.pair === currentPair) {
-            // Gunakan cache
             updateTimeframeBiasUI();
             const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
             const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
@@ -845,7 +837,6 @@
             return;
         }
         
-        // Ambil data untuk semua timeframe secara independen
         const tfs = [
             { id: '4h', label: 'h4', apiInterval: '4h' },
             { id: '1h', label: 'h1', apiInterval: '1h' },
@@ -943,7 +934,171 @@
         });
     }
     
-    // ==================== CHART UTAMA (WEBSOCKET) ====================
+    // ==================== LEVEL SMC YANG MENGIKUTI SINYAL AKTIF ====================
+    function updateLevels(active, action) {
+        const { swingHigh, swingLow } = findSwingPoints(candleData);
+        engine.swingHigh = swingHigh;
+        engine.swingLow = swingLow;
+        const range = swingHigh - swingLow;
+        if (range <= 0) return;
+        const price = lastPrice;
+        
+        // Tentukan arah level berdasarkan sinyal aktif
+        let levelBias;
+        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
+            levelBias = (action === "BUY") ? "BULLISH" : "BEARISH";
+        } else {
+            levelBias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        }
+        engine.bias = levelBias;
+        
+        const f618 = levelBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
+        const f786 = levelBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
+        const atr = calculateATR(candleData, getConfig().atrPeriod);
+        engine.atr = atr;
+        const entryFactor = getConfig().entryZoneATRFactor;
+        
+        if (levelBias === "BULLISH") {
+            // Untuk BUY: entry zone di sekitar Fibonacci (support), TP di atas, SL di bawah
+            engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
+            engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
+            engine.tp = swingHigh + range * 0.27;
+            engine.sl = engine.entryZoneLow - atr * getConfig().slATRFactor;
+        } else {
+            // Untuk SELL: entry zone di sekitar Fibonacci (resistance), TP di bawah, SL di atas
+            engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
+            engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
+            engine.tp = swingLow - range * 0.27;
+            engine.sl = engine.entryZoneHigh + atr * getConfig().slATRFactor;
+        }
+        
+        const prec = getPrecision();
+        UI.swingHigh.textContent = swingHigh.toFixed(prec);
+        UI.swingLow.textContent = swingLow.toFixed(prec);
+        UI.entryZoneLow.textContent = engine.entryZoneLow.toFixed(prec);
+        UI.entryZoneHigh.textContent = engine.entryZoneHigh.toFixed(prec);
+        UI.tpValue.textContent = engine.tp.toFixed(prec);
+        UI.slValue.textContent = engine.sl.toFixed(prec);
+        UI.atrValue.textContent = atr.toFixed(prec);
+        const rangePoints = currentPair === "XAUUSDT" ? range.toFixed(2) : range.toFixed(1);
+        UI.rangeValue.textContent = `${rangePoints} pts`;
+    }
+    
+    // ==================== ORDER BLOCK UI (searah sinyal & belum termitigasi) ====================
+    function getDisplayOB(active, action, currentPrice) {
+        if (!orderBlocks.length) return null;
+        
+        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
+            const targetDirection = (action === "BUY") ? "BULLISH" : "BEARISH";
+            
+            const validOB = orderBlocks.find(ob => {
+                if (ob.type !== targetDirection) return false;
+                if (ob.mitigated) return false;
+                // Bullish OB: harga harus di atas OB (support)
+                if (ob.type === 'BULLISH' && currentPrice < ob.low) return false;
+                // Bearish OB: harga harus di bawah OB (resistance)
+                if (ob.type === 'BEARISH' && currentPrice > ob.high) return false;
+                return true;
+            });
+            
+            if (validOB) return validOB;
+            
+            const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
+            return bestOB || null;
+        }
+        
+        const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
+        return bestOB || null;
+    }
+    
+    function updateOBUI(price, active, action) {
+        const p = safeValue(price, 0);
+        const prec = getPrecision();
+        const displayOB = getDisplayOB(active, action, p);
+        
+        if (displayOB) {
+            const b = displayOB;
+            activeOB = b;
+            UI.obType.textContent = b.type === 'BULLISH' ? '🟢 BULL' : '🔴 BEAR';
+            UI.obBias.textContent = b.type;
+            UI.obBias.className = `ob-bias ${b.type.toLowerCase()}`;
+            UI.obHigh.textContent = b.high.toFixed(prec);
+            UI.obLow.textContent = b.low.toFixed(prec);
+            UI.obMid.textContent = b.price.toFixed(prec);
+            
+            let fill = 0;
+            if (p >= b.high) fill = 100;
+            else if (p <= b.low) fill = 0;
+            else fill = ((p - b.low) / (b.high - b.low)) * 100;
+            UI.obRangeFill.style.width = Math.min(100, Math.max(0, fill)) + '%';
+            UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
+            
+            let score = b.strength;
+            const inZone = p >= b.low && p <= b.high;
+            if ((engine.bias === "BULLISH" && b.type === 'BULLISH') || (engine.bias === "BEARISH" && b.type === 'BEARISH')) score += 3;
+            if (inZone) score += 4;
+            score = Math.min(10, score);
+            const strengthLabel = score >= 7 ? 'STRONG' : (score >= 4 ? 'MEDIUM' : 'WEAK');
+            const mitigation = inZone ? ((p - b.low) / (b.high - b.low)) * 100 : (p > b.high ? 100 : 0);
+            
+            UI.obStrength.textContent = `${score.toFixed(1)} (${strengthLabel})`;
+            UI.obMitigation.textContent = inZone ? `${Math.min(100, Math.max(0, mitigation)).toFixed(0)}%` : (p > b.high ? '100%' : '0%');
+            UI.obDistance.textContent = Math.abs(p - b.price).toFixed(prec);
+        } else {
+            UI.obType.textContent = 'SCANNING';
+            UI.obBias.textContent = 'NEUTRAL';
+            UI.obBias.className = 'ob-bias';
+            UI.obHigh.textContent = UI.obLow.textContent = UI.obMid.textContent = '—';
+            UI.obRangeFill.style.width = '0%';
+            UI.obStrength.textContent = UI.obMitigation.textContent = UI.obDistance.textContent = '—';
+        }
+    }
+    
+    // ==================== DECISION ENGINE ====================
+    function detectOrderBlocks() {
+        if (candleData.length < 20) return [];
+        const avgVolume = candleData.slice(-20).reduce((s,d)=>s+d.v,0)/20;
+        const blocks = [];
+        for (let i=5; i<candleData.length-2; i++) {
+            const candle = candleData[i];
+            const prev = candleData[i-1];
+            const bodyRange = Math.abs(candle.c - candle.o);
+            const totalRange = candle.h - candle.l;
+            const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= 0.6 && candle.v >= avgVolume * 1.5;
+            if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
+                const obLow = Math.min(prev.l, candleData[i-2]?.l || prev.l);
+                const obHigh = prev.h;
+                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
+                blocks.push({ type: 'BULLISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
+            }
+            if (isImpulsive && prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
+                const obHigh = Math.max(prev.h, candleData[i-2]?.h || prev.h);
+                const obLow = prev.l;
+                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
+                blocks.push({ type: 'BEARISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
+            }
+        }
+        return blocks;
+    }
+    
+    function evaluateOB(price) {
+        const p = safeValue(price,0);
+        const relevant = orderBlocks.filter(b=>!b.mitigated);
+        if (!relevant.length) return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
+        let best=null, maxScore=0, mitigation=0, isActive=false;
+        for (const b of relevant) {
+            let score = b.strength;
+            const inZone = p>=b.low && p<=b.high;
+            if ((engine.bias==="BULLISH" && b.type==='BULLISH') || (engine.bias==="BEARISH" && b.type==='BEARISH')) score += 3;
+            if (inZone) { score += 4; mitigation = ((p-b.low)/(b.high-b.low))*100; isActive=true; }
+            else if (p >= b.low - (b.high-b.low)*0.3 && p <= b.high + (b.high-b.low)*0.3) score += 1;
+            if (score > maxScore) { maxScore=score; best=b; }
+        }
+        maxScore = Math.min(10, maxScore);
+        if (best) return { hasOB:true, score:maxScore, strength: maxScore>=7?'STRONG':(maxScore>=4?'MEDIUM':'WEAK'), block:best, mitigation:Math.min(100,Math.max(0,mitigation)), isActive };
+        return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
+    }
+    
     function calculateADX() {
         if (candleData.length < 28) return 15;
         const period=14;
@@ -1001,131 +1156,6 @@
         return avgL===0?100:100-(100/(1+avgG/avgL));
     }
     
-    function detectOrderBlocks() {
-        if (candleData.length < 20) return [];
-        const avgVolume = candleData.slice(-20).reduce((s,d)=>s+d.v,0)/20;
-        const blocks = [];
-        for (let i=5; i<candleData.length-2; i++) {
-            const candle = candleData[i];
-            const prev = candleData[i-1];
-            const bodyRange = Math.abs(candle.c - candle.o);
-            const totalRange = candle.h - candle.l;
-            const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= 0.6 && candle.v >= avgVolume * 1.5;
-            if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
-                const obLow = Math.min(prev.l, candleData[i-2]?.l || prev.l);
-                const obHigh = prev.h;
-                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
-                blocks.push({ type: 'BULLISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
-            }
-            if (isImpulsive && prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
-                const obHigh = Math.max(prev.h, candleData[i-2]?.h || prev.h);
-                const obLow = prev.l;
-                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
-                blocks.push({ type: 'BEARISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false });
-            }
-        }
-        return blocks;
-    }
-    
-    function evaluateOB(price) {
-        const p = safeValue(price,0);
-        const relevant = orderBlocks.filter(b=>!b.mitigated);
-        if (!relevant.length) return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
-        let best=null, maxScore=0, mitigation=0, isActive=false;
-        for (const b of relevant) {
-            let score = b.strength;
-            const inZone = p>=b.low && p<=b.high;
-            if ((engine.bias==="BULLISH" && b.type==='BULLISH') || (engine.bias==="BEARISH" && b.type==='BEARISH')) score += 3;
-            if (inZone) { score += 4; mitigation = ((p-b.low)/(b.high-b.low))*100; isActive=true; }
-            else if (p >= b.low - (b.high-b.low)*0.3 && p <= b.high + (b.high-b.low)*0.3) score += 1;
-            if (score > maxScore) { maxScore=score; best=b; }
-        }
-        maxScore = Math.min(10, maxScore);
-        if (best) return { hasOB:true, score:maxScore, strength: maxScore>=7?'STRONG':(maxScore>=4?'MEDIUM':'WEAK'), block:best, mitigation:Math.min(100,Math.max(0,mitigation)), isActive };
-        return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
-    }
-    
-    function updateLevels() {
-        const { swingHigh, swingLow } = findSwingPoints(candleData);
-        engine.swingHigh = swingHigh;
-        engine.swingLow = swingLow;
-        const range = swingHigh - swingLow;
-        if (range <= 0) return;
-        const price = lastPrice;
-        engine.bias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
-        const f618 = engine.bias==="BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
-        const f786 = engine.bias==="BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
-        const atr = calculateATR(candleData, getConfig().atrPeriod);
-        engine.atr = atr;
-        const entryFactor = getConfig().entryZoneATRFactor;
-        engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
-        engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
-        engine.tp = engine.bias==="BULLISH" ? swingHigh + range*0.27 : swingLow - range*0.27;
-        engine.sl = engine.bias==="BULLISH" ? engine.entryZoneLow - atr * getConfig().slATRFactor : engine.entryZoneHigh + atr * getConfig().slATRFactor;
-        
-        const prec = getPrecision();
-        UI.swingHigh.textContent = swingHigh.toFixed(prec);
-        UI.swingLow.textContent = swingLow.toFixed(prec);
-        UI.entryZoneLow.textContent = engine.entryZoneLow.toFixed(prec);
-        UI.entryZoneHigh.textContent = engine.entryZoneHigh.toFixed(prec);
-        UI.tpValue.textContent = engine.tp.toFixed(prec);
-        UI.slValue.textContent = engine.sl.toFixed(prec);
-        UI.atrValue.textContent = atr.toFixed(prec);
-        const rangePoints = currentPair === "XAUUSDT" ? range.toFixed(2) : range.toFixed(1);
-        UI.rangeValue.textContent = `${rangePoints} pts`;
-    }
-    
-    function getDisplayOB(price) {
-        if (!orderBlocks.length) return null;
-        const p = safeValue(price, 0);
-        const relevant = orderBlocks.filter(b => !b.mitigated);
-        if (!relevant.length) return null;
-        const best = [...relevant].sort((a,b) => b.strength - a.strength)[0];
-        return best;
-    }
-    
-    function updateOBUI(price) {
-        const p = safeValue(price, 0);
-        const prec = getPrecision();
-        const displayOB = getDisplayOB(p);
-        
-        if (displayOB) {
-            const b = displayOB;
-            activeOB = b;
-            UI.obType.textContent = b.type === 'BULLISH' ? '🟢 BULL' : '🔴 BEAR';
-            UI.obBias.textContent = b.type;
-            UI.obBias.className = `ob-bias ${b.type.toLowerCase()}`;
-            UI.obHigh.textContent = b.high.toFixed(prec);
-            UI.obLow.textContent = b.low.toFixed(prec);
-            UI.obMid.textContent = b.price.toFixed(prec);
-            let fill = 0;
-            if (p >= b.high) fill = 100;
-            else if (p <= b.low) fill = 0;
-            else fill = ((p - b.low) / (b.high - b.low)) * 100;
-            UI.obRangeFill.style.width = Math.min(100, Math.max(0, fill)) + '%';
-            UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
-            
-            let score = b.strength;
-            const inZone = p >= b.low && p <= b.high;
-            if ((engine.bias === "BULLISH" && b.type === 'BULLISH') || (engine.bias === "BEARISH" && b.type === 'BEARISH')) score += 3;
-            if (inZone) score += 4;
-            score = Math.min(10, score);
-            const strengthLabel = score >= 7 ? 'STRONG' : (score >= 4 ? 'MEDIUM' : 'WEAK');
-            const mitigation = inZone ? ((p - b.low) / (b.high - b.low)) * 100 : (p > b.high ? 100 : 0);
-            
-            UI.obStrength.textContent = `${score.toFixed(1)} (${strengthLabel})`;
-            UI.obMitigation.textContent = inZone ? `${Math.min(100, Math.max(0, mitigation)).toFixed(0)}%` : (p > b.high ? '100%' : '0%');
-            UI.obDistance.textContent = Math.abs(p - b.price).toFixed(prec);
-        } else {
-            UI.obType.textContent = 'SCANNING';
-            UI.obBias.textContent = 'NEUTRAL';
-            UI.obBias.className = 'ob-bias';
-            UI.obHigh.textContent = UI.obLow.textContent = UI.obMid.textContent = '—';
-            UI.obRangeFill.style.width = '0%';
-            UI.obStrength.textContent = UI.obMitigation.textContent = UI.obDistance.textContent = '—';
-        }
-    }
-    
     function updateDecision() {
         if (isDataStale) {
             UI.decision.textContent = 'DATA STALE';
@@ -1138,7 +1168,14 @@
         const prec = getPrecision();
         engine.ema21 = calculateEMA(candleData, 21);
         engine.adx = calculateADX();
-        updateLevels();
+        
+        // Update level sementara untuk mendapatkan bias awal
+        const { swingHigh, swingLow } = findSwingPoints(candleData);
+        const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        engine.bias = tempBias;
+        
+        // Update level sementara (tanpa sinyal aktif)
+        updateLevels(null, null);
         obEvaluation = evaluateOB(p);
         factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= config.minOBStrength;
         const rsi = computeRSI();
@@ -1161,12 +1198,10 @@
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
-        updateOBUI(p);
-        
-        const inZone = p >= engine.entryZoneLow && p <= engine.entryZoneHigh;
+        const inZoneTemp = p >= engine.entryZoneLow && p <= engine.entryZoneHigh;
         const adxValid = engine.adx >= config.adxThreshold;
         factorStatus.f1 = engine.bias !== "NEUTRAL";
-        factorStatus.f3 = adxValid && (inZone || obEvaluation.isActive);
+        factorStatus.f3 = adxValid && (inZoneTemp || obEvaluation.isActive);
         const obAligned = obEvaluation.hasOB && ((engine.adxBias==="BULLISH" && activeOB?.type==='BULLISH') || (engine.adxBias==="BEARISH" && activeOB?.type==='BEARISH'));
         
         let score = 0;
@@ -1182,7 +1217,7 @@
         
         let active = null;
         let decisionText = '', color = '', bgColor = '';
-        const isInValidZone = inZone || obEvaluation.isActive;
+        const isInValidZone = inZoneTemp || obEvaluation.isActive;
         
         if (!adxValid) { decisionText = `LOW ADX (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
         else if (!isInValidZone) { decisionText = 'OUT OF ZONE'; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
@@ -1193,13 +1228,13 @@
                 color = 'var(--accent-green)';
                 bgColor = 'rgba(16,185,129,0.08)';
             }
-            else if (adxValid && factorStatus.f1 && factorStatus.ob && obAligned && score>=7 && inZone) {
+            else if (adxValid && factorStatus.f1 && factorStatus.ob && obAligned && score>=7 && inZoneTemp) {
                 active = 'sniper';
                 decisionText = `SNIPER ${action}`;
                 color = 'var(--accent-purple)';
                 bgColor = 'rgba(139,92,246,0.08)';
             }
-            else if (adxValid && factorStatus.f1 && score>=5 && inZone && rsi>=40 && rsi<=60) {
+            else if (adxValid && factorStatus.f1 && score>=5 && inZoneTemp && rsi>=40 && rsi<=60) {
                 active = 'retail';
                 decisionText = `RETAIL ${action}`;
                 color = 'var(--accent-orange)';
@@ -1213,6 +1248,10 @@
         if (active === 'conservative') document.querySelector('[data-mode="conservative"]')?.classList.add('active');
         else if (active === 'sniper') document.querySelector('[data-mode="sniper"]')?.classList.add('active');
         else if (active === 'retail') document.querySelector('[data-mode="retail"]')?.classList.add('active');
+        
+        // Update level dengan sinyal aktif
+        updateLevels(active, action);
+        updateOBUI(p, active, action);
         
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             UI.decision.textContent = `${action} NOW 🔥`;
