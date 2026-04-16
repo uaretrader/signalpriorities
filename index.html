@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · CORE v1.1</title>
+    <title>SMC APEX · CORE v1.2</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -540,7 +540,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">CORE v1.1</span>
+            <span class="version-tag">CORE v1.2</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -659,7 +659,7 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX CORE v1.1 | Level SMC sync with active signal | TP/SL sesuai arah sinyal', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX CORE v1.2 | Optimized: No duplicate level calc | Final inZone | Debug logging', 'color: #00BFFF; font-weight: 700;');
     
     // ==================== DOM Elements ====================
     const UI = {
@@ -702,7 +702,6 @@
     let activeMode = null;
     let currentAction = "BUY";
     
-    // MTF Bias Cache (independen per timeframe)
     let mtfBiasCache = {
         h4: "NEUTRAL",
         h1: "NEUTRAL",
@@ -721,8 +720,19 @@
     let obEvaluation = { hasOB: false, score: 0, strength: 'NONE', isActive: false };
     let factorStatus = { f1: false, f2: false, f3: false, ob: false };
     
+    // Debug logging flag
+    let lastLoggedSignal = "";
+    
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     function getConfig() { return PAIR_CONFIG[currentPair]; }
+    
+    function logDebug(message, data = null) {
+        if (data) {
+            console.log(`[DEBUG] ${message}`, data);
+        } else {
+            console.log(`[DEBUG] ${message}`);
+        }
+    }
     
     // ==================== CORE FUNCTIONS ====================
     function calculateEMA(data, period) {
@@ -830,6 +840,7 @@
     async function updateMTFBias() {
         const now = Date.now();
         if (mtfBiasCache.timestamp && (now - mtfBiasCache.timestamp) < 120000 && mtfBiasCache.pair === currentPair) {
+            logDebug("MTF bias using cache");
             updateTimeframeBiasUI();
             const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
             const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
@@ -837,6 +848,7 @@
             return;
         }
         
+        logDebug("Fetching fresh MTF bias data...");
         const tfs = [
             { id: '4h', label: 'h4', apiInterval: '4h' },
             { id: '1h', label: 'h1', apiInterval: '1h' },
@@ -911,6 +923,7 @@
         const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
         const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
         factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
+        logDebug(`MTF bias updated: H4=${mtfBiasCache.h4}, H1=${mtfBiasCache.h1}, M15=${mtfBiasCache.m15}, M5=${mtfBiasCache.m5}, f2=${factorStatus.f2}`);
     }
     
     function updateTimeframeBiasUI() {
@@ -934,7 +947,7 @@
         });
     }
     
-    // ==================== LEVEL SMC YANG MENGIKUTI SINYAL AKTIF ====================
+    // ==================== LEVEL SMC ====================
     function updateLevels(active, action) {
         const { swingHigh, swingLow } = findSwingPoints(candleData);
         engine.swingHigh = swingHigh;
@@ -943,7 +956,6 @@
         if (range <= 0) return;
         const price = lastPrice;
         
-        // Tentukan arah level berdasarkan sinyal aktif
         let levelBias;
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             levelBias = (action === "BUY") ? "BULLISH" : "BEARISH";
@@ -959,13 +971,11 @@
         const entryFactor = getConfig().entryZoneATRFactor;
         
         if (levelBias === "BULLISH") {
-            // Untuk BUY: entry zone di sekitar Fibonacci (support), TP di atas, SL di bawah
             engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
             engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
             engine.tp = swingHigh + range * 0.27;
             engine.sl = engine.entryZoneLow - atr * getConfig().slATRFactor;
         } else {
-            // Untuk SELL: entry zone di sekitar Fibonacci (resistance), TP di bawah, SL di atas
             engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
             engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
             engine.tp = swingLow - range * 0.27;
@@ -984,7 +994,7 @@
         UI.rangeValue.textContent = `${rangePoints} pts`;
     }
     
-    // ==================== ORDER BLOCK UI (searah sinyal & belum termitigasi) ====================
+    // ==================== ORDER BLOCK UI ====================
     function getDisplayOB(active, action, currentPrice) {
         if (!orderBlocks.length) return null;
         
@@ -994,9 +1004,7 @@
             const validOB = orderBlocks.find(ob => {
                 if (ob.type !== targetDirection) return false;
                 if (ob.mitigated) return false;
-                // Bullish OB: harga harus di atas OB (support)
                 if (ob.type === 'BULLISH' && currentPrice < ob.low) return false;
-                // Bearish OB: harga harus di bawah OB (resistance)
                 if (ob.type === 'BEARISH' && currentPrice > ob.high) return false;
                 return true;
             });
@@ -1169,17 +1177,17 @@
         engine.ema21 = calculateEMA(candleData, 21);
         engine.adx = calculateADX();
         
-        // Update level sementara untuk mendapatkan bias awal
+        // Hitung swing points untuk bias sementara (hanya untuk decision engine)
         const { swingHigh, swingLow } = findSwingPoints(candleData);
         const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
         engine.bias = tempBias;
         
-        // Update level sementara (tanpa sinyal aktif)
-        updateLevels(null, null);
+        // Hitung OB sementara (tanpa level final)
         obEvaluation = evaluateOB(p);
         factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= config.minOBStrength;
         const rsi = computeRSI();
         
+        // Update UI indikator (RSI, EMA, ADX)
         UI.rsiValue.textContent = rsi.toFixed(1);
         UI.rsiFill.style.width = Math.min(100, Math.max(0, rsi)) + '%';
         UI.rsiFill.className = 'rsi-fill';
@@ -1198,9 +1206,18 @@
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
-        const inZoneTemp = p >= engine.entryZoneLow && p <= engine.entryZoneHigh;
+        // Hitung skor dan tentukan mode (menggunakan level sementara)
+        // Kita buat level sementara untuk hitung inZoneTemp
+        let tempLevelBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        let tempF618 = tempLevelBias === "BULLISH" ? swingLow + (swingHigh-swingLow)*0.618 : swingHigh - (swingHigh-swingLow)*0.618;
+        let tempF786 = tempLevelBias === "BULLISH" ? swingLow + (swingHigh-swingLow)*0.786 : swingHigh - (swingHigh-swingLow)*0.786;
+        let tempATR = calculateATR(candleData, config.atrPeriod);
+        let tempEntryLow = Math.min(tempF618, tempF786) - tempATR * config.entryZoneATRFactor;
+        let tempEntryHigh = Math.max(tempF618, tempF786) + tempATR * config.entryZoneATRFactor;
+        const inZoneTemp = p >= tempEntryLow && p <= tempEntryHigh;
+        
         const adxValid = engine.adx >= config.adxThreshold;
-        factorStatus.f1 = engine.bias !== "NEUTRAL";
+        factorStatus.f1 = tempBias !== "NEUTRAL";
         factorStatus.f3 = adxValid && (inZoneTemp || obEvaluation.isActive);
         const obAligned = obEvaluation.hasOB && ((engine.adxBias==="BULLISH" && activeOB?.type==='BULLISH') || (engine.adxBias==="BEARISH" && activeOB?.type==='BEARISH'));
         
@@ -1244,15 +1261,29 @@
             else { decisionText = 'NO SETUP'; color='var(--text-tertiary)'; bgColor='var(--bg-secondary)'; active=null; }
         }
         
+        // Update UI mode buttons
         document.querySelectorAll('.mode-btn-large').forEach(btn => btn.classList.remove('active'));
         if (active === 'conservative') document.querySelector('[data-mode="conservative"]')?.classList.add('active');
         else if (active === 'sniper') document.querySelector('[data-mode="sniper"]')?.classList.add('active');
         else if (active === 'retail') document.querySelector('[data-mode="retail"]')?.classList.add('active');
         
-        // Update level dengan sinyal aktif
+        // HANYA SEKALI: Update level final dengan sinyal aktif
         updateLevels(active, action);
+        
+        // Update OB UI dengan sinyal aktif
         updateOBUI(p, active, action);
         
+        // Hitung ulang inZone dari level final untuk logging (tidak mempengaruhi mode di tick ini)
+        const finalInZone = (active && (p >= engine.entryZoneLow && p <= engine.entryZoneHigh)) || obEvaluation.isActive;
+        
+        // Debug logging
+        const signalSummary = `${active || 'NO_SIGNAL'}|${action}|${score}|${adxValid}|${factorStatus.f1}|${factorStatus.f2}|${factorStatus.f3}|${factorStatus.ob}`;
+        if (signalSummary !== lastLoggedSignal) {
+            lastLoggedSignal = signalSummary;
+            logDebug(`Decision: active=${active}, action=${action}, score=${score}, adxValid=${adxValid}, f1=${factorStatus.f1}, f2=${factorStatus.f2}, f3=${factorStatus.f3}, ob=${factorStatus.ob}, inZone(final)=${finalInZone}`);
+        }
+        
+        // Tampilkan signal bar
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             UI.decision.textContent = `${action} NOW 🔥`;
         } else {
@@ -1288,12 +1319,12 @@
     function updateWSStatus(status, message) {
         if (!UI.dot || !UI.text) return;
         UI.dot.className = 'status-dot';
-        if (status==='live') { UI.dot.classList.add('live'); UI.text.innerText=message||'LIVE'; reconnectDelay=1000; isUsingFallback=false; isDataStale=false; }
-        else if (status==='connecting') { UI.dot.classList.add('connecting'); UI.text.innerText=message||'CONNECTING'; }
-        else if (status==='reconnect') { UI.dot.classList.add('reconnect'); UI.text.innerText=message||'RECONNECT'; }
-        else if (status==='fallback') { UI.dot.classList.add('fallback'); UI.text.innerText=message||'FALLBACK'; isUsingFallback=true; }
-        else if (status==='stale') { UI.dot.classList.add('stale'); UI.text.innerText=message||'DATA STALE'; isDataStale=true; }
-        else { UI.dot.classList.add('offline'); UI.text.innerText=message||'OFFLINE'; }
+        if (status==='live') { UI.dot.classList.add('live'); UI.text.innerText=message||'LIVE'; reconnectDelay=1000; isUsingFallback=false; isDataStale=false; logDebug("WebSocket status: LIVE"); }
+        else if (status==='connecting') { UI.dot.classList.add('connecting'); UI.text.innerText=message||'CONNECTING'; logDebug("WebSocket status: CONNECTING"); }
+        else if (status==='reconnect') { UI.dot.classList.add('reconnect'); UI.text.innerText=message||'RECONNECT'; logDebug("WebSocket status: RECONNECT"); }
+        else if (status==='fallback') { UI.dot.classList.add('fallback'); UI.text.innerText=message||'FALLBACK'; isUsingFallback=true; logDebug("WebSocket status: FALLBACK (REST mode)"); }
+        else if (status==='stale') { UI.dot.classList.add('stale'); UI.text.innerText=message||'DATA STALE'; isDataStale=true; logDebug("WebSocket status: DATA STALE"); }
+        else { UI.dot.classList.add('offline'); UI.text.innerText=message||'OFFLINE'; logDebug("WebSocket status: OFFLINE"); }
         if (UI.signalBar) UI.signalBar.classList.toggle('stale-warning', isDataStale);
     }
     
@@ -1316,6 +1347,7 @@
                     lastPrice = prevPrice = candleData[candleData.length-1].c;
                     orderBlocks = detectOrderBlocks();
                     updateUI(lastPrice);
+                    logDebug(`Klines fetched: ${candleData.length} candles, last price=${lastPrice}`);
                 }
                 return true;
             }
@@ -1345,7 +1377,7 @@
         try {
             wsConnection = new WebSocket(wsUrl);
             wsConnection.onopen = () => {
-                console.log(`✅ WebSocket connected: ${currentPair} @ ${currentTF}`);
+                logDebug(`WebSocket connected: ${currentPair} @ ${currentTF}`);
                 reconnectDelay=1000;
                 lastWSMessageTime=lastPriceUpdateTime=Date.now();
                 isUsingFallback=false;
@@ -1386,6 +1418,7 @@
             };
             wsConnection.onclose = () => {
                 if (!isReloading && !isManualDisconnect) {
+                    logDebug("WebSocket closed, reconnecting...");
                     updateWSStatus('reconnect','RECONNECT');
                     if (reconnectTimer) clearTimeout(reconnectTimer);
                     reconnectTimer = setTimeout(() => {
@@ -1396,14 +1429,18 @@
                     }, reconnectDelay);
                 }
             };
-            wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect','ERROR'); };
-        } catch(e) { updateWSStatus('fallback','FALLBACK'); isUsingFallback=true; }
+            wsConnection.onerror = (err) => { 
+                logDebug("WebSocket error", err);
+                if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect','ERROR'); 
+            };
+        } catch(e) { updateWSStatus('fallback','FALLBACK'); isUsingFallback=true; logDebug("WebSocket exception, using fallback", e); }
     }
     
     let heartbeatInterval, stuckCheckInterval, restFallbackInterval;
     async function fullReload() {
         if (isReloading) return;
         isReloading=true;
+        logDebug("Full reload initiated");
         document.querySelectorAll('[data-pair],[data-tf]').forEach(b=>b.classList.add('disabled'));
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         if (stuckCheckInterval) clearInterval(stuckCheckInterval);
@@ -1446,6 +1483,7 @@
         restFallbackInterval = setInterval(fetchPriceREST, 5000);
         document.querySelectorAll('[data-pair],[data-tf]').forEach(b=>b.classList.remove('disabled'));
         isReloading=false;
+        logDebug("Full reload completed");
     }
     
     document.querySelectorAll('[data-pair]').forEach(btn => btn.onclick = () => { if(!isReloading){ currentPair=btn.getAttribute('data-pair'); localStorage.setItem('lastPair',currentPair); fullReload(); } });
