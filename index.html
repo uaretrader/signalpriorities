@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · CORE v1.5</title>
+    <title>SMC APEX · CORE v1.6</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -504,7 +504,6 @@
             color: var(--text-tertiary);
         }
         
-        /* Performance Log Styles */
         .performance-log-container {
             background: var(--bg-secondary);
             border: 1px solid var(--border-subtle);
@@ -630,7 +629,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">CORE v1.5</span>
+            <span class="version-tag">CORE v1.6</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -745,7 +744,6 @@
         </div>
     </footer>
 
-    <!-- PERFORMANCE LOG -->
     <div class="performance-log-container">
         <div class="performance-log-header">
             <span class="perf-title">📊 PERFORMANCE LOG</span>
@@ -760,11 +758,38 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX CORE v1.5 | Performance Log | Real-time signal tracking', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX CORE v1.6 | Fixed decision signal | Persistent log (24h FIFO) | Bug fixes', 'color: #00BFFF; font-weight: 700;');
     
-    // ==================== PERFORMANCE LOG ====================
+    // ==================== PERFORMANCE LOG with localStorage ====================
+    const STORAGE_KEY = 'smc_apex_performance_logs_v2';
+    const MAX_LOGS = 100;
+    const EXPIRE_HOURS = 24;
+    
     let performanceLogs = [];
-    const MAX_LOGS = 50;
+    
+    function loadPerformanceLogs() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                performanceLogs = JSON.parse(saved);
+                const expireTime = Date.now() - (EXPIRE_HOURS * 60 * 60 * 1000);
+                const beforeCount = performanceLogs.length;
+                performanceLogs = performanceLogs.filter(log => log.fullTimestamp > expireTime);
+                if (beforeCount !== performanceLogs.length) {
+                    savePerformanceLogs();
+                }
+                renderPerformanceLog();
+                logDebug(`Loaded ${performanceLogs.length} logs from storage`);
+            } catch(e) { console.warn("Failed to load logs:", e); }
+        }
+    }
+    
+    function savePerformanceLogs() {
+        try {
+            const toSave = performanceLogs.slice(0, MAX_LOGS);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+        } catch(e) { console.warn("Failed to save logs:", e); }
+    }
     
     function addPerformanceLog(signal, mode, price, adx, score, f1, f2, f3, ob) {
         const now = new Date();
@@ -780,7 +805,7 @@
             timeframe: currentTF,
             price: price,
             adx: adx,
-            score: score,
+            score: Math.min(10, score),
             f1: f1,
             f2: f2,
             f3: f3,
@@ -792,6 +817,7 @@
             performanceLogs.pop();
         }
         
+        savePerformanceLogs();
         renderPerformanceLog();
     }
     
@@ -819,12 +845,12 @@
             `;
         }).join('');
         
-        // Auto scroll ke atas (log terbaru)
         logContainer.scrollTop = 0;
     }
     
     function clearPerformanceLog() {
         performanceLogs = [];
+        savePerformanceLogs();
         renderPerformanceLog();
         logDebug("Performance log cleared");
     }
@@ -1580,6 +1606,11 @@
         engine.ema21 = calculateEMA(candleArray, 21);
         engine.adx = calculateADX();
         
+        // === FIX: Update MTF confluence setiap tick ===
+        const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
+        const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
+        factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
+        
         const { swingHigh, swingLow } = findSwingPointsOptimized(candleArray, currentTF);
         const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
         engine.bias = tempBias;
@@ -1621,18 +1652,23 @@
         const adxValid = engine.adx >= config.adxThreshold;
         const f1 = tempBias !== "NEUTRAL";
         const f3 = adxValid && (inZoneTemp || obEvaluation.isActive);
-        const obAligned = obEvaluation.hasOB && ((engine.adxBias==="BULLISH" && activeOB?.type==='BULLISH') || (engine.adxBias==="BEARISH" && activeOB?.type==='BEARISH'));
+        
+        // === FIX: Aman saat activeOB null ===
+        const obAligned = obEvaluation.hasOB && activeOB && 
+            ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') || 
+             (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH'));
         
         let score = 0;
         if (f1) score += 3;
         if (factorStatus.f2) score += 2;
         if (f3) score += 2;
-        if (factorStatus.ob) score += obEvaluation.strength==='STRONG'?3:(obEvaluation.strength==='MEDIUM'?2:1);
+        if (factorStatus.ob) score += obEvaluation.strength === 'STRONG' ? 3 : (obEvaluation.strength === 'MEDIUM' ? 2 : 1);
+        score = Math.min(10, score); // === FIX: Batasi skor maksimal 10 ===
         
         const direction = engine.adxBias;
-        const action = direction==="BULLISH"?"BUY":"SELL";
-        UI.arrow.innerHTML = direction==="BULLISH"? '▲' : '▼';
-        UI.arrow.style.color = direction==="BULLISH"? 'var(--accent-green)' : 'var(--accent-red)';
+        const action = direction === "BULLISH" ? "BUY" : "SELL";
+        UI.arrow.innerHTML = direction === "BULLISH" ? '▲' : '▼';
+        UI.arrow.style.color = direction === "BULLISH" ? 'var(--accent-green)' : 'var(--accent-red)';
         
         let active = null;
         let decisionText = '', color = '', bgColor = '';
@@ -1641,25 +1677,25 @@
         if (!adxValid) { decisionText = `LOW ADX (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
         else if (!isInValidZone) { decisionText = 'OUT OF ZONE'; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
         else {
-            if (adxValid && f1 && factorStatus.f2 && f3 && score>=8 && engine.adx>=25) {
+            if (adxValid && f1 && factorStatus.f2 && f3 && score >= 8 && engine.adx >= 25) {
                 active = 'conservative';
                 decisionText = `CONSERVATIVE ${action}`;
                 color = 'var(--accent-green)';
                 bgColor = 'rgba(16,185,129,0.08)';
             }
-            else if (adxValid && f1 && factorStatus.ob && obAligned && score>=7 && inZoneTemp) {
+            else if (adxValid && f1 && factorStatus.ob && obAligned && score >= 7 && inZoneTemp) {
                 active = 'sniper';
                 decisionText = `SNIPER ${action}`;
                 color = 'var(--accent-purple)';
                 bgColor = 'rgba(139,92,246,0.08)';
             }
-            else if (adxValid && f1 && score>=5 && inZoneTemp && rsi>=40 && rsi<=60) {
+            else if (adxValid && f1 && score >= 5 && inZoneTemp && rsi >= 40 && rsi <= 60) {
                 active = 'retail';
                 decisionText = `RETAIL ${action}`;
                 color = 'var(--accent-orange)';
                 bgColor = 'rgba(245,158,11,0.08)';
             }
-            else if (score>=4) { decisionText = 'WAITING'; color='var(--accent-gold)'; bgColor='var(--bg-secondary)'; active=null; }
+            else if (score >= 4) { decisionText = 'WAITING'; color='var(--accent-gold)'; bgColor='var(--bg-secondary)'; active=null; }
             else { decisionText = 'NO SETUP'; color='var(--text-tertiary)'; bgColor='var(--bg-secondary)'; active=null; }
         }
         
@@ -1670,6 +1706,10 @@
         
         updateLevels(active, action);
         updateOBUI(p, active, action);
+        
+        // === FIX: Zone warning menggunakan level final ===
+        const finalInZone = (active && (lastPrice >= engine.entryZoneLow && lastPrice <= engine.entryZoneHigh)) || obEvaluation.isActive;
+        UI.levelsGrid.classList.toggle('zone-warning', !finalInZone && adxValid);
         
         const signalSummary = `${active || 'NO_SIGNAL'}|${action}|${score}|${adxValid}|${f1}|${factorStatus.f2}|${f3}|${factorStatus.ob}`;
         if (signalSummary !== lastLoggedSignal) {
@@ -1687,9 +1727,8 @@
         UI.decision.style.color = color;
         UI.signalBar.style.background = bgColor;
         UI.signalBar.style.borderColor = active ? color : 'var(--border-subtle)';
-        UI.levelsGrid.classList.toggle('zone-warning', !isInValidZone && adxValid);
         
-        // Performance Log: catat sinyal aktif (hindari duplikasi dalam 5 detik)
+        // Performance Log
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             const lastLog = performanceLogs[0];
             const now = Date.now();
@@ -1945,6 +1984,9 @@
     window.smartCopy = (id) => { const el = document.getElementById(id); if(el){ navigator.clipboard?.writeText(el.textContent.trim()); el.classList.add('copied'); setTimeout(()=>el.classList.remove('copied'),300); } };
     
     setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
+    
+    // Load performance logs dari localStorage
+    loadPerformanceLogs();
     
     fullReload();
 })();
