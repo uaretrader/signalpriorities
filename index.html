@@ -1935,7 +1935,7 @@
         let decisionText = '', color = '', bgColor = '';
         const isInValidZone = inZoneTemp || obEvaluation.isActive;
         
-        if (!adxValid) { decisionText = `LOW ADX (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
+        if (!adxValid) { decisionText = `📉 WEAK TREND (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
         else if (!isInValidZone) { decisionText = 'OUT OF ZONE'; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
         else {
             if (adxValid && f1 && factorStatus.f2 && f3 && score >= 8 && engine.adx >= 25) {
@@ -1956,7 +1956,7 @@
                 color = 'var(--accent-orange)';
                 bgColor = 'rgba(245,158,11,0.08)';
             }
-            else if (score >= 4) { decisionText = 'WAITING'; color='var(--accent-gold)'; bgColor='var(--bg-secondary)'; active=null; }
+            else if (score >= 4) { decisionText = '⏳ AWAITING CONFIRM'; color='var(--accent-gold)'; bgColor='var(--bg-secondary)'; active=null; }
             else { decisionText = 'NO SETUP'; color='var(--text-tertiary)'; bgColor='var(--bg-secondary)'; active=null; }
         }
         
