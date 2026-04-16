@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · CORE v1.9</title>
+    <title>SMC APEX · CORE v1.10</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -670,7 +670,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">CORE v1.9</span>
+            <span class="version-tag">CORE v1.10</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -802,7 +802,44 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX CORE v1.9 | Notification fix | Anti-spam 15s | ADX rounded', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX CORE v1.10 | Sound Notification (Beep) | Anti-spam 15s | ADX rounded', 'color: #00BFFF; font-weight: 700;');
+    
+    // ==================== SOUND NOTIFICATION ====================
+    let audioContext = null;
+    let beepBuffer = null;
+    
+    function initAudio() {
+        if (!audioContext && window.AudioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const sampleRate = audioContext.sampleRate;
+            beepBuffer = audioContext.createBuffer(1, sampleRate * 0.3, sampleRate);
+            const data = beepBuffer.getChannelData(0);
+            for (let i = 0; i < data.length; i++) {
+                data[i] = Math.sin(880 * 2 * Math.PI * i / sampleRate) * 0.3;
+            }
+        }
+    }
+    
+    function playBeep() {
+        if (!audioContext) {
+            initAudio();
+        }
+        if (audioContext && beepBuffer) {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            const source = audioContext.createBufferSource();
+            source.buffer = beepBuffer;
+            source.connect(audioContext.destination);
+            source.start();
+        }
+    }
+    
+    // Inisialisasi audio saat user pertama kali klik
+    document.body.addEventListener('click', function initAudioOnClick() {
+        initAudio();
+        document.body.removeEventListener('click', initAudioOnClick);
+    }, { once: true });
     
     // ==================== NOTIFICATION SYSTEM ====================
     let notificationPermission = false;
@@ -819,7 +856,7 @@
                         notifyButton.classList.add('active');
                     }
                     logDebug("Notification permission granted");
-                    showNotification("✅ Notifikasi Aktif", "SMC APEX akan mengirim notifikasi untuk sinyal dan eksekusi TP/SL.");
+                    showNotification("✅ Notifikasi Aktif", "SMC APEX akan mengirim notifikasi suara untuk sinyal dan eksekusi TP/SL.");
                 } else {
                     if (notifyButton) {
                         notifyButton.textContent = '🔕 OFF';
@@ -835,7 +872,7 @@
         }
     }
     
-    function showNotification(title, body, tag = null) {
+    function showNotification(title, body, tag = null, playSound = true) {
         if (!notificationPermission) return;
         
         const now = Date.now();
@@ -843,17 +880,21 @@
         
         if (tag) lastNotificationTime[tag] = now;
         
+        if (playSound) {
+            playBeep();
+        }
+        
         try {
             new Notification(title, {
                 body: body,
                 icon: 'https://www.binance.com/favicon.ico',
-                silent: false
+                silent: false,
+                vibrate: [200, 100, 200]
             });
         } catch(e) { console.warn("Notification error:", e); }
     }
     
     if (notifyButton) {
-        // Set initial state to ACTIVE (ON)
         notifyButton.classList.add('active');
         notificationPermission = true;
         
@@ -870,12 +911,12 @@
     }
     
     // ==================== PERFORMANCE LOG ====================
-    const STORAGE_KEY = 'smc_apex_performance_logs_v5';
+    const STORAGE_KEY = 'smc_apex_performance_logs_v6';
     const MAX_LOGS = 100;
     const EXPIRE_HOURS = 24;
     
     let performanceLogs = [];
-    let lastSignalTime = {}; // Anti-spam per mode
+    let lastSignalTime = {};
     
     function loadPerformanceLogs() {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -903,10 +944,9 @@
         const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
         const dateStr = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}`;
         
-        // Anti-spam: cek apakah sinyal dengan mode yang sama dalam 15 detik terakhir
         const signalKey = `${mode}_${direction}`;
         if (lastSignalTime[signalKey] && (now.getTime() - lastSignalTime[signalKey]) < 15000) {
-            return; // Skip duplicate signal
+            return;
         }
         lastSignalTime[signalKey] = now.getTime();
         
@@ -941,7 +981,6 @@
         savePerformanceLogs();
         renderPerformanceLog();
         
-        // Notifikasi
         showNotification(
             `🎯 ${direction} SIGNAL (${mode.toUpperCase()})`, 
             `${currentPair} ${currentTF} | Harga: ${price.toFixed(getPrecision())} | ADX:${roundedAdx} | Score:${score}/10`,
@@ -2176,10 +2215,8 @@
         }
     }
     
-    // Start order monitoring
     setInterval(() => { monitorActiveOrders(); }, 5000);
     
-    // Event listeners
     document.querySelectorAll('[data-pair]').forEach(btn => btn.onclick = () => { if(!isReloading){ currentPair=btn.getAttribute('data-pair'); localStorage.setItem('lastPair',currentPair); fullReload(); } });
     document.querySelectorAll('.tf-btn').forEach(btn => btn.onclick = () => { if(!isReloading){ currentTF=btn.getAttribute('data-tf'); localStorage.setItem('lastTF',currentTF); fullReload(); } });
     document.getElementById('clear-log-btn')?.addEventListener('click', () => clearPerformanceLog());
@@ -2190,7 +2227,6 @@
     
     setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
     
-    // Auto-request notification permission
     setTimeout(() => { if (notificationPermission) requestNotificationPermission(); }, 1000);
     
     loadPerformanceLogs();
