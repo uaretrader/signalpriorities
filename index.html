@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · CORE v1.4</title>
+    <title>SMC APEX · CORE v1.5</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -504,6 +504,108 @@
             color: var(--text-tertiary);
         }
         
+        /* Performance Log Styles */
+        .performance-log-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            margin-top: 8px;
+            flex-shrink: 0;
+            font-family: 'Inter', monospace;
+        }
+        
+        .performance-log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .perf-title {
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent-cyan);
+        }
+        
+        .perf-clear-btn {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-tertiary);
+            font-size: 0.5rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .perf-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+        
+        .performance-log-content {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 8px 12px;
+            font-size: 0.6rem;
+            font-family: 'Inter', monospace;
+        }
+        
+        .log-entry {
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 0.55rem;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-time {
+            color: var(--text-tertiary);
+            min-width: 80px;
+        }
+        
+        .log-signal {
+            font-weight: 700;
+        }
+        
+        .log-signal.buy { color: var(--accent-green); }
+        .log-signal.sell { color: var(--accent-red); }
+        
+        .log-mode {
+            padding: 0 4px;
+            border-radius: 4px;
+            background: var(--bg-tertiary);
+        }
+        
+        .log-mode.conservative { color: var(--accent-green); }
+        .log-mode.sniper { color: var(--accent-purple); }
+        .log-mode.retail { color: var(--accent-orange); }
+        
+        .log-price {
+            color: var(--text-secondary);
+        }
+        
+        .log-stats {
+            color: var(--text-tertiary);
+        }
+        
+        .log-empty {
+            color: var(--text-tertiary);
+            text-align: center;
+            padding: 12px;
+            font-size: 0.55rem;
+        }
+        
         .copied { background: rgba(0, 191, 255, 0.15) !important; }
         .decision-animate { animation: decisionPulse 0.3s ease; }
         @keyframes decisionPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.01); } }
@@ -518,6 +620,8 @@
             .footer-left { gap: 8px; }
             .session-info { gap: 6px; }
             .tab-btn { padding: 4px 8px; font-size: 0.65rem; }
+            .log-time { min-width: 65px; }
+            .log-entry { gap: 4px; }
         }
     </style>
 </head>
@@ -526,7 +630,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">CORE v1.4</span>
+            <span class="version-tag">CORE v1.5</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -640,14 +744,92 @@
             <div class="clock" id="clock-display">00:00:00</div>
         </div>
     </footer>
+
+    <!-- PERFORMANCE LOG -->
+    <div class="performance-log-container">
+        <div class="performance-log-header">
+            <span class="perf-title">📊 PERFORMANCE LOG</span>
+            <button class="perf-clear-btn" id="clear-log-btn">CLEAR</button>
+        </div>
+        <div class="performance-log-content" id="performance-log-content">
+            <div class="log-empty">Waiting for active signal...</div>
+        </div>
+    </div>
 </div>
 
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX CORE v1.4 | Circular Buffer Fix | Throttled UI | Optimized Caches | FGV Unmitigated', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX CORE v1.5 | Performance Log | Real-time signal tracking', 'color: #00BFFF; font-weight: 700;');
     
-    // ==================== CIRCULAR BUFFER (O(1) performance) ====================
+    // ==================== PERFORMANCE LOG ====================
+    let performanceLogs = [];
+    const MAX_LOGS = 50;
+    
+    function addPerformanceLog(signal, mode, price, adx, score, f1, f2, f3, ob) {
+        const now = new Date();
+        const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+        const dateStr = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}`;
+        
+        const logEntry = {
+            timestamp: `${dateStr} ${timeStr}`,
+            fullTimestamp: now.getTime(),
+            signal: signal,
+            mode: mode,
+            pair: currentPair,
+            timeframe: currentTF,
+            price: price,
+            adx: adx,
+            score: score,
+            f1: f1,
+            f2: f2,
+            f3: f3,
+            ob: ob
+        };
+        
+        performanceLogs.unshift(logEntry);
+        if (performanceLogs.length > MAX_LOGS) {
+            performanceLogs.pop();
+        }
+        
+        renderPerformanceLog();
+    }
+    
+    function renderPerformanceLog() {
+        const logContainer = document.getElementById('performance-log-content');
+        if (!logContainer) return;
+        
+        if (performanceLogs.length === 0) {
+            logContainer.innerHTML = '<div class="log-empty">Waiting for active signal...</div>';
+            return;
+        }
+        
+        logContainer.innerHTML = performanceLogs.map(log => {
+            const signalClass = log.signal.includes('BUY') ? 'buy' : 'sell';
+            const modeClass = log.mode.toLowerCase();
+            
+            return `
+                <div class="log-entry">
+                    <span class="log-time">${log.timestamp}</span>
+                    <span class="log-signal ${signalClass}">${log.signal}</span>
+                    <span class="log-mode ${modeClass}">${log.mode.toUpperCase()}</span>
+                    <span class="log-price">${log.pair} ${log.timeframe} @ ${log.price}</span>
+                    <span class="log-stats">ADX:${log.adx} | Score:${log.score}/10</span>
+                </div>
+            `;
+        }).join('');
+        
+        // Auto scroll ke atas (log terbaru)
+        logContainer.scrollTop = 0;
+    }
+    
+    function clearPerformanceLog() {
+        performanceLogs = [];
+        renderPerformanceLog();
+        logDebug("Performance log cleared");
+    }
+    
+    // ==================== CIRCULAR BUFFER ====================
     class CircularBuffer {
         constructor(maxSize) {
             this.maxSize = maxSize;
@@ -655,13 +837,11 @@
             this.start = 0;
             this.end = 0;
             this.length = 0;
-            this.timestampMap = new Map(); // Cek duplikasi candle
+            this.timestampMap = new Map();
         }
         
         push(item) {
-            // Cek duplikasi berdasarkan timestamp
             if (this.timestampMap.has(item.t)) {
-                // Update existing candle
                 const existingIdx = this.timestampMap.get(item.t);
                 this.data[existingIdx] = item;
                 return;
@@ -673,7 +853,6 @@
                 this.length++;
                 this.end = this.length;
             } else {
-                // Hapus timestamp dari data yang akan di-overwrite
                 const oldItem = this.data[this.start];
                 if (oldItem) this.timestampMap.delete(oldItem.t);
                 
@@ -765,17 +944,14 @@
     let currentAction = "BUY";
     let lastPrice = 0, prevPrice = 0;
     
-    // UI Throttle
     let lastUIUpdateTime = 0;
     let pendingUIUpdate = false;
     
-    // Cache untuk performance
     let cachedCandleArray = null;
     let lastCacheTime = 0;
     let lastSwingPoints = { swingHigh: 0, swingLow: 0 };
     let lastSwingCalculationTime = 0;
     
-    // FVG list
     let fvgList = [];
     
     let mtfBiasCache = {
@@ -838,7 +1014,7 @@
         }
     }
     
-    // ==================== FAIR VALUE GAP (FVG) DETECTION ====================
+    // ==================== FVG DETECTION ====================
     function detectFVG(data) {
         if (!data || data.length < 3) return [];
         const fvgResult = [];
@@ -849,7 +1025,6 @@
             const curr = data[i];
             const next = data[i+1];
             
-            // Bullish FVG: Gap ke bawah (prev.low > next.high)
             if (prev.low > next.high && curr.c > curr.o) {
                 const isMitigated = currentPrice <= prev.low && currentPrice >= next.high;
                 if (!isMitigated) {
@@ -865,7 +1040,6 @@
                 }
             }
             
-            // Bearish FVG: Gap ke atas (prev.high < next.low)
             if (prev.high < next.low && curr.c < curr.o) {
                 const isMitigated = currentPrice <= next.low && currentPrice >= prev.high;
                 if (!isMitigated) {
@@ -1503,15 +1677,26 @@
             logDebug(`Decision: active=${active}, action=${action}, score=${score}, adxValid=${adxValid}, f1=${f1}, f2=${factorStatus.f2}, f3=${f3}, ob=${factorStatus.ob}`);
         }
         
+        let displayText = '';
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
-            UI.decision.textContent = `${action} NOW 🔥`;
+            displayText = `${action} NOW 🔥`;
         } else {
-            UI.decision.textContent = decisionText;
+            displayText = decisionText;
         }
+        UI.decision.textContent = displayText;
         UI.decision.style.color = color;
         UI.signalBar.style.background = bgColor;
         UI.signalBar.style.borderColor = active ? color : 'var(--border-subtle)';
         UI.levelsGrid.classList.toggle('zone-warning', !isInValidZone && adxValid);
+        
+        // Performance Log: catat sinyal aktif (hindari duplikasi dalam 5 detik)
+        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
+            const lastLog = performanceLogs[0];
+            const now = Date.now();
+            if (!lastLog || (now - lastLog.fullTimestamp) > 5000 || lastLog.signal !== displayText) {
+                addPerformanceLog(displayText, active, lastPrice, engine.adx, score, f1, factorStatus.f2, f3, factorStatus.ob);
+            }
+        }
     }
     
     function updateUI(price) {
@@ -1750,12 +1935,17 @@
         logDebug("Full reload completed");
     }
     
+    // Event listeners
     document.querySelectorAll('[data-pair]').forEach(btn => btn.onclick = () => { if(!isReloading){ currentPair=btn.getAttribute('data-pair'); localStorage.setItem('lastPair',currentPair); fullReload(); } });
     document.querySelectorAll('.tf-btn').forEach(btn => btn.onclick = () => { if(!isReloading){ currentTF=btn.getAttribute('data-tf'); localStorage.setItem('lastTF',currentTF); fullReload(); } });
+    document.getElementById('clear-log-btn')?.addEventListener('click', () => clearPerformanceLog());
+    
     window.copySwingHL = () => { navigator.clipboard?.writeText(`Swing H: ${UI.swingHigh.textContent} | L: ${UI.swingLow.textContent}`); };
     window.copyEntryZone = () => { navigator.clipboard?.writeText(`Entry Zone: ${UI.entryZoneLow.textContent} / ${UI.entryZoneHigh.textContent}`); };
     window.smartCopy = (id) => { const el = document.getElementById(id); if(el){ navigator.clipboard?.writeText(el.textContent.trim()); el.classList.add('copied'); setTimeout(()=>el.classList.remove('copied'),300); } };
+    
     setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
+    
     fullReload();
 })();
 </script>
