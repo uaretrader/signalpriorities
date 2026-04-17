@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA · U ARE ADVISOR v0.4</title>
+    <title>URA · U ARE ADVISOR v0.5</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -461,7 +461,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">URA • U ARE ADVISOR</span>
-            <span class="version-tag">v0.4</span>
+            <span class="version-tag">v0.5</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -564,7 +564,7 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 URA v0.4 | TradingView Standard Swing | Fixed swing high/low accuracy', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 URA v0.5 | TradingView Standard Swing | Fixed score thresholds (max 7)', 'color: #00BFFF; font-weight: 700;');
     
     // ==================== KONFIGURASI ====================
     const MAX_POSITIONS = 2;
@@ -634,17 +634,15 @@
     function findSwingPoints(data, timeframe = currentTF) {
         if (!data || data.length < 50) return { swingHigh: 0, swingLow: 0 };
         
-        // TradingView standard window (lebih lebar dari sebelumnya)
         const windowMap = {
-            '5m': { left: 3, right: 3 },   // 7 candle total
-            '15m': { left: 4, right: 4 },  // 9 candle total
-            '1h': { left: 5, right: 5 },   // 11 candle total
-            '4h': { left: 6, right: 6 }    // 13 candle total
+            '5m': { left: 3, right: 3 },
+            '15m': { left: 4, right: 4 },
+            '1h': { left: 5, right: 5 },
+            '4h': { left: 6, right: 6 }
         };
         const cfg = windowMap[timeframe] || { left: 5, right: 5 };
         const { left, right } = cfg;
         
-        // Minimum distance: 0.3 x ATR (lebih sensitif)
         const atr = calculateATR(data, 14);
         const minDistance = atr * 0.3;
         
@@ -655,14 +653,12 @@
             let isHigh = true;
             let isLow = true;
             
-            // Cek kiri
             for (let j = i - left; j < i; j++) {
                 if (data[j].h >= data[i].h) isHigh = false;
                 if (data[j].l <= data[i].l) isLow = false;
                 if (!isHigh && !isLow) break;
             }
             
-            // Cek kanan (hanya jika masih memungkinkan)
             if (isHigh || isLow) {
                 for (let j = i + 1; j <= i + right; j++) {
                     if (data[j].h >= data[i].h) isHigh = false;
@@ -671,7 +667,6 @@
                 }
             }
             
-            // Simpan swing (tanpa volume filter, seperti TradingView)
             if (isHigh) {
                 const prevSwing = swingHighs[swingHighs.length - 1];
                 if (!prevSwing || Math.abs(data[i].h - prevSwing.price) >= minDistance) {
@@ -687,7 +682,6 @@
             }
         }
         
-        // Ambil swing terbaru (bukan yang tertinggi/terendah)
         const swingHigh = swingHighs.length ? swingHighs[swingHighs.length - 1].price : Math.max(...data.slice(-50).map(c=>c.h));
         const swingLow = swingLows.length ? swingLows[swingLows.length - 1].price : Math.min(...data.slice(-50).map(c=>c.l));
         
@@ -894,7 +888,6 @@
     let lastUIUpdateTime = 0, pendingUIUpdate = false;
     let cachedCandleArray = null, lastCacheTime = 0;
     
-    // Active signals tracking
     let activeSignals = [];
     
     function getActiveSignalCount(direction) {
@@ -1010,7 +1003,6 @@
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
-        // Calculate entry zone
         const range = swingHigh - swingLow;
         const f618 = tempBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
         const f786 = tempBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
@@ -1026,7 +1018,7 @@
         if (f1) score += 3;
         if (factorStatus.f2) score += 2;
         if (f3) score += 2;
-        score = Math.min(10, score);
+        score = Math.min(7, score); // Maksimal 7 (3+2+2)
         
         const direction = engine.adxBias;
         const action = direction === "BULLISH" ? "BUY" : "SELL";
@@ -1069,25 +1061,26 @@
                 bgColor = 'var(--bg-secondary)';
                 active = null;
             }
-            else if (adxValid && f1 && factorStatus.f2 && f3 && score >= 8 && engine.adx >= 25) {
+            // Threshold disesuaikan karena maksimal score = 7
+            else if (adxValid && f1 && factorStatus.f2 && f3 && score >= 7 && engine.adx >= 25) {
                 active = 'conservative';
                 decisionText = `CONSERVATIVE ${action}`;
                 color = 'var(--accent-green)';
                 bgColor = 'rgba(16,185,129,0.08)';
             }
-            else if (adxValid && f1 && score >= 7 && inZoneTemp) {
+            else if (adxValid && f1 && score >= 6 && inZoneTemp) {
                 active = 'sniper';
                 decisionText = `SNIPER ${action}`;
                 color = 'var(--accent-purple)';
                 bgColor = 'rgba(139,92,246,0.08)';
             }
-            else if (adxValid && f1 && score >= 5 && inZoneTemp && rsi >= 40 && rsi <= 60) {
+            else if (adxValid && f1 && score >= 4 && inZoneTemp && rsi >= 40 && rsi <= 60) {
                 active = 'retail';
                 decisionText = `RETAIL ${action}`;
                 color = 'var(--accent-orange)';
                 bgColor = 'rgba(245,158,11,0.08)';
             }
-            else if (score >= 4) { 
+            else if (score >= 3) { 
                 decisionText = `⏳ AWAITING CONFIRM`; 
                 color = 'var(--accent-gold)'; 
                 bgColor = 'var(--bg-secondary)'; 
