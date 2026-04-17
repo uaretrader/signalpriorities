@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · CORE v1.10</title>
+    <title>SMC APEX · CORE v1.14</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -670,7 +670,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">CORE v1.10</span>
+            <span class="version-tag">CORE v1.14</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -762,7 +762,7 @@
             <span class="level-value-lg"><span class="text-gold" id="entry-zone-low">—</span> / <span class="text-gold" id="entry-zone-high">—</span></span>
         </div>
         <div class="level-row" onclick="smartCopy('tp-value')">
-            <span class="level-label-lg">TP (27%)</span>
+            <span class="level-label-lg">TP (1.5 ATR)</span>
             <span class="level-value-lg text-blue" id="tp-value">—</span>
         </div>
         <div class="level-row" onclick="smartCopy('range-value')">
@@ -802,7 +802,12 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX CORE v1.10 | Sound Notification (Beep) | Anti-spam 15s | ADX rounded', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 SMC APEX CORE v1.14 | TradingView Swing Method | ATR-based SL/TP | Reset Total', 'color: #00BFFF; font-weight: 700;');
+    
+    // ==================== KONFIGURASI ====================
+    const MAX_POSITIONS = 2;
+    const SL_ATR_MULTIPLIER = 1.5;
+    const TP_ATR_MULTIPLIER = 1.5;
     
     // ==================== SOUND NOTIFICATION ====================
     let audioContext = null;
@@ -821,13 +826,9 @@
     }
     
     function playBeep() {
-        if (!audioContext) {
-            initAudio();
-        }
+        if (!audioContext) initAudio();
         if (audioContext && beepBuffer) {
-            if (audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
+            if (audioContext.state === 'suspended') audioContext.resume();
             const source = audioContext.createBufferSource();
             source.buffer = beepBuffer;
             source.connect(audioContext.destination);
@@ -835,14 +836,13 @@
         }
     }
     
-    // Inisialisasi audio saat user pertama kali klik
     document.body.addEventListener('click', function initAudioOnClick() {
         initAudio();
         document.body.removeEventListener('click', initAudioOnClick);
     }, { once: true });
     
     // ==================== NOTIFICATION SYSTEM ====================
-    let notificationPermission = false;
+    let notificationPermission = true;
     let lastNotificationTime = {};
     let notifyButton = document.getElementById('notify-btn');
     
@@ -862,42 +862,29 @@
                         notifyButton.textContent = '🔕 OFF';
                         notifyButton.classList.remove('active');
                     }
+                    notificationPermission = false;
                 }
             });
         } else {
             logDebug("Browser tidak mendukung notification");
-            if (notifyButton) {
-                notifyButton.style.display = 'none';
-            }
+            if (notifyButton) notifyButton.style.display = 'none';
         }
     }
     
     function showNotification(title, body, tag = null, playSound = true) {
         if (!notificationPermission) return;
-        
         const now = Date.now();
         if (tag && lastNotificationTime[tag] && (now - lastNotificationTime[tag]) < 10000) return;
-        
         if (tag) lastNotificationTime[tag] = now;
-        
-        if (playSound) {
-            playBeep();
-        }
-        
+        if (playSound) playBeep();
         try {
-            new Notification(title, {
-                body: body,
-                icon: 'https://www.binance.com/favicon.ico',
-                silent: false,
-                vibrate: [200, 100, 200]
-            });
+            new Notification(title, { body: body, icon: 'https://www.binance.com/favicon.ico', silent: false, vibrate: [200, 100, 200] });
         } catch(e) { console.warn("Notification error:", e); }
     }
     
     if (notifyButton) {
         notifyButton.classList.add('active');
-        notificationPermission = true;
-        
+        notifyButton.textContent = '🔔 ON';
         notifyButton.addEventListener('click', () => {
             if (notificationPermission) {
                 notificationPermission = false;
@@ -911,7 +898,7 @@
     }
     
     // ==================== PERFORMANCE LOG ====================
-    const STORAGE_KEY = 'smc_apex_performance_logs_v6';
+    const STORAGE_KEY = 'smc_apex_performance_logs_v10';
     const MAX_LOGS = 100;
     const EXPIRE_HOURS = 24;
     
@@ -939,15 +926,22 @@
         } catch(e) { console.warn("Failed to save logs:", e); }
     }
     
+    function getActiveSignalCount(direction) {
+        return performanceLogs.filter(log => {
+            return log.direction === direction && 
+                   log.status === 'ACTIVE' && 
+                   log.pair === currentPair && 
+                   log.timeframe === currentTF;
+        }).length;
+    }
+    
     function addPerformanceLog(signal, mode, price, adx, score, f1, f2, f3, ob, sl, tp, direction) {
         const now = new Date();
         const timeStr = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
         const dateStr = `${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}`;
         
-        const signalKey = `${mode}_${direction}`;
-        if (lastSignalTime[signalKey] && (now.getTime() - lastSignalTime[signalKey]) < 15000) {
-            return;
-        }
+        const signalKey = `${mode}_${direction}_${currentPair}_${currentTF}`;
+        if (lastSignalTime[signalKey] && (now.getTime() - lastSignalTime[signalKey]) < 15000) return;
         lastSignalTime[signalKey] = now.getTime();
         
         const roundedAdx = Math.round(adx * 100) / 100;
@@ -962,30 +956,21 @@
             price: price,
             adx: roundedAdx,
             score: Math.min(10, score),
-            f1: f1,
-            f2: f2,
-            f3: f3,
-            ob: ob,
-            sl: sl,
-            tp: tp,
+            f1: f1, f2: f2, f3: f3, ob: ob,
+            sl: sl, tp: tp,
             direction: direction,
             status: 'ACTIVE',
             statusTime: null
         };
         
         performanceLogs.unshift(logEntry);
-        if (performanceLogs.length > MAX_LOGS) {
-            performanceLogs.pop();
-        }
-        
+        if (performanceLogs.length > MAX_LOGS) performanceLogs.pop();
         savePerformanceLogs();
         renderPerformanceLog();
         
-        showNotification(
-            `🎯 ${direction} SIGNAL (${mode.toUpperCase()})`, 
+        showNotification(`🎯 ${direction} SIGNAL (${mode.toUpperCase()})`, 
             `${currentPair} ${currentTF} | Harga: ${price.toFixed(getPrecision())} | ADX:${roundedAdx} | Score:${score}/10`,
-            `${currentPair}_${currentTF}_${mode}_${direction}_${now.getTime()}`
-        );
+            `${currentPair}_${currentTF}_${mode}_${direction}_${now.getTime()}`);
     }
     
     // ==================== MONITOR SL/TP HIT ====================
@@ -995,18 +980,16 @@
         
         const currentHigh = Math.max(...candleArray.slice(-5).map(c => c.h));
         const currentLow = Math.min(...candleArray.slice(-5).map(c => c.l));
-        
         let updated = false;
         const now = Date.now();
         
         for (let i = 0; i < performanceLogs.length; i++) {
             const log = performanceLogs[i];
+            if (log.pair !== currentPair || log.timeframe !== currentTF) continue;
             
             if (log.status === 'ACTIVE' && (now - log.fullTimestamp) < EXPIRE_HOURS * 60 * 60 * 1000) {
                 const isBuy = log.direction === 'BUY';
-                let hit = false;
-                let newStatus = null;
-                let notifTitle = '', notifBody = '';
+                let hit = false, newStatus = null, notifTitle = '', notifBody = '';
                 
                 if (isBuy && currentHigh >= log.tp) {
                     newStatus = 'TP_HIT';
@@ -1063,54 +1046,39 @@
         const logContainer = document.getElementById('performance-log-content');
         if (!logContainer) return;
         
-        if (performanceLogs.length === 0) {
+        const filteredLogs = performanceLogs.filter(log => log.pair === currentPair && log.timeframe === currentTF);
+        
+        if (filteredLogs.length === 0) {
             logContainer.innerHTML = '<div class="log-empty">Waiting for active signal...</div>';
             return;
         }
         
-        logContainer.innerHTML = performanceLogs.map(log => {
+        logContainer.innerHTML = filteredLogs.map(log => {
             const signalClass = log.signal.includes('BUY') ? 'buy' : 'sell';
             const modeClass = log.mode.toLowerCase();
-            
-            let statusText = '';
-            let statusClass = '';
+            let statusText = '', statusClass = '';
             
             switch (log.status) {
-                case 'ACTIVE':
-                    statusText = `🟢 ACTIVE`;
-                    statusClass = 'active';
-                    break;
-                case 'TP_HIT':
+                case 'ACTIVE': statusText = `🟢 ACTIVE`; statusClass = 'active'; break;
+                case 'TP_HIT': 
                     const tpProfit = log.direction === 'BUY' ? (log.tp - log.price) : (log.price - log.tp);
-                    statusText = `✅ TP HIT +${tpProfit.toFixed(2)}`;
-                    statusClass = 'tp_hit';
-                    break;
-                case 'SL_HIT':
+                    statusText = `✅ TP HIT +${tpProfit.toFixed(2)}`; statusClass = 'tp_hit'; break;
+                case 'SL_HIT': 
                     const slLoss = log.direction === 'BUY' ? (log.price - log.sl) : (log.sl - log.price);
-                    statusText = `❌ SL HIT -${slLoss.toFixed(2)}`;
-                    statusClass = 'sl_hit';
-                    break;
-                case 'EXPIRED':
-                    statusText = `⏰ EXPIRED`;
-                    statusClass = 'expired';
-                    break;
-                default:
-                    statusText = '🟢 ACTIVE';
-                    statusClass = 'active';
+                    statusText = `❌ SL HIT -${slLoss.toFixed(2)}`; statusClass = 'sl_hit'; break;
+                case 'EXPIRED': statusText = `⏰ EXPIRED`; statusClass = 'expired'; break;
+                default: statusText = '🟢 ACTIVE'; statusClass = 'active';
             }
             
-            return `
-                <div class="log-entry">
-                    <span class="log-time">${log.timestamp}</span>
-                    <span class="log-signal ${signalClass}">${log.signal}</span>
-                    <span class="log-mode ${modeClass}">${log.mode.toUpperCase()}</span>
-                    <span class="log-price">${log.pair} ${log.timeframe} @ ${log.price}</span>
-                    <span class="log-stats">ADX:${log.adx} | Score:${log.score}/10</span>
-                    <span class="log-status ${statusClass}">${statusText}</span>
-                </div>
-            `;
+            return `<div class="log-entry">
+                <span class="log-time">${log.timestamp}</span>
+                <span class="log-signal ${signalClass}">${log.signal}</span>
+                <span class="log-mode ${modeClass}">${log.mode.toUpperCase()}</span>
+                <span class="log-price">${log.pair} ${log.timeframe} @ ${log.price}</span>
+                <span class="log-stats">ADX:${log.adx} | Score:${log.score}/10</span>
+                <span class="log-status ${statusClass}">${statusText}</span>
+            </div>`;
         }).join('');
-        
         logContainer.scrollTop = 0;
     }
     
@@ -1132,14 +1100,12 @@
             this.length = 0;
             this.timestampMap = new Map();
         }
-        
         push(item) {
             if (this.timestampMap.has(item.t)) {
                 const existingIdx = this.timestampMap.get(item.t);
                 this.data[existingIdx] = item;
                 return;
             }
-            
             if (this.length < this.maxSize) {
                 this.data.push(item);
                 this.timestampMap.set(item.t, this.length);
@@ -1148,35 +1114,15 @@
             } else {
                 const oldItem = this.data[this.start];
                 if (oldItem) this.timestampMap.delete(oldItem.t);
-                
                 this.data[this.start] = item;
                 this.timestampMap.set(item.t, this.start);
                 this.start = (this.start + 1) % this.maxSize;
                 this.end = (this.end + 1) % this.maxSize;
             }
         }
-        
-        getLatest() {
-            if (this.length === 0) return null;
-            return this.data[(this.end - 1 + this.maxSize) % this.maxSize];
-        }
-        
-        toArray() {
-            if (this.length === 0) return [];
-            const result = [];
-            for (let i = 0; i < this.length; i++) {
-                result.push(this.data[(this.start + i) % this.maxSize]);
-            }
-            return result;
-        }
-        
-        clear() {
-            this.data = [];
-            this.start = 0;
-            this.end = 0;
-            this.length = 0;
-            this.timestampMap.clear();
-        }
+        getLatest() { if (this.length === 0) return null; return this.data[(this.end - 1 + this.maxSize) % this.maxSize]; }
+        toArray() { if (this.length === 0) return []; const result = []; for (let i = 0; i < this.length; i++) result.push(this.data[(this.start + i) % this.maxSize]); return result; }
+        clear() { this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap.clear(); }
     }
     
     // ==================== DOM Elements ====================
@@ -1204,253 +1150,78 @@
     
     // ==================== CONFIG ====================
     const PAIR_CONFIG = {
-        XAUUSDT: { 
-            adxThreshold: 22, rsiOverbought: 75, rsiOversold: 25, atrPeriod: 14, 
-            entryZoneATRFactor: 0.4, slATRFactor: 1.6, minOBStrength: 5,
-            volumeMultiplier: 1.5, bodyRatioThreshold: 0.6
-        },
-        BTCUSDT: { 
-            adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, 
-            entryZoneATRFactor: 0.5, slATRFactor: 1.8, minOBStrength: 4,
-            volumeMultiplier: 1.2, bodyRatioThreshold: 0.55
-        }
+        XAUUSDT: { adxThreshold: 22, rsiOverbought: 75, rsiOversold: 25, atrPeriod: 14, entryZoneATRFactor: 0.4, minOBStrength: 5, volumeMultiplier: 1.5, bodyRatioThreshold: 0.6 },
+        BTCUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, entryZoneATRFactor: 0.5, minOBStrength: 4, volumeMultiplier: 1.2, bodyRatioThreshold: 0.55 }
     };
     
-    const SWING_WINDOW_MAP = {
-        '5m': { left: 3, right: 3 },
-        '15m': { left: 4, right: 4 },
-        '1h': { left: 5, right: 5 },
-        '4h': { left: 7, right: 7 }
-    };
-    
-    let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
-    let currentTF = localStorage.getItem('lastTF') || "15m";
-    let wsConnection = null;
-    let candleBuffer = new CircularBuffer(150);
-    let isReloading = false;
-    let reloadQueue = false;
-    let currentRequestId = null;
-    let lastPriceUpdateTime = 0, lastWSMessageTime = 0;
-    let isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
-    let reconnectDelay = 1000, reconnectTimer = null;
-    let activeMode = null;
-    let currentAction = "BUY";
-    let lastPrice = 0, prevPrice = 0;
-    
-    let lastUIUpdateTime = 0;
-    let pendingUIUpdate = false;
-    
-    let cachedCandleArray = null;
-    let lastCacheTime = 0;
-    let lastSwingPoints = { swingHigh: 0, swingLow: 0 };
-    let lastSwingCalculationTime = 0;
-    
-    let fvgList = [];
-    
-    let mtfBiasCache = {
-        h4: "NEUTRAL",
-        h1: "NEUTRAL",
-        m15: "NEUTRAL",
-        m5: "NEUTRAL",
-        timestamp: 0,
-        pair: null
-    };
-    
-    let engine = {
-        swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL",
-        adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0,
-        entryZoneLow: 0, entryZoneHigh: 0, tp: 0, sl: 0
-    };
-    let orderBlocks = [], activeOB = null;
-    let obEvaluation = { hasOB: false, score: 0, strength: 'NONE', isActive: false };
-    let factorStatus = { f1: false, f2: false, f3: false, ob: false };
-    
-    let lastLoggedSignal = "";
-    
-    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
-    function getConfig() { return PAIR_CONFIG[currentPair]; }
-    
-    function logDebug(message, data = null) {
-        if (data) console.log(`[DEBUG] ${message}`, data);
-        else console.log(`[DEBUG] ${message}`);
-    }
-    
-    // ==================== CACHE FUNCTIONS ====================
-    function getCandleArray() {
-        const now = Date.now();
-        if (!cachedCandleArray || (now - lastCacheTime) > 500) {
-            cachedCandleArray = candleBuffer.toArray();
-            lastCacheTime = now;
-        }
-        return cachedCandleArray;
-    }
-    
-    function invalidateCandleCache() {
-        cachedCandleArray = null;
-    }
-    
-    // ==================== THROTTLED UI UPDATE ====================
-    function throttledUIUpdate(price, force = false) {
-        const now = Date.now();
-        if (force || now - lastUIUpdateTime >= 100) {
-            lastUIUpdateTime = now;
-            updateUI(price);
-            pendingUIUpdate = false;
-        } else if (!pendingUIUpdate) {
-            pendingUIUpdate = true;
-            setTimeout(() => {
-                if (pendingUIUpdate) {
-                    updateUI(lastPrice);
-                    pendingUIUpdate = false;
-                }
-            }, 100);
-        }
-    }
-    
-    // ==================== FVG DETECTION ====================
-    function detectFVG(data) {
-        if (!data || data.length < 3) return [];
-        const fvgResult = [];
-        const currentPrice = data[data.length-1].c;
+    // ==================== TRADINGVIEW STANDARD SWING POINTS ====================
+    function findSwingPointsTV(data, timeframe = currentTF) {
+        if (!data || data.length < 30) return { swingHigh: 0, swingLow: 0 };
         
-        for (let i = 1; i < data.length - 1; i++) {
-            const prev = data[i-1];
-            const curr = data[i];
-            const next = data[i+1];
+        const windowMap = {
+            '5m': { left: 2, right: 2, minStrength: 1 },
+            '15m': { left: 3, right: 3, minStrength: 1 },
+            '1h': { left: 4, right: 4, minStrength: 2 },
+            '4h': { left: 5, right: 5, minStrength: 2 }
+        };
+        const cfg = windowMap[timeframe] || { left: 4, right: 4, minStrength: 2 };
+        const { left, right, minStrength } = cfg;
+        
+        const atr = calculateATR(data, 14);
+        const avgVolume = data.slice(-20).reduce((s,d)=>s+d.v,0)/20;
+        const minDistance = atr * 0.5;
+        
+        let swingHighs = [];
+        let swingLows = [];
+        
+        for (let i = left; i < data.length - right; i++) {
+            let isHigh = true;
+            let isLow = true;
             
-            if (prev.low > next.high && curr.c > curr.o) {
-                const isMitigated = currentPrice <= prev.low && currentPrice >= next.high;
-                if (!isMitigated) {
-                    fvgResult.push({
-                        type: 'BULLISH',
-                        high: prev.low,
-                        low: next.high,
-                        strength: Math.min(10, Math.floor((prev.low - next.high) / (prev.low * 0.001)) + 2),
-                        timestamp: curr.t,
-                        mitigated: false
-                    });
+            for (let j = i - left; j < i; j++) {
+                if (data[j].h >= data[i].h) isHigh = false;
+                if (data[j].l <= data[i].l) isLow = false;
+                if (!isHigh && !isLow) break;
+            }
+            
+            for (let j = i + 1; j <= i + right; j++) {
+                if (data[j].h >= data[i].h) isHigh = false;
+                if (data[j].l <= data[i].l) isLow = false;
+                if (!isHigh && !isLow) break;
+            }
+            
+            if (isHigh) {
+                const prevSwing = swingHighs[swingHighs.length - 1];
+                if (!prevSwing || Math.abs(data[i].h - prevSwing.price) >= minDistance) {
+                    swingHighs.push({ idx: i, price: data[i].h, volume: data[i].v, time: data[i].t });
                 }
             }
             
-            if (prev.high < next.low && curr.c < curr.o) {
-                const isMitigated = currentPrice <= next.low && currentPrice >= prev.high;
-                if (!isMitigated) {
-                    fvgResult.push({
-                        type: 'BEARISH',
-                        high: next.low,
-                        low: prev.high,
-                        strength: Math.min(10, Math.floor((next.low - prev.high) / (prev.high * 0.001)) + 2),
-                        timestamp: curr.t,
-                        mitigated: false
-                    });
+            if (isLow) {
+                const prevSwing = swingLows[swingLows.length - 1];
+                if (!prevSwing || Math.abs(data[i].l - prevSwing.price) >= minDistance) {
+                    swingLows.push({ idx: i, price: data[i].l, volume: data[i].v, time: data[i].t });
                 }
             }
         }
-        return fvgResult;
-    }
-    
-    function evaluateOBWithFVG(price, orderBlocksResult, fvgData) {
-        if (!orderBlocksResult.hasOB) return orderBlocksResult;
-        if (!fvgData || fvgData.length === 0) return orderBlocksResult;
         
-        const hasFVG = fvgData.some(fvg => {
-            if (orderBlocksResult.block.type === 'BULLISH' && fvg.type === 'BULLISH') {
-                return price >= fvg.low && price <= fvg.high;
-            }
-            if (orderBlocksResult.block.type === 'BEARISH' && fvg.type === 'BEARISH') {
-                return price >= fvg.low && price <= fvg.high;
-            }
-            return false;
-        });
+        const recentHighs = swingHighs.slice(-5);
+        const recentLows = swingLows.slice(-5);
         
-        if (hasFVG) {
-            orderBlocksResult.score = Math.min(10, orderBlocksResult.score + 2);
-            orderBlocksResult.strength = orderBlocksResult.score >= 9 ? 'STRONG+FVG' : orderBlocksResult.strength;
-        }
+        const bestHigh = recentHighs.sort((a,b) => b.volume - a.volume)[0];
+        const bestLow = recentLows.sort((a,b) => b.volume - a.volume)[0];
         
-        return orderBlocksResult;
+        const swingHigh = bestHigh ? bestHigh.price : Math.max(...data.slice(-50).map(c=>c.h));
+        const swingLow = bestLow ? bestLow.price : Math.min(...data.slice(-50).map(c=>c.l));
+        
+        return { swingHigh, swingLow };
     }
     
     // ==================== CORE FUNCTIONS ====================
-    function calculateEMA(data, period) {
-        if (!data || data.length < period) return 0;
-        const closes = data.slice(-period * 2).map(c => c.c);
-        if (closes.length < period) return 0;
-        let ema = closes.slice(0, period).reduce((a,b) => a+b,0) / period;
-        const multiplier = 2/(period+1);
-        for (let i=period; i<closes.length; i++) ema = (closes[i]-ema)*multiplier + ema;
-        return ema;
-    }
+    function calculateEMA(data, period) { if (!data || data.length < period) return 0; const closes = data.slice(-period * 2).map(c => c.c); if (closes.length < period) return 0; let ema = closes.slice(0, period).reduce((a,b) => a+b,0) / period; const multiplier = 2/(period+1); for (let i=period; i<closes.length; i++) ema = (closes[i]-ema)*multiplier + ema; return ema; }
+    function calculateATR(data, period=14) { if (!data || data.length < period+1) return 0; let tr = []; for (let i=1; i<data.length; i++) { const h = data[i].h, l = data[i].l, pc = data[i-1].c; tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc))); } if (tr.length < period) return 0; return tr.slice(-period).reduce((a,b)=>a+b,0)/period; }
     
-    function calculateATR(data, period=14) {
-        if (!data || data.length < period+1) return 0;
-        let tr = [];
-        for (let i=1; i<data.length; i++) {
-            const h = data[i].h, l = data[i].l, pc = data[i-1].c;
-            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
-        }
-        if (tr.length < period) return 0;
-        return tr.slice(-period).reduce((a,b)=>a+b,0)/period;
-    }
-    
-    function findSwingPoints(data, timeframe = currentTF) {
-        if (!data || data.length < 20) return { swingHigh: 0, swingLow: 0 };
-        
-        const windowConfig = SWING_WINDOW_MAP[timeframe] || { left: 5, right: 5 };
-        const { left, right } = windowConfig;
-        const avgVolume = data.slice(-20).reduce((s,d)=>s+d.v,0)/20;
-        const atr = calculateATR(data, 14);
-        const atrPercent = (atr / data[data.length-1].c) * 100;
-        
-        let volumeThreshold = 0.8;
-        if (atrPercent > 0.5) volumeThreshold = 0.6;
-        if (atrPercent < 0.2) volumeThreshold = 1.0;
-        
-        let sh = 0, sl = Infinity;
-        
-        for (let i=left; i<data.length-right; i++) {
-            let isHigh=true, isLow=true;
-            for (let j=i-left; j<=i+right; j++) {
-                if (j===i) continue;
-                if (data[j].h >= data[i].h) isHigh=false;
-                if (data[j].l <= data[i].l) isLow=false;
-            }
-            
-            const volumeConfirmed = data[i].v > avgVolume * volumeThreshold;
-            
-            if (isHigh && volumeConfirmed && data[i].h > sh) sh = data[i].h;
-            if (isLow && volumeConfirmed && data[i].l < sl) sl = data[i].l;
-        }
-        
-        if (sh===0) sh = Math.max(...data.slice(-50).map(c=>c.h));
-        if (sl===Infinity) sl = Math.min(...data.slice(-50).map(c=>c.l));
-        if (sh <= sl) sh = sl + (currentPair==="XAUUSDT"?5:100);
-        
-        return { swingHigh: sh, swingLow: sl };
-    }
-    
-    function findSwingPointsOptimized(data, timeframe = currentTF) {
-        const now = Date.now();
-        if ((now - lastSwingCalculationTime) < 2000 && lastSwingPoints.swingHigh > 0) {
-            return lastSwingPoints;
-        }
-        const result = findSwingPoints(data, timeframe);
-        lastSwingPoints = result;
-        lastSwingCalculationTime = now;
-        return result;
-    }
-    
-    function getMarketStructureBias(data) {
-        if (!data || data.length < 20) return "NEUTRAL";
-        let higherHigh = false, higherLow = false;
-        const recentHigh = Math.max(...data.slice(-10).map(c=>c.h));
-        const recentLow = Math.min(...data.slice(-10).map(c=>c.l));
-        const previousHigh = Math.max(...data.slice(-20, -10).map(c=>c.h));
-        const previousLow = Math.min(...data.slice(-20, -10).map(c=>c.l));
-        if (recentHigh > previousHigh && recentLow > previousLow) return "BULLISH";
-        if (recentHigh < previousHigh && recentLow < previousLow) return "BEARISH";
-        return "NEUTRAL";
-    }
+    function getMarketStructureBias(data) { if (!data || data.length < 20) return "NEUTRAL"; const recentHigh = Math.max(...data.slice(-10).map(c=>c.h)); const recentLow = Math.min(...data.slice(-10).map(c=>c.l)); const previousHigh = Math.max(...data.slice(-20, -10).map(c=>c.h)); const previousLow = Math.min(...data.slice(-20, -10).map(c=>c.l)); if (recentHigh > previousHigh && recentLow > previousLow) return "BULLISH"; if (recentHigh < previousHigh && recentLow < previousLow) return "BEARISH"; return "NEUTRAL"; }
     
     function detectOrderBlocksFromData(data) {
         if (!data || data.length < 20) return [];
@@ -1459,14 +1230,11 @@
         const volumeMultiplier = config.volumeMultiplier;
         const bodyRatioThreshold = config.bodyRatioThreshold;
         const blocks = [];
-        
         for (let i=5; i<data.length-2; i++) {
-            const candle = data[i];
-            const prev = data[i-1];
+            const candle = data[i], prev = data[i-1];
             const bodyRange = Math.abs(candle.c - candle.o);
             const totalRange = candle.h - candle.l;
             const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= bodyRatioThreshold && candle.v >= avgVolume * volumeMultiplier;
-            
             if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
                 const obLow = Math.min(prev.l, data[i-2]?.l || prev.l);
                 const obHigh = prev.h;
@@ -1483,29 +1251,14 @@
         return blocks;
     }
     
-    function getH1OBBias(data) {
-        const blocks = detectOrderBlocksFromData(data);
-        if (!blocks.length) return "NEUTRAL";
-        const best = blocks.sort((a,b) => b.strength - a.strength)[0];
-        return best.type === "BULLISH" ? "BULLISH" : "BEARISH";
-    }
-    
-    function checkFibonacciZone(data, swingHigh, swingLow, currentPrice, bias) {
-        const range = swingHigh - swingLow;
-        if (range <= 0) return false;
-        const f618 = bias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
-        const f786 = bias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
-        return (currentPrice >= Math.min(f618, f786) && currentPrice <= Math.max(f618, f786));
-    }
-    
-    function checkPriceAction(data) {
-        if (!data || data.length < 5) return false;
-        const last = data[data.length-1];
-        const prev = data[data.length-2];
-        return (last.c > last.o) || (last.c > prev.h && last.o < prev.l);
-    }
+    function getH1OBBias(data) { const blocks = detectOrderBlocksFromData(data); if (!blocks.length) return "NEUTRAL"; const best = blocks.sort((a,b) => b.strength - a.strength)[0]; return best.type === "BULLISH" ? "BULLISH" : "BEARISH"; }
+    function checkFibonacciZone(data, swingHigh, swingLow, currentPrice, bias) { const range = swingHigh - swingLow; if (range <= 0) return false; const f618 = bias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618; const f786 = bias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786; return (currentPrice >= Math.min(f618, f786) && currentPrice <= Math.max(f618, f786)); }
+    function checkPriceAction(data) { if (!data || data.length < 5) return false; const last = data[data.length-1]; const prev = data[data.length-2]; return (last.c > last.o) || (last.c > prev.h && last.o < prev.l); }
     
     // ==================== MTF BIAS ====================
+    let mtfBiasCache = { h4: "NEUTRAL", h1: "NEUTRAL", m15: "NEUTRAL", m5: "NEUTRAL", timestamp: 0, pair: null };
+    let factorStatus = { f1: false, f2: false, f3: false, ob: false };
+    
     async function updateMTFBias() {
         const now = Date.now();
         if (mtfBiasCache.timestamp && (now - mtfBiasCache.timestamp) < 120000 && mtfBiasCache.pair === currentPair) {
@@ -1515,14 +1268,7 @@
             factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
             return;
         }
-        
-        const tfs = [
-            { id: '4h', label: 'h4', apiInterval: '4h' },
-            { id: '1h', label: 'h1', apiInterval: '1h' },
-            { id: '15m', label: 'm15', apiInterval: '15m' },
-            { id: '5m', label: 'm5', apiInterval: '5m' }
-        ];
-        
+        const tfs = [{ id: '4h', label: 'h4', apiInterval: '4h' }, { id: '1h', label: 'h1', apiInterval: '1h' }, { id: '15m', label: 'm15', apiInterval: '15m' }, { id: '5m', label: 'm5', apiInterval: '5m' }];
         for (const tf of tfs) {
             try {
                 const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf.apiInterval}&limit=150`);
@@ -1532,7 +1278,6 @@
                     const price = formattedData[formattedData.length-1].c;
                     const ema21 = calculateEMA(formattedData, 21);
                     let bias = "NEUTRAL";
-                    
                     if (tf.id === '4h') {
                         const ema200 = calculateEMA(formattedData, 200);
                         const structBias = getMarketStructureBias(formattedData);
@@ -1543,8 +1288,7 @@
                         if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
                         else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
                         mtfBiasCache.h4 = bias;
-                    }
-                    else if (tf.id === '1h') {
+                    } else if (tf.id === '1h') {
                         const ema50 = calculateEMA(formattedData, 50);
                         const obBias = getH1OBBias(formattedData);
                         let bullishScore = 0, bearishScore = 0;
@@ -1554,27 +1298,21 @@
                         if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
                         else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
                         mtfBiasCache.h1 = bias;
-                    }
-                    else if (tf.id === '15m') {
-                        const { swingHigh, swingLow } = findSwingPoints(formattedData, tf.apiInterval);
+                    } else if (tf.id === '15m') {
+                        const { swingHigh, swingLow } = findSwingPointsTV(formattedData, tf.apiInterval);
                         const tempBias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
                         const inFibZone = checkFibonacciZone(formattedData, swingHigh, swingLow, price, tempBias);
                         let bullishScore = 0, bearishScore = 0;
                         if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
-                        if (inFibZone) {
-                            if (tempBias === "BULLISH") bullishScore += 2;
-                            else if (tempBias === "BEARISH") bearishScore += 2;
-                        }
+                        if (inFibZone) { if (tempBias === "BULLISH") bullishScore += 2; else if (tempBias === "BEARISH") bearishScore += 2; }
                         if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
                         else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
                         mtfBiasCache.m15 = bias;
-                    }
-                    else if (tf.id === '5m') {
+                    } else if (tf.id === '5m') {
                         const paBullish = checkPriceAction(formattedData);
                         let bullishScore = 0, bearishScore = 0;
                         if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
-                        if (paBullish) bullishScore += 2;
-                        else if (!paBullish && price < ema21) bearishScore += 2;
+                        if (paBullish) bullishScore += 2; else if (!paBullish && price < ema21) bearishScore += 2;
                         if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
                         else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
                         mtfBiasCache.m5 = bias;
@@ -1582,10 +1320,8 @@
                 }
             } catch(e) { console.warn(`MTF ${tf.id} error:`, e); }
         }
-        
         mtfBiasCache.timestamp = now;
         mtfBiasCache.pair = currentPair;
-        
         updateTimeframeBiasUI();
         const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
         const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
@@ -1593,12 +1329,7 @@
     }
     
     function updateTimeframeBiasUI() {
-        const tfMap = {
-            '4h': mtfBiasCache.h4,
-            '1h': mtfBiasCache.h1,
-            '15m': mtfBiasCache.m15,
-            '5m': mtfBiasCache.m5
-        };
+        const tfMap = { '4h': mtfBiasCache.h4, '1h': mtfBiasCache.h1, '15m': mtfBiasCache.m15, '5m': mtfBiasCache.m5 };
         document.querySelectorAll('.tf-btn').forEach(btn => {
             const tf = btn.getAttribute('data-tf');
             const bias = tfMap[tf] || 'NEUTRAL';
@@ -1613,12 +1344,41 @@
         });
     }
     
-    // ==================== LEVEL SMC ====================
+    // ==================== FVG DETECTION ====================
+    function detectFVG(data) {
+        if (!data || data.length < 3) return [];
+        const fvgResult = [];
+        const currentPrice = data[data.length-1].c;
+        for (let i = 1; i < data.length - 1; i++) {
+            const prev = data[i-1], curr = data[i], next = data[i+1];
+            if (prev.low > next.high && curr.c > curr.o) {
+                const isMitigated = currentPrice <= prev.low && currentPrice >= next.high;
+                if (!isMitigated) fvgResult.push({ type: 'BULLISH', high: prev.low, low: next.high, strength: Math.min(10, Math.floor((prev.low - next.high) / (prev.low * 0.001)) + 2), timestamp: curr.t, mitigated: false });
+            }
+            if (prev.high < next.low && curr.c < curr.o) {
+                const isMitigated = currentPrice <= next.low && currentPrice >= prev.high;
+                if (!isMitigated) fvgResult.push({ type: 'BEARISH', high: next.low, low: prev.high, strength: Math.min(10, Math.floor((next.low - prev.high) / (prev.high * 0.001)) + 2), timestamp: curr.t, mitigated: false });
+            }
+        }
+        return fvgResult;
+    }
+    
+    function evaluateOBWithFVG(price, orderBlocksResult, fvgData) {
+        if (!orderBlocksResult.hasOB || !fvgData || fvgData.length === 0) return orderBlocksResult;
+        const hasFVG = fvgData.some(fvg => {
+            if (orderBlocksResult.block.type === 'BULLISH' && fvg.type === 'BULLISH') return price >= fvg.low && price <= fvg.high;
+            if (orderBlocksResult.block.type === 'BEARISH' && fvg.type === 'BEARISH') return price >= fvg.low && price <= fvg.high;
+            return false;
+        });
+        if (hasFVG) { orderBlocksResult.score = Math.min(10, orderBlocksResult.score + 2); orderBlocksResult.strength = orderBlocksResult.score >= 9 ? 'STRONG+FVG' : orderBlocksResult.strength; }
+        return orderBlocksResult;
+    }
+    
+    // ==================== LEVEL SMC (ATR-BASED) ====================
     function updateLevels(active, action) {
         const candleArray = getCandleArray();
         if (candleArray.length === 0) return;
-        
-        const { swingHigh, swingLow } = findSwingPointsOptimized(candleArray, currentTF);
+        const { swingHigh, swingLow } = findSwingPointsTV(candleArray, currentTF);
         engine.swingHigh = swingHigh;
         engine.swingLow = swingLow;
         const range = swingHigh - swingLow;
@@ -1639,16 +1399,15 @@
         engine.atr = atr;
         const entryFactor = getConfig().entryZoneATRFactor;
         
+        engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
+        engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
+        
         if (levelBias === "BULLISH") {
-            engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
-            engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
-            engine.tp = swingHigh + range * 0.27;
-            engine.sl = engine.entryZoneLow - atr * getConfig().slATRFactor;
+            engine.tp = price + (atr * TP_ATR_MULTIPLIER);
+            engine.sl = price - (atr * SL_ATR_MULTIPLIER);
         } else {
-            engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
-            engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
-            engine.tp = swingLow - range * 0.27;
-            engine.sl = engine.entryZoneHigh + atr * getConfig().slATRFactor;
+            engine.tp = price - (atr * TP_ATR_MULTIPLIER);
+            engine.sl = price + (atr * SL_ATR_MULTIPLIER);
         }
         
         const prec = getPrecision();
@@ -1666,24 +1425,13 @@
     // ==================== ORDER BLOCK UI ====================
     function getDisplayOB(active, action, currentPrice) {
         if (!orderBlocks.length) return null;
-        
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             const targetDirection = (action === "BUY") ? "BULLISH" : "BEARISH";
-            
-            const validOB = orderBlocks.find(ob => {
-                if (ob.type !== targetDirection) return false;
-                if (ob.mitigated) return false;
-                if (ob.type === 'BULLISH' && currentPrice < ob.low) return false;
-                if (ob.type === 'BEARISH' && currentPrice > ob.high) return false;
-                return true;
-            });
-            
+            const validOB = orderBlocks.find(ob => ob.type === targetDirection && !ob.mitigated && ((ob.type === 'BULLISH' && currentPrice >= ob.low) || (ob.type === 'BEARISH' && currentPrice <= ob.high)));
             if (validOB) return validOB;
-            
             const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
             return bestOB || null;
         }
-        
         const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
         return bestOB || null;
     }
@@ -1692,7 +1440,6 @@
         const p = safeValue(price, 0);
         const prec = getPrecision();
         const displayOB = getDisplayOB(active, action, p);
-        
         if (displayOB) {
             const b = displayOB;
             activeOB = b;
@@ -1702,14 +1449,12 @@
             UI.obHigh.textContent = b.high.toFixed(prec);
             UI.obLow.textContent = b.low.toFixed(prec);
             UI.obMid.textContent = b.price.toFixed(prec);
-            
             let fill = 0;
             if (p >= b.high) fill = 100;
             else if (p <= b.low) fill = 0;
             else fill = ((p - b.low) / (b.high - b.low)) * 100;
             UI.obRangeFill.style.width = Math.min(100, Math.max(0, fill)) + '%';
             UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
-            
             let score = b.strength;
             const inZone = p >= b.low && p <= b.high;
             if ((engine.bias === "BULLISH" && b.type === 'BULLISH') || (engine.bias === "BEARISH" && b.type === 'BEARISH')) score += 3;
@@ -1717,12 +1462,7 @@
             score = Math.min(10, score);
             const strengthLabel = score >= 7 ? 'STRONG' : (score >= 4 ? 'MEDIUM' : 'WEAK');
             const mitigation = inZone ? ((p - b.low) / (b.high - b.low)) * 100 : (p > b.high ? 100 : 0);
-            
-            if (mitigation >= 99.5 && !b.mitigated) {
-                b.mitigated = true;
-                b.mitigatedAt = Date.now();
-            }
-            
+            if (mitigation >= 99.5 && !b.mitigated) { b.mitigated = true; b.mitigatedAt = Date.now(); }
             UI.obStrength.textContent = `${score.toFixed(1)} (${strengthLabel})`;
             UI.obMitigation.textContent = inZone ? `${Math.min(100, Math.max(0, mitigation)).toFixed(0)}%` : (p > b.high ? '100%' : '0%');
             UI.obDistance.textContent = Math.abs(p - b.price).toFixed(prec);
@@ -1737,6 +1477,42 @@
     }
     
     // ==================== DECISION ENGINE ====================
+    let engine = { swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL", adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0, entryZoneLow: 0, entryZoneHigh: 0, tp: 0, sl: 0 };
+    let orderBlocks = [], activeOB = null;
+    let obEvaluation = { hasOB: false, score: 0, strength: 'NONE', isActive: false };
+    let fvgList = [];
+    let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
+    let currentTF = localStorage.getItem('lastTF') || "15m";
+    let wsConnection = null;
+    let candleBuffer = new CircularBuffer(150);
+    let isReloading = false, reloadQueue = false, currentRequestId = null;
+    let lastPriceUpdateTime = 0, lastWSMessageTime = 0;
+    let isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
+    let reconnectDelay = 1000, reconnectTimer = null;
+    let lastPrice = 0, prevPrice = 0;
+    let lastUIUpdateTime = 0, pendingUIUpdate = false;
+    let cachedCandleArray = null, lastCacheTime = 0;
+    let lastLoggedSignal = "";
+    
+    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
+    function getConfig() { return PAIR_CONFIG[currentPair]; }
+    function logDebug(message, data = null) { if (data) console.log(`[DEBUG] ${message}`, data); else console.log(`[DEBUG] ${message}`); }
+    
+    function getCandleArray() { const now = Date.now(); if (!cachedCandleArray || (now - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = now; } return cachedCandleArray; }
+    function invalidateCandleCache() { cachedCandleArray = null; }
+    
+    function throttledUIUpdate(price, force = false) {
+        const now = Date.now();
+        if (force || now - lastUIUpdateTime >= 100) {
+            lastUIUpdateTime = now;
+            updateUI(price);
+            pendingUIUpdate = false;
+        } else if (!pendingUIUpdate) {
+            pendingUIUpdate = true;
+            setTimeout(() => { if (pendingUIUpdate) { updateUI(lastPrice); pendingUIUpdate = false; } }, 100);
+        }
+    }
+    
     function detectOrderBlocks() {
         const candleArray = getCandleArray();
         if (candleArray.length < 20) return [];
@@ -1745,14 +1521,11 @@
         const volumeMultiplier = config.volumeMultiplier;
         const bodyRatioThreshold = config.bodyRatioThreshold;
         const blocks = [];
-        
         for (let i=5; i<candleArray.length-2; i++) {
-            const candle = candleArray[i];
-            const prev = candleArray[i-1];
+            const candle = candleArray[i], prev = candleArray[i-1];
             const bodyRange = Math.abs(candle.c - candle.o);
             const totalRange = candle.h - candle.l;
             const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= bodyRatioThreshold && candle.v >= avgVolume * volumeMultiplier;
-            
             if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
                 const obLow = Math.min(prev.l, candleArray[i-2]?.l || prev.l);
                 const obHigh = prev.h;
@@ -1772,12 +1545,7 @@
     function evaluateOB(price) {
         const p = safeValue(price,0);
         const fiveMinutesAgo = Date.now() - 300000;
-        const relevant = orderBlocks.filter(b => {
-            if (b.mitigated) return false;
-            if (b.mitigatedAt && b.mitigatedAt < fiveMinutesAgo) return false;
-            return true;
-        });
-        
+        const relevant = orderBlocks.filter(b => !b.mitigated && (!b.mitigatedAt || b.mitigatedAt >= fiveMinutesAgo));
         if (!relevant.length) return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
         let best=null, maxScore=0, mitigation=0, isActive=false;
         for (const b of relevant) {
@@ -1838,17 +1606,10 @@
         if (candleArray.length<15) return 50;
         const closes = candleArray.map(c=>c.c);
         let gains=[], losses=[];
-        for (let i=1; i<closes.length; i++) {
-            const diff = closes[i]-closes[i-1];
-            gains.push(diff>0?diff:0);
-            losses.push(diff<0?-diff:0);
-        }
+        for (let i=1; i<closes.length; i++) { const diff = closes[i]-closes[i-1]; gains.push(diff>0?diff:0); losses.push(diff<0?-diff:0); }
         let avgG = gains.slice(0,14).reduce((a,b)=>a+b,0)/14;
         let avgL = losses.slice(0,14).reduce((a,b)=>a+b,0)/14;
-        for (let i=14; i<gains.length; i++) {
-            avgG = (avgG*13+gains[i])/14;
-            avgL = (avgL*13+losses[i])/14;
-        }
+        for (let i=14; i<gains.length; i++) { avgG = (avgG*13+gains[i])/14; avgL = (avgL*13+losses[i])/14; }
         return avgL===0?100:100-(100/(1+avgG/avgL));
     }
     
@@ -1859,29 +1620,26 @@
             UI.signalBar.style.background = 'rgba(220,38,38,0.1)';
             return;
         }
-        
         const candleArray = getCandleArray();
         if (candleArray.length === 0) return;
-        
         const p = lastPrice;
         const config = getConfig();
         const prec = getPrecision();
         engine.ema21 = calculateEMA(candleArray, 21);
         engine.adx = calculateADX();
         
+        const isRanging = engine.adx < 20;
+        
         const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
         const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
         factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
         
-        const { swingHigh, swingLow } = findSwingPointsOptimized(candleArray, currentTF);
+        const { swingHigh, swingLow } = findSwingPointsTV(candleArray, currentTF);
         const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
         engine.bias = tempBias;
-        
         fvgList = detectFVG(candleArray);
-        
         obEvaluation = evaluateOB(p);
         obEvaluation = evaluateOBWithFVG(p, obEvaluation, fvgList);
-        
         factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= config.minOBStrength;
         const rsi = computeRSI();
         
@@ -1903,21 +1661,17 @@
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
-        let tempLevelBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
-        let tempF618 = tempLevelBias === "BULLISH" ? swingLow + (swingHigh-swingLow)*0.618 : swingHigh - (swingHigh-swingLow)*0.618;
-        let tempF786 = tempLevelBias === "BULLISH" ? swingLow + (swingHigh-swingLow)*0.786 : swingHigh - (swingHigh-swingLow)*0.786;
-        let tempATR = calculateATR(candleArray, config.atrPeriod);
-        let tempEntryLow = Math.min(tempF618, tempF786) - tempATR * config.entryZoneATRFactor;
-        let tempEntryHigh = Math.max(tempF618, tempF786) + tempATR * config.entryZoneATRFactor;
+        // Calculate temp entry zone
+        const f618 = tempBias === "BULLISH" ? swingLow + (swingHigh-swingLow)*0.618 : swingHigh - (swingHigh-swingLow)*0.618;
+        const f786 = tempBias === "BULLISH" ? swingLow + (swingHigh-swingLow)*0.786 : swingHigh - (swingHigh-swingLow)*0.786;
+        const tempATR = calculateATR(candleArray, config.atrPeriod);
+        const tempEntryLow = Math.min(f618, f786) - tempATR * config.entryZoneATRFactor;
+        const tempEntryHigh = Math.max(f618, f786) + tempATR * config.entryZoneATRFactor;
         const inZoneTemp = p >= tempEntryLow && p <= tempEntryHigh;
-        
         const adxValid = engine.adx >= config.adxThreshold;
         const f1 = tempBias !== "NEUTRAL";
         const f3 = adxValid && (inZoneTemp || obEvaluation.isActive);
-        
-        const obAligned = obEvaluation.hasOB && activeOB && 
-            ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') || 
-             (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH'));
+        const obAligned = obEvaluation.hasOB && activeOB && ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') || (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH'));
         
         let score = 0;
         if (f1) score += 3;
@@ -1935,10 +1689,39 @@
         let decisionText = '', color = '', bgColor = '';
         const isInValidZone = inZoneTemp || obEvaluation.isActive;
         
-        if (!adxValid) { decisionText = `📉 WEAK TREND (${Math.round(engine.adx)}<${config.adxThreshold})`; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
-        else if (!isInValidZone) { decisionText = 'OUT OF ZONE'; color='var(--warning)'; bgColor='rgba(245,158,11,0.1)'; active=null; }
+        if (isRanging) {
+            decisionText = `🔄 SIDEWAYS`;
+            color = 'var(--accent-gold)';
+            bgColor = 'rgba(245,158,11,0.1)';
+            active = null;
+        }
+        else if (!adxValid) { 
+            decisionText = `📉 WEAK TREND`; 
+            color = 'var(--warning)'; 
+            bgColor = 'rgba(245,158,11,0.1)'; 
+            active = null; 
+        }
+        else if (!isInValidZone) { 
+            decisionText = `📍 OUT OF ZONE`; 
+            color = 'var(--warning)'; 
+            bgColor = 'rgba(245,158,11,0.1)'; 
+            active = null; 
+        }
         else {
-            if (adxValid && f1 && factorStatus.f2 && f3 && score >= 8 && engine.adx >= 25) {
+            const activeCount = getActiveSignalCount(action);
+            if (activeCount >= MAX_POSITIONS) {
+                decisionText = `⏸️ MAX POSITION (${MAX_POSITIONS})`;
+                color = 'var(--accent-gold)';
+                bgColor = 'var(--bg-secondary)';
+                active = null;
+            }
+            else if (activeCount === 1) {
+                decisionText = `🔄 PULLBACK HOLD`;
+                color = 'var(--accent-gold)';
+                bgColor = 'var(--bg-secondary)';
+                active = null;
+            }
+            else if (adxValid && f1 && factorStatus.f2 && f3 && score >= 8 && engine.adx >= 25) {
                 active = 'conservative';
                 decisionText = `CONSERVATIVE ${action}`;
                 color = 'var(--accent-green)';
@@ -1956,8 +1739,18 @@
                 color = 'var(--accent-orange)';
                 bgColor = 'rgba(245,158,11,0.08)';
             }
-            else if (score >= 4) { decisionText = '⏳ AWAITING CONFIRM'; color='var(--accent-gold)'; bgColor='var(--bg-secondary)'; active=null; }
-            else { decisionText = 'NO SETUP'; color='var(--text-tertiary)'; bgColor='var(--bg-secondary)'; active=null; }
+            else if (score >= 4) { 
+                decisionText = `⏳ AWAITING CONFIRM`; 
+                color = 'var(--accent-gold)'; 
+                bgColor = 'var(--bg-secondary)'; 
+                active = null; 
+            }
+            else { 
+                decisionText = `NO SETUP`; 
+                color = 'var(--text-tertiary)'; 
+                bgColor = 'var(--bg-secondary)'; 
+                active = null; 
+            }
         }
         
         document.querySelectorAll('.mode-btn-large').forEach(btn => btn.classList.remove('active'));
@@ -2045,9 +1838,7 @@
             const data = await resp.json();
             if (Array.isArray(data)) {
                 candleBuffer.clear();
-                data.forEach(d => {
-                    candleBuffer.push({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) });
-                });
+                data.forEach(d => { candleBuffer.push({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }); });
                 invalidateCandleCache();
                 if (candleBuffer.length > 0) {
                     const latest = candleBuffer.getLatest();
@@ -2082,13 +1873,7 @@
         const wsUrl = `wss://fstream.binance.com/ws/${streamName}`;
         try {
             wsConnection = new WebSocket(wsUrl);
-            wsConnection.onopen = () => {
-                reconnectDelay=1000;
-                lastWSMessageTime=lastPriceUpdateTime=Date.now();
-                isUsingFallback=false;
-                isDataStale=false;
-                updateWSStatus('live', `LIVE ${currentTF}`);
-            };
+            wsConnection.onopen = () => { reconnectDelay=1000; lastWSMessageTime=lastPriceUpdateTime=Date.now(); isUsingFallback=false; isDataStale=false; updateWSStatus('live', `LIVE ${currentTF}`); };
             wsConnection.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
@@ -2100,20 +1885,15 @@
                         const open = parseFloat(k.o);
                         const isClosed = k.x;
                         const candleTime = k.t;
-                        
                         if (price > 0) {
                             lastWSMessageTime = lastPriceUpdateTime = Date.now();
                             if (isUsingFallback) updateWSStatus('live', `LIVE ${currentTF}`);
                             if (isDataStale) updateWSStatus('live', `LIVE ${currentTF}`);
-                            
                             const candleArray = getCandleArray();
                             if (candleArray.length > 0) {
                                 const lastCandle = candleArray[candleArray.length - 1];
-                                
                                 if (isClosed && lastCandle.t !== candleTime) {
-                                    candleBuffer.push({
-                                        t: candleTime, o: open, h: high, l: low, c: price, v: parseFloat(k.v)
-                                    });
+                                    candleBuffer.push({ t: candleTime, o: open, h: high, l: low, c: price, v: parseFloat(k.v) });
                                     invalidateCandleCache();
                                     orderBlocks = detectOrderBlocks();
                                     fvgList = detectFVG(getCandleArray());
@@ -2130,68 +1910,35 @@
                     }
                 } catch(err) {}
             };
-            wsConnection.onclose = () => {
-                if (!isReloading && !isManualDisconnect) {
-                    updateWSStatus('reconnect','RECONNECT');
-                    if (reconnectTimer) clearTimeout(reconnectTimer);
-                    reconnectTimer = setTimeout(() => {
-                        if (!isReloading && !isManualDisconnect) {
-                            reconnectDelay = Math.min(reconnectDelay*1.5, 30000);
-                            initWebSocket();
-                        }
-                    }, reconnectDelay);
-                }
-            };
+            wsConnection.onclose = () => { if (!isReloading && !isManualDisconnect) { updateWSStatus('reconnect','RECONNECT'); if (reconnectTimer) clearTimeout(reconnectTimer); reconnectTimer = setTimeout(() => { if (!isReloading && !isManualDisconnect) { reconnectDelay = Math.min(reconnectDelay*1.5, 30000); initWebSocket(); } }, reconnectDelay); } };
             wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect','ERROR'); };
         } catch(e) { updateWSStatus('fallback','FALLBACK'); isUsingFallback=true; }
     }
     
-    let heartbeatInterval, stuckCheckInterval, restFallbackInterval;
-    let mtfUpdateInterval = null;
+    let heartbeatInterval, stuckCheckInterval, restFallbackInterval, mtfUpdateInterval = null;
     
     async function fullReload() {
-        if (isReloading) {
-            reloadQueue = true;
-            return;
-        }
-        
+        if (isReloading) { reloadQueue = true; return; }
         isReloading = true;
         reloadQueue = false;
-        
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         if (stuckCheckInterval) clearInterval(stuckCheckInterval);
         if (restFallbackInterval) clearInterval(restFallbackInterval);
         if (mtfUpdateInterval) clearInterval(mtfUpdateInterval);
-        
         cleanupWebSocket();
-        
         const requestId = Date.now();
         currentRequestId = requestId;
-        
-        document.querySelectorAll('[data-pair]').forEach(btn => {
-            if (btn.getAttribute('data-pair') === currentPair) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-        document.querySelectorAll('.tf-btn').forEach(btn => {
-            const tf = btn.getAttribute('data-tf');
-            if (tf === currentTF) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-        
+        document.querySelectorAll('[data-pair]').forEach(btn => { if (btn.getAttribute('data-pair') === currentPair) btn.classList.add('active'); else btn.classList.remove('active'); });
+        document.querySelectorAll('.tf-btn').forEach(btn => { const tf = btn.getAttribute('data-tf'); if (tf === currentTF) btn.classList.add('active'); else btn.classList.remove('active'); });
         updateWSStatus('connecting','LOADING');
         engine = { swingHigh:0, swingLow:0, bias:"NEUTRAL", adxBias:"NEUTRAL", adx:0, ema21:0, plusDI:0, minusDI:0, atr:0, entryZoneLow:0, entryZoneHigh:0, tp:0, sl:0 };
         factorStatus = { f1:false, f2:false, f3:false, ob:false };
-        orderBlocks=[]; activeOB=null;
-        fvgList = [];
-        
+        orderBlocks=[]; activeOB=null; fvgList = [];
         await fetchKlines();
         if (currentRequestId !== requestId) return;
-        
         await updateMTFBias();
         if (currentRequestId !== requestId) return;
-        
         initWebSocket();
-        
         heartbeatInterval = setInterval(() => { if (wsConnection?.readyState===WebSocket.OPEN) try { wsConnection.send(JSON.stringify({method:"ping"})); } catch(e) {} }, 30000);
         stuckCheckInterval = setInterval(() => {
             const now=Date.now();
@@ -2202,17 +1949,11 @@
             if (wsConnection?.readyState===WebSocket.OPEN && timeSinceLastMsg>10000 && !isUsingFallback && !isReloading) { updateWSStatus('fallback'); isUsingFallback=true; fetchPriceREST(); }
             if (wsConnection?.readyState!==WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect');
         }, 5000);
-        
         restFallbackInterval = setInterval(fetchPriceREST, 5000);
-        
         const mtfInterval = currentTF === '5m' ? 30000 : 120000;
         mtfUpdateInterval = setInterval(() => { updateMTFBias(); }, mtfInterval);
-        
         isReloading = false;
-        
-        if (reloadQueue) {
-            setTimeout(() => fullReload(), 100);
-        }
+        if (reloadQueue) setTimeout(() => fullReload(), 100);
     }
     
     setInterval(() => { monitorActiveOrders(); }, 5000);
@@ -2228,7 +1969,6 @@
     setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
     
     setTimeout(() => { if (notificationPermission) requestNotificationPermission(); }, 1000);
-    
     loadPerformanceLogs();
     fullReload();
 })();
