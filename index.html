@@ -139,7 +139,6 @@
         
         .divider-silver { height: 1px; background: var(--silver-line); margin: 4px 0; flex-shrink: 0; }
         
-        /* Console F12 */
         .console-f12 {
             font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
             font-size: 0.5rem;
@@ -225,7 +224,6 @@
         <div class="signal-arrow" id="direction-arrow">—</div>
     </div>
 
-    <!-- Live Price: NO SMARTCOPY -->
     <div class="price-section">
         <div class="price-main" id="live-price">0.00</div>
         <div class="price-change" id="price-change"></div>
@@ -253,7 +251,6 @@
         <div class="rsi-labels"><span>OVERSOLD (30)</span><span>NEUTRAL</span><span>OVERBOUGHT (70)</span></div>
     </div>
 
-    <!-- Grid Level: SmartCopy tanpa highlight -->
     <div class="levels-grid-vertical" id="levels-grid">
         <div class="level-row" onclick="copyText('swing-high', 'swing-low', 'Swing')">
             <span class="level-label-lg">SWING H/L</span>
@@ -278,10 +275,7 @@
     </div>
     
     <div class="divider-silver"></div>
-    
-    <!-- Console F12 dengan FIFO 24 jam -->
     <div class="console-f12" id="console-f12"></div>
-    
     <div class="divider-silver"></div>
     
     <footer class="footer-bar">
@@ -303,7 +297,7 @@
     const TP_RANGE_PCT = 0.27;
     const SL_TP_RATIO = 0.5;
     const CONSOLE_MAX_ENTRIES = 50;
-    const CONSOLE_TTL_MS = 24 * 60 * 60 * 1000; // 24 jam
+    const CONSOLE_TTL_MS = 24 * 60 * 60 * 1000;
     
     // ==================== SWING POINTS ====================
     const TRADINGVIEW_SWINGS = {
@@ -323,152 +317,88 @@
     
     const WEIGHTS = { adx: 25, ema: 20, rsi: 15, mtf: 20, zone: 20 };
     
-    // ==================== CONSOLE MANAGER (FIFO 24 JAM) ====================
+    // ==================== CONSOLE MANAGER ====================
     class ConsoleManager {
         constructor() {
             this.logs = this.loadLogs();
             this.cleanExpired();
         }
-        
         loadLogs() {
-            try {
-                const stored = localStorage.getItem('ura_console_logs');
-                return stored ? JSON.parse(stored) : [];
-            } catch(e) { return []; }
+            try { const stored = localStorage.getItem('ura_console_logs'); return stored ? JSON.parse(stored) : []; }
+            catch(e) { return []; }
         }
-        
-        saveLogs() {
-            try {
-                localStorage.setItem('ura_console_logs', JSON.stringify(this.logs));
-            } catch(e) {}
-        }
-        
+        saveLogs() { try { localStorage.setItem('ura_console_logs', JSON.stringify(this.logs)); } catch(e) {} }
         cleanExpired() {
             const now = Date.now();
             this.logs = this.logs.filter(log => (now - log.timestamp) < CONSOLE_TTL_MS);
-            if (this.logs.length > CONSOLE_MAX_ENTRIES) {
-                this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES);
-            }
+            if (this.logs.length > CONSOLE_MAX_ENTRIES) this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES);
             this.saveLogs();
         }
-        
         addLog(pair, tf, bias, price, range, tp, sl) {
             const prec = pair === "XAUUSDT" ? 2 : 1;
             const tpDist = Math.abs(tp - price);
             const slDist = Math.abs(sl - price);
             const rr = (tpDist / slDist).toFixed(2);
-            
-            const log = {
-                timestamp: Date.now(),
-                pair, tf, bias, price, range,
-                tp, sl, tpDist, slDist, rr,
-                prec
-            };
-            
+            const log = { timestamp: Date.now(), pair, tf, bias, price, range, tp, sl, tpDist, slDist, rr, prec };
             this.logs.push(log);
             this.cleanExpired();
             this.saveLogs();
             this.render();
             return log;
         }
-        
         addEventLog(event) {
-            const log = {
-                timestamp: Date.now(),
-                type: 'event',
-                message: event
-            };
+            const log = { timestamp: Date.now(), type: 'event', message: event };
             this.logs.push(log);
             this.cleanExpired();
             this.saveLogs();
             this.render();
         }
-        
         formatLogLine(log) {
-            if (log.type === 'event') {
-                return `<span class="console-output" style="color:var(--accent-gold);">> ${log.message}</span>`;
-            }
+            if (log.type === 'event') return `<span class="console-output" style="color:var(--accent-gold);">> ${log.message}</span>`;
             const prec = log.prec || 2;
             const biasClass = log.bias === 'BEARISH' ? 'bearish' : '';
             return `<span class="console-output ${biasClass}">> ${log.pair} ${log.tf} | ${log.bias} | Price: ${log.price.toFixed(prec)} | Range: ${log.range.toFixed(prec)} | TP: ${log.tp.toFixed(prec)} (+${log.tpDist.toFixed(prec)}) | SL: ${log.sl.toFixed(prec)} (-${log.slDist.toFixed(prec)}) | R:R 1:${log.rr}</span>`;
         }
-        
         render() {
             const container = document.getElementById('console-f12');
             if (!container) return;
-            
-            // Tampilkan 5 log terakhir (FIFO: yang paling baru di bawah)
             const recentLogs = this.logs.slice(-5);
-            
             let html = '';
             recentLogs.forEach(log => {
-                if (log.type === 'event') {
-                    html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --event</span> ${this.formatLogLine(log)}</div>`;
-                } else {
-                    html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --status</span> ${this.formatLogLine(log)}</div>`;
-                }
+                if (log.type === 'event') html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --event</span> ${this.formatLogLine(log)}</div>`;
+                else html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --status</span> ${this.formatLogLine(log)}</div>`;
             });
-            
-            // Tambahkan prompt kosong di akhir
             html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd" style="opacity:0.5;">_</span></div>`;
-            
             container.innerHTML = html;
-        }
-        
-        getLastLog() {
-            return this.logs.length > 0 ? this.logs[this.logs.length - 1] : null;
         }
     }
     
     const consoleManager = new ConsoleManager();
     
-    // ==================== GLOBAL COPY FUNCTION (NO ALERT/POPUP) ====================
     window.copyText = function(...args) {
         let text = '';
-        
         if (args.length === 1 && typeof args[0] === 'string') {
-            // Single element ID
             const el = document.getElementById(args[0]);
             if (el) text = el.textContent.trim();
         } else if (args.length >= 2) {
-            // Two element IDs + label
             const el1 = document.getElementById(args[0]);
             const el2 = args[1] ? document.getElementById(args[1]) : null;
             const label = args[2] || '';
-            
-            if (el1 && el2) {
-                text = `${label}: ${el1.textContent} / ${el2.textContent}`;
-            } else if (el1) {
-                text = el1.textContent.trim();
-            }
+            if (el1 && el2) text = `${label}: ${el1.textContent} / ${el2.textContent}`;
+            else if (el1) text = el1.textContent.trim();
         }
-        
-        if (text) {
-            navigator.clipboard?.writeText(text).catch(() => {
-                // Fallback
-                const ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-            });
-        }
+        if (text) navigator.clipboard?.writeText(text).catch(() => {
+            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        });
     };
     
     window.copyConsoleLine = function(el) {
         const text = el.textContent.trim();
         navigator.clipboard?.writeText(text).catch(() => {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
+            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
         });
     };
     
-    // ==================== CIRCULAR BUFFER ====================
     class CircularBuffer {
         constructor(maxSize) { this.maxSize = maxSize; this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap = new Map(); }
         push(item) {
@@ -609,7 +539,7 @@
         let levelBias;
         if (signalAction === "BUY") levelBias = "BULLISH";
         else if (signalAction === "SELL") levelBias = "BEARISH";
-        else levelBias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        else levelBias = engine.adxBias !== "NEUTRAL" ? engine.adxBias : (price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH");
         engine.bias = levelBias;
         
         const atr = calculateATR(candleArray, getConfig().atrPeriod);
@@ -642,8 +572,7 @@
         const rangePoints = currentPair === "XAUUSDT" ? range.toFixed(2) : range.toFixed(1);
         UI.rangeValue.textContent = `${rangePoints} pts`;
         
-        // Log to console jika ada perubahan signifikan
-        const currentHash = `${currentPair}_${currentTF}_${levelBias}_${price.toFixed(prec)}_${range.toFixed(prec)}`;
+        const currentHash = `${currentPair}_${currentTF}_${levelBias}_${price.toFixed(prec)}`;
         if (currentHash !== lastLogHash && signalAction) {
             consoleManager.addLog(currentPair, currentTF, levelBias, price, range, engine.tp, engine.sl);
             lastLogHash = currentHash;
@@ -732,7 +661,6 @@
         engine.adxBias = engine.plusDI > engine.minusDI ? "BULLISH" : (engine.minusDI > engine.plusDI ? "BEARISH" : "NEUTRAL");
         
         const isRanging = engine.adx < 20, isWeakTrend = engine.adx < config.adxThreshold;
-        const { swingHigh, swingLow } = getTradingViewSwingPoints();
         const rsi = computeRSI(candleArray);
         
         UI.rsiValue.textContent = rsi.toFixed(1);
@@ -749,14 +677,18 @@
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
+        const { swingHigh, swingLow } = getTradingViewSwingPoints();
         const range = swingHigh - swingLow;
-        const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
+        
+        // Gunakan ADX bias untuk konsistensi
+        const tempBias = engine.adxBias !== "NEUTRAL" ? engine.adxBias : (p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH");
+        const atr = calculateATR(candleArray, config.atrPeriod);
+        
         const f618 = tempBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
         const f786 = tempBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
-        const tempATR = calculateATR(candleArray, config.atrPeriod);
-        const tempEntryLow = Math.min(f618, f786) - tempATR * config.entryZoneATRFactor;
-        const tempEntryHigh = Math.max(f618, f786) + tempATR * config.entryZoneATRFactor;
-        const inZoneTemp = p >= tempEntryLow && p <= tempEntryHigh;
+        const entryLow = Math.min(f618, f786) - atr * config.entryZoneATRFactor;
+        const entryHigh = Math.max(f618, f786) + atr * config.entryZoneATRFactor;
+        const inZoneTemp = p >= entryLow && p <= entryHigh;
         
         const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
         let weightedScore = calculateWeightedScore(engine.adx, engine.ema21, p, rsi, bullishCount, inZoneTemp, config);
@@ -882,10 +814,7 @@
         document.querySelectorAll('[data-pair]').forEach(btn => { if (btn.getAttribute('data-pair') === currentPair) btn.classList.add('active'); else btn.classList.remove('active'); });
         document.querySelectorAll('.tf-btn').forEach(btn => { const tf = btn.getAttribute('data-tf'); if (tf === currentTF) btn.classList.add('active'); else btn.classList.remove('active'); });
         updateWSStatus('connecting','LOADING');
-        
-        // Log pergantian pair/TF
         consoleManager.addEventLog(`Switched to ${currentPair} ${currentTF}`);
-        
         await fetchKlines(); if (currentRequestId !== requestId) { isReloading = false; return; }
         await updateMTFBias(); if (currentRequestId !== requestId) { isReloading = false; return; }
         initWebSocket();
@@ -909,9 +838,7 @@
     
     setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
     
-    // Render console awal
     consoleManager.render();
-    
     fullReload();
 })();
 </script>
