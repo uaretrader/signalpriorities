@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>SMC APEX · CORE v1.14</title>
+    <title>URA · U ARE ADVISOR v0.4</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -360,70 +360,6 @@
             color: var(--text-tertiary);
         }
         
-        .ob-card {
-            background: linear-gradient(135deg, rgba(0, 191, 255, 0.03) 0%, transparent 100%);
-            border: 1px solid rgba(0, 191, 255, 0.15);
-            border-radius: 8px;
-            padding: 8px 12px;
-            cursor: pointer;
-            flex-shrink: 0;
-        }
-        
-        .ob-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        
-        .ob-title {
-            font-size: 0.6rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--accent-cyan);
-        }
-        
-        .ob-bias {
-            font-size: 0.55rem;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 100px;
-            background: var(--bg-tertiary);
-        }
-        
-        .ob-bias.bullish { background: rgba(16, 185, 129, 0.12); color: var(--accent-green); }
-        .ob-bias.bearish { background: rgba(239, 68, 68, 0.12); color: var(--accent-red); }
-        
-        .ob-range-bar {
-            height: 3px;
-            background: var(--bg-tertiary);
-            border-radius: 100px;
-            overflow: hidden;
-            margin: 5px 0;
-        }
-        
-        .ob-range-fill {
-            height: 100%;
-            width: 0%;
-            transition: width 0.2s ease;
-        }
-        
-        .ob-range-fill.bullish { background: var(--accent-green); }
-        .ob-range-fill.bearish { background: var(--accent-red); }
-        
-        .ob-footer {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.5rem;
-            color: var(--text-tertiary);
-        }
-        
-        .zone-warning {
-            background: rgba(245, 158, 11, 0.15) !important;
-            border-color: var(--warning) !important;
-        }
-        
         .levels-grid-vertical {
             display: flex;
             flex-direction: column;
@@ -524,8 +460,8 @@
 <div class="app-container">
     <header class="header">
         <div class="logo-section">
-            <span class="logo">SMC<span class="logo-accent">·</span>APEX</span>
-            <span class="version-tag">CORE v1.14</span>
+            <span class="logo">URA • U ARE ADVISOR</span>
+            <span class="version-tag">v0.4</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -587,22 +523,6 @@
         <div class="rsi-labels"><span>OVERSOLD (30)</span><span>NEUTRAL</span><span>OVERBOUGHT (70)</span></div>
     </div>
 
-    <div class="ob-card" id="ob-card" onclick="smartCopy('ob-card')">
-        <div class="ob-header">
-            <span class="ob-title">📦 ORDER BLOCK <span id="ob-type">SCANNING</span></span>
-            <span class="ob-bias" id="ob-bias">NEUTRAL</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.65rem; font-weight: 600;">
-            <span id="ob-high">—</span><span id="ob-mid">—</span><span id="ob-low">—</span>
-        </div>
-        <div class="ob-range-bar"><div class="ob-range-fill" id="ob-range-fill"></div></div>
-        <div class="ob-footer">
-            <span>STR: <span class="ob-value" id="ob-strength">—</span></span>
-            <span>MIT: <span class="ob-value" id="ob-mitigation">—</span></span>
-            <span>DIST: <span class="ob-value" id="ob-distance">—</span></span>
-        </div>
-    </div>
-
     <div class="levels-grid-vertical" id="levels-grid">
         <div class="level-row" onclick="copySwingHL()">
             <span class="level-label-lg">SWING H/L</span>
@@ -644,7 +564,7 @@
 <script>
 (function() {
     'use strict';
-    console.log('%c🔥 SMC APEX CORE v1.14 | TradingView Swing Method | ATR-based SL/TP', 'color: #00BFFF; font-weight: 700;');
+    console.log('%c🔥 URA v0.4 | TradingView Standard Swing | Fixed swing high/low accuracy', 'color: #00BFFF; font-weight: 700;');
     
     // ==================== KONFIGURASI ====================
     const MAX_POSITIONS = 2;
@@ -700,37 +620,33 @@
         entryZoneHigh: document.getElementById('entry-zone-high'), tpValue: document.getElementById('tp-value'),
         slValue: document.getElementById('sl-value'), atrValue: document.getElementById('atr-value'),
         rangeValue: document.getElementById('range-value'),
-        obType: document.getElementById('ob-type'), obBias: document.getElementById('ob-bias'),
-        obHigh: document.getElementById('ob-high'), obMid: document.getElementById('ob-mid'),
-        obLow: document.getElementById('ob-low'), obRangeFill: document.getElementById('ob-range-fill'),
-        obStrength: document.getElementById('ob-strength'), obMitigation: document.getElementById('ob-mitigation'),
-        obDistance: document.getElementById('ob-distance'), clock: document.getElementById('clock-display'),
-        date: document.getElementById('date-display'), session: document.getElementById('session-tag'),
-        levelsGrid: document.getElementById('levels-grid')
+        clock: document.getElementById('clock-display'), date: document.getElementById('date-display'),
+        session: document.getElementById('session-tag'), levelsGrid: document.getElementById('levels-grid')
     };
     
     // ==================== CONFIG ====================
     const PAIR_CONFIG = {
-        XAUUSDT: { adxThreshold: 22, rsiOverbought: 75, rsiOversold: 25, atrPeriod: 14, entryZoneATRFactor: 0.4, minOBStrength: 5, volumeMultiplier: 1.5, bodyRatioThreshold: 0.6 },
-        BTCUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, entryZoneATRFactor: 0.5, minOBStrength: 4, volumeMultiplier: 1.2, bodyRatioThreshold: 0.55 }
+        XAUUSDT: { adxThreshold: 22, rsiOverbought: 75, rsiOversold: 25, atrPeriod: 14, entryZoneATRFactor: 0.4 },
+        BTCUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, entryZoneATRFactor: 0.5 }
     };
     
     // ==================== TRADINGVIEW STANDARD SWING POINTS ====================
-    function findSwingPointsTV(data, timeframe = currentTF) {
-        if (!data || data.length < 30) return { swingHigh: 0, swingLow: 0 };
+    function findSwingPoints(data, timeframe = currentTF) {
+        if (!data || data.length < 50) return { swingHigh: 0, swingLow: 0 };
         
+        // TradingView standard window (lebih lebar dari sebelumnya)
         const windowMap = {
-            '5m': { left: 2, right: 2, minStrength: 1 },
-            '15m': { left: 3, right: 3, minStrength: 1 },
-            '1h': { left: 4, right: 4, minStrength: 2 },
-            '4h': { left: 5, right: 5, minStrength: 2 }
+            '5m': { left: 3, right: 3 },   // 7 candle total
+            '15m': { left: 4, right: 4 },  // 9 candle total
+            '1h': { left: 5, right: 5 },   // 11 candle total
+            '4h': { left: 6, right: 6 }    // 13 candle total
         };
-        const cfg = windowMap[timeframe] || { left: 4, right: 4, minStrength: 2 };
-        const { left, right, minStrength } = cfg;
+        const cfg = windowMap[timeframe] || { left: 5, right: 5 };
+        const { left, right } = cfg;
         
+        // Minimum distance: 0.3 x ATR (lebih sensitif)
         const atr = calculateATR(data, 14);
-        const avgVolume = data.slice(-20).reduce((s,d)=>s+d.v,0)/20;
-        const minDistance = atr * 0.5;
+        const minDistance = atr * 0.3;
         
         let swingHighs = [];
         let swingLows = [];
@@ -739,86 +655,133 @@
             let isHigh = true;
             let isLow = true;
             
+            // Cek kiri
             for (let j = i - left; j < i; j++) {
                 if (data[j].h >= data[i].h) isHigh = false;
                 if (data[j].l <= data[i].l) isLow = false;
                 if (!isHigh && !isLow) break;
             }
             
-            for (let j = i + 1; j <= i + right; j++) {
-                if (data[j].h >= data[i].h) isHigh = false;
-                if (data[j].l <= data[i].l) isLow = false;
-                if (!isHigh && !isLow) break;
+            // Cek kanan (hanya jika masih memungkinkan)
+            if (isHigh || isLow) {
+                for (let j = i + 1; j <= i + right; j++) {
+                    if (data[j].h >= data[i].h) isHigh = false;
+                    if (data[j].l <= data[i].l) isLow = false;
+                    if (!isHigh && !isLow) break;
+                }
             }
             
+            // Simpan swing (tanpa volume filter, seperti TradingView)
             if (isHigh) {
                 const prevSwing = swingHighs[swingHighs.length - 1];
                 if (!prevSwing || Math.abs(data[i].h - prevSwing.price) >= minDistance) {
-                    swingHighs.push({ idx: i, price: data[i].h, volume: data[i].v, time: data[i].t });
+                    swingHighs.push({ price: data[i].h, idx: i });
                 }
             }
             
             if (isLow) {
                 const prevSwing = swingLows[swingLows.length - 1];
                 if (!prevSwing || Math.abs(data[i].l - prevSwing.price) >= minDistance) {
-                    swingLows.push({ idx: i, price: data[i].l, volume: data[i].v, time: data[i].t });
+                    swingLows.push({ price: data[i].l, idx: i });
                 }
             }
         }
         
-        const recentHighs = swingHighs.slice(-5);
-        const recentLows = swingLows.slice(-5);
-        
-        const bestHigh = recentHighs.sort((a,b) => b.volume - a.volume)[0];
-        const bestLow = recentLows.sort((a,b) => b.volume - a.volume)[0];
-        
-        const swingHigh = bestHigh ? bestHigh.price : Math.max(...data.slice(-50).map(c=>c.h));
-        const swingLow = bestLow ? bestLow.price : Math.min(...data.slice(-50).map(c=>c.l));
+        // Ambil swing terbaru (bukan yang tertinggi/terendah)
+        const swingHigh = swingHighs.length ? swingHighs[swingHighs.length - 1].price : Math.max(...data.slice(-50).map(c=>c.h));
+        const swingLow = swingLows.length ? swingLows[swingLows.length - 1].price : Math.min(...data.slice(-50).map(c=>c.l));
         
         return { swingHigh, swingLow };
     }
     
     // ==================== CORE FUNCTIONS ====================
-    function calculateEMA(data, period) { if (!data || data.length < period) return 0; const closes = data.slice(-period * 2).map(c => c.c); if (closes.length < period) return 0; let ema = closes.slice(0, period).reduce((a,b) => a+b,0) / period; const multiplier = 2/(period+1); for (let i=period; i<closes.length; i++) ema = (closes[i]-ema)*multiplier + ema; return ema; }
-    function calculateATR(data, period=14) { if (!data || data.length < period+1) return 0; let tr = []; for (let i=1; i<data.length; i++) { const h = data[i].h, l = data[i].l, pc = data[i-1].c; tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc))); } if (tr.length < period) return 0; return tr.slice(-period).reduce((a,b)=>a+b,0)/period; }
-    
-    function getMarketStructureBias(data) { if (!data || data.length < 20) return "NEUTRAL"; const recentHigh = Math.max(...data.slice(-10).map(c=>c.h)); const recentLow = Math.min(...data.slice(-10).map(c=>c.l)); const previousHigh = Math.max(...data.slice(-20, -10).map(c=>c.h)); const previousLow = Math.min(...data.slice(-20, -10).map(c=>c.l)); if (recentHigh > previousHigh && recentLow > previousLow) return "BULLISH"; if (recentHigh < previousHigh && recentLow < previousLow) return "BEARISH"; return "NEUTRAL"; }
-    
-    function detectOrderBlocksFromData(data) {
-        if (!data || data.length < 20) return [];
-        const avgVolume = data.slice(-20).reduce((s,d)=>s+d.v,0)/20;
-        const config = getConfig();
-        const volumeMultiplier = config.volumeMultiplier;
-        const bodyRatioThreshold = config.bodyRatioThreshold;
-        const blocks = [];
-        for (let i=5; i<data.length-2; i++) {
-            const candle = data[i], prev = data[i-1];
-            const bodyRange = Math.abs(candle.c - candle.o);
-            const totalRange = candle.h - candle.l;
-            const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= bodyRatioThreshold && candle.v >= avgVolume * volumeMultiplier;
-            if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
-                const obLow = Math.min(prev.l, data[i-2]?.l || prev.l);
-                const obHigh = prev.h;
-                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
-                blocks.push({ type: 'BULLISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false, mitigatedAt: null });
-            }
-            if (isImpulsive && prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
-                const obHigh = Math.max(prev.h, data[i-2]?.h || prev.h);
-                const obLow = prev.l;
-                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
-                blocks.push({ type: 'BEARISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false, mitigatedAt: null });
-            }
-        }
-        return blocks;
+    function calculateEMA(data, period) { 
+        if (!data || data.length < period) return 0;
+        const closes = data.slice(-period * 2).map(c => c.c);
+        if (closes.length < period) return 0;
+        let ema = closes.slice(0, period).reduce((a,b) => a+b,0) / period;
+        const multiplier = 2/(period+1);
+        for (let i=period; i<closes.length; i++) ema = (closes[i]-ema)*multiplier + ema;
+        return ema;
     }
     
-    function getH1OBBias(data) { const blocks = detectOrderBlocksFromData(data); if (!blocks.length) return "NEUTRAL"; const best = blocks.sort((a,b) => b.strength - a.strength)[0]; return best.type === "BULLISH" ? "BULLISH" : "BEARISH"; }
-    function checkFibonacciZone(data, swingHigh, swingLow, currentPrice, bias) { const range = swingHigh - swingLow; if (range <= 0) return false; const f618 = bias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618; const f786 = bias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786; return (currentPrice >= Math.min(f618, f786) && currentPrice <= Math.max(f618, f786)); }
-    function checkPriceAction(data) { if (!data || data.length < 5) return false; const last = data[data.length-1]; const prev = data[data.length-2]; return (last.c > last.o) || (last.c > prev.h && last.o < prev.l); }
+    function calculateATR(data, period=14) { 
+        if (!data || data.length < period+1) return 0;
+        let tr = [];
+        for (let i=1; i<data.length; i++) {
+            const h = data[i].h, l = data[i].l, pc = data[i-1].c;
+            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
+        }
+        if (tr.length < period) return 0;
+        return tr.slice(-period).reduce((a,b)=>a+b,0)/period;
+    }
+    
+    function calculateADX(data) {
+        if (data.length < 28) return 15;
+        const period=14;
+        let tr=[], plusDM=[], minusDM=[];
+        for (let i=1; i<data.length; i++) {
+            const h=data[i].h, l=data[i].l, ph=data[i-1].h, pl=data[i-1].l, pc=data[i-1].c;
+            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
+            const upMove = h-ph, downMove = pl-l;
+            if (upMove > downMove && upMove>0) { plusDM.push(upMove); minusDM.push(0); }
+            else if (downMove > upMove && downMove>0) { plusDM.push(0); minusDM.push(downMove); }
+            else { plusDM.push(0); minusDM.push(0); }
+        }
+        let atr = tr.slice(0,period).reduce((a,b)=>a+b,0);
+        let pDM = plusDM.slice(0,period).reduce((a,b)=>a+b,0);
+        let mDM = minusDM.slice(0,period).reduce((a,b)=>a+b,0);
+        let dxValues=[];
+        let lastPDI=0, lastMDI=0;
+        for (let i=period; i<tr.length; i++) {
+            atr = (atr*(period-1)+tr[i])/period;
+            pDM = (pDM*(period-1)+plusDM[i])/period;
+            mDM = (mDM*(period-1)+minusDM[i])/period;
+            lastPDI = atr>0 ? (pDM/atr)*100 : 0;
+            lastMDI = atr>0 ? (mDM/atr)*100 : 0;
+            const dx = (lastPDI+lastMDI)>0 ? (Math.abs(lastPDI-lastMDI)/(lastPDI+lastMDI))*100 : 0;
+            dxValues.push(dx);
+        }
+        let adxValue;
+        if (dxValues.length>=period) {
+            let smoothedADX = dxValues.slice(0,period).reduce((a,b)=>a+b,0)/period;
+            for (let i=period; i<dxValues.length; i++) smoothedADX = (smoothedADX*(period-1)+dxValues[i])/period;
+            adxValue = smoothedADX;
+        } else adxValue=15;
+        adxValue = Math.max(5, Math.min(100, adxValue));
+        return { adx: adxValue, plusDI: lastPDI, minusDI: lastMDI };
+    }
+    
+    function computeRSI(data) {
+        if (data.length<15) return 50;
+        const closes = data.map(c=>c.c);
+        let gains=[], losses=[];
+        for (let i=1; i<closes.length; i++) {
+            const diff = closes[i]-closes[i-1];
+            gains.push(diff>0?diff:0);
+            losses.push(diff<0?-diff:0);
+        }
+        let avgG = gains.slice(0,14).reduce((a,b)=>a+b,0)/14;
+        let avgL = losses.slice(0,14).reduce((a,b)=>a+b,0)/14;
+        for (let i=14; i<gains.length; i++) {
+            avgG = (avgG*13+gains[i])/14;
+            avgL = (avgL*13+losses[i])/14;
+        }
+        return avgL===0?100:100-(100/(1+avgG/avgL));
+    }
     
     // ==================== MTF BIAS ====================
     let mtfBiasCache = { h4: "NEUTRAL", h1: "NEUTRAL", m15: "NEUTRAL", m5: "NEUTRAL", timestamp: 0, pair: null };
-    let factorStatus = { f1: false, f2: false, f3: false, ob: false };
+    let factorStatus = { f1: false, f2: false, f3: false };
+    
+    function getTimeframeBias(data, emaPeriod = 21) {
+        if (!data || data.length < 50) return "NEUTRAL";
+        const price = data[data.length-1].c;
+        const ema = calculateEMA(data, emaPeriod);
+        if (price > ema) return "BULLISH";
+        if (price < ema) return "BEARISH";
+        return "NEUTRAL";
+    }
     
     async function updateMTFBias() {
         const now = Date.now();
@@ -829,6 +792,7 @@
             factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
             return;
         }
+        
         const tfs = [{ id: '4h', label: 'h4', apiInterval: '4h' }, { id: '1h', label: 'h1', apiInterval: '1h' }, { id: '15m', label: 'm15', apiInterval: '15m' }, { id: '5m', label: 'm5', apiInterval: '5m' }];
         for (const tf of tfs) {
             try {
@@ -836,48 +800,11 @@
                 const data = await resp.json();
                 if (Array.isArray(data) && data.length > 0) {
                     const formattedData = data.map(d => ({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }));
-                    const price = formattedData[formattedData.length-1].c;
-                    const ema21 = calculateEMA(formattedData, 21);
-                    let bias = "NEUTRAL";
-                    if (tf.id === '4h') {
-                        const ema200 = calculateEMA(formattedData, 200);
-                        const structBias = getMarketStructureBias(formattedData);
-                        let bullishScore = 0, bearishScore = 0;
-                        if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
-                        if (price > ema200) bullishScore += 2; else if (price < ema200) bearishScore += 2;
-                        if (structBias === "BULLISH") bullishScore += 2; else if (structBias === "BEARISH") bearishScore += 2;
-                        if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
-                        else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
-                        mtfBiasCache.h4 = bias;
-                    } else if (tf.id === '1h') {
-                        const ema50 = calculateEMA(formattedData, 50);
-                        const obBias = getH1OBBias(formattedData);
-                        let bullishScore = 0, bearishScore = 0;
-                        if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
-                        if (price > ema50) bullishScore += 2; else if (price < ema50) bearishScore += 2;
-                        if (obBias === "BULLISH") bullishScore += 2; else if (obBias === "BEARISH") bearishScore += 2;
-                        if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
-                        else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
-                        mtfBiasCache.h1 = bias;
-                    } else if (tf.id === '15m') {
-                        const { swingHigh, swingLow } = findSwingPointsTV(formattedData, tf.apiInterval);
-                        const tempBias = price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
-                        const inFibZone = checkFibonacciZone(formattedData, swingHigh, swingLow, price, tempBias);
-                        let bullishScore = 0, bearishScore = 0;
-                        if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
-                        if (inFibZone) { if (tempBias === "BULLISH") bullishScore += 2; else if (tempBias === "BEARISH") bearishScore += 2; }
-                        if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
-                        else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
-                        mtfBiasCache.m15 = bias;
-                    } else if (tf.id === '5m') {
-                        const paBullish = checkPriceAction(formattedData);
-                        let bullishScore = 0, bearishScore = 0;
-                        if (price > ema21) bullishScore += 2; else if (price < ema21) bearishScore += 2;
-                        if (paBullish) bullishScore += 2; else if (!paBullish && price < ema21) bearishScore += 2;
-                        if (bullishScore >= 3 && bullishScore > bearishScore) bias = "BULLISH";
-                        else if (bearishScore >= 3 && bearishScore > bullishScore) bias = "BEARISH";
-                        mtfBiasCache.m5 = bias;
-                    }
+                    const bias = getTimeframeBias(formattedData, 21);
+                    if (tf.id === '4h') mtfBiasCache.h4 = bias;
+                    else if (tf.id === '1h') mtfBiasCache.h1 = bias;
+                    else if (tf.id === '15m') mtfBiasCache.m15 = bias;
+                    else if (tf.id === '5m') mtfBiasCache.m5 = bias;
                 }
             } catch(e) { console.warn(`MTF ${tf.id} error:`, e); }
         }
@@ -905,41 +832,11 @@
         });
     }
     
-    // ==================== FVG DETECTION ====================
-    function detectFVG(data) {
-        if (!data || data.length < 3) return [];
-        const fvgResult = [];
-        const currentPrice = data[data.length-1].c;
-        for (let i = 1; i < data.length - 1; i++) {
-            const prev = data[i-1], curr = data[i], next = data[i+1];
-            if (prev.low > next.high && curr.c > curr.o) {
-                const isMitigated = currentPrice <= prev.low && currentPrice >= next.high;
-                if (!isMitigated) fvgResult.push({ type: 'BULLISH', high: prev.low, low: next.high, strength: Math.min(10, Math.floor((prev.low - next.high) / (prev.low * 0.001)) + 2), timestamp: curr.t, mitigated: false });
-            }
-            if (prev.high < next.low && curr.c < curr.o) {
-                const isMitigated = currentPrice <= next.low && currentPrice >= prev.high;
-                if (!isMitigated) fvgResult.push({ type: 'BEARISH', high: next.low, low: prev.high, strength: Math.min(10, Math.floor((next.low - prev.high) / (prev.high * 0.001)) + 2), timestamp: curr.t, mitigated: false });
-            }
-        }
-        return fvgResult;
-    }
-    
-    function evaluateOBWithFVG(price, orderBlocksResult, fvgData) {
-        if (!orderBlocksResult.hasOB || !fvgData || fvgData.length === 0) return orderBlocksResult;
-        const hasFVG = fvgData.some(fvg => {
-            if (orderBlocksResult.block.type === 'BULLISH' && fvg.type === 'BULLISH') return price >= fvg.low && price <= fvg.high;
-            if (orderBlocksResult.block.type === 'BEARISH' && fvg.type === 'BEARISH') return price >= fvg.low && price <= fvg.high;
-            return false;
-        });
-        if (hasFVG) { orderBlocksResult.score = Math.min(10, orderBlocksResult.score + 2); orderBlocksResult.strength = orderBlocksResult.score >= 9 ? 'STRONG+FVG' : orderBlocksResult.strength; }
-        return orderBlocksResult;
-    }
-    
-    // ==================== LEVEL SMC (ATR-BASED) ====================
+    // ==================== LEVEL SMC ====================
     function updateLevels(active, action) {
         const candleArray = getCandleArray();
         if (candleArray.length === 0) return;
-        const { swingHigh, swingLow } = findSwingPointsTV(candleArray, currentTF);
+        const { swingHigh, swingLow } = findSwingPoints(candleArray, currentTF);
         engine.swingHigh = swingHigh;
         engine.swingLow = swingLow;
         const range = swingHigh - swingLow;
@@ -983,65 +880,8 @@
         UI.rangeValue.textContent = `${rangePoints} pts`;
     }
     
-    // ==================== ORDER BLOCK UI ====================
-    function getDisplayOB(active, action, currentPrice) {
-        if (!orderBlocks.length) return null;
-        if (active === 'conservative' || active === 'sniper' || active === 'retail') {
-            const targetDirection = (action === "BUY") ? "BULLISH" : "BEARISH";
-            const validOB = orderBlocks.find(ob => ob.type === targetDirection && !ob.mitigated && ((ob.type === 'BULLISH' && currentPrice >= ob.low) || (ob.type === 'BEARISH' && currentPrice <= ob.high)));
-            if (validOB) return validOB;
-            const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
-            return bestOB || null;
-        }
-        const bestOB = [...orderBlocks].sort((a,b) => b.strength - a.strength)[0];
-        return bestOB || null;
-    }
-    
-    function updateOBUI(price, active, action) {
-        const p = safeValue(price, 0);
-        const prec = getPrecision();
-        const displayOB = getDisplayOB(active, action, p);
-        if (displayOB) {
-            const b = displayOB;
-            activeOB = b;
-            UI.obType.textContent = b.type === 'BULLISH' ? '🟢 BULL' : '🔴 BEAR';
-            UI.obBias.textContent = b.type;
-            UI.obBias.className = `ob-bias ${b.type.toLowerCase()}`;
-            UI.obHigh.textContent = b.high.toFixed(prec);
-            UI.obLow.textContent = b.low.toFixed(prec);
-            UI.obMid.textContent = b.price.toFixed(prec);
-            let fill = 0;
-            if (p >= b.high) fill = 100;
-            else if (p <= b.low) fill = 0;
-            else fill = ((p - b.low) / (b.high - b.low)) * 100;
-            UI.obRangeFill.style.width = Math.min(100, Math.max(0, fill)) + '%';
-            UI.obRangeFill.className = `ob-range-fill ${b.type.toLowerCase()}`;
-            let score = b.strength;
-            const inZone = p >= b.low && p <= b.high;
-            if ((engine.bias === "BULLISH" && b.type === 'BULLISH') || (engine.bias === "BEARISH" && b.type === 'BEARISH')) score += 3;
-            if (inZone) score += 4;
-            score = Math.min(10, score);
-            const strengthLabel = score >= 7 ? 'STRONG' : (score >= 4 ? 'MEDIUM' : 'WEAK');
-            const mitigation = inZone ? ((p - b.low) / (b.high - b.low)) * 100 : (p > b.high ? 100 : 0);
-            if (mitigation >= 99.5 && !b.mitigated) { b.mitigated = true; b.mitigatedAt = Date.now(); }
-            UI.obStrength.textContent = `${score.toFixed(1)} (${strengthLabel})`;
-            UI.obMitigation.textContent = inZone ? `${Math.min(100, Math.max(0, mitigation)).toFixed(0)}%` : (p > b.high ? '100%' : '0%');
-            UI.obDistance.textContent = Math.abs(p - b.price).toFixed(prec);
-        } else {
-            UI.obType.textContent = 'SCANNING';
-            UI.obBias.textContent = 'NEUTRAL';
-            UI.obBias.className = 'ob-bias';
-            UI.obHigh.textContent = UI.obLow.textContent = UI.obMid.textContent = '—';
-            UI.obRangeFill.style.width = '0%';
-            UI.obStrength.textContent = UI.obMitigation.textContent = UI.obDistance.textContent = '—';
-        }
-    }
-    
     // ==================== DECISION ENGINE ====================
     let engine = { swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL", adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0, entryZoneLow: 0, entryZoneHigh: 0, tp: 0, sl: 0 };
-    let orderBlocks = [], activeOB = null;
-    let obEvaluation = { hasOB: false, score: 0, strength: 'NONE', isActive: false };
-    let fvgList = [];
     let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
     let currentTF = localStorage.getItem('lastTF') || "15m";
     let wsConnection = null;
@@ -1053,11 +893,57 @@
     let lastPrice = 0, prevPrice = 0;
     let lastUIUpdateTime = 0, pendingUIUpdate = false;
     let cachedCandleArray = null, lastCacheTime = 0;
-    let lastLoggedSignal = "";
+    
+    // Active signals tracking
+    let activeSignals = [];
+    
+    function getActiveSignalCount(direction) {
+        return activeSignals.filter(s => s.direction === direction && s.pair === currentPair && s.timeframe === currentTF).length;
+    }
+    
+    function addActiveSignal(direction, price, sl, tp, mode) {
+        activeSignals.push({
+            direction: direction,
+            price: price,
+            sl: sl,
+            tp: tp,
+            mode: mode,
+            pair: currentPair,
+            timeframe: currentTF,
+            timestamp: Date.now()
+        });
+        if (activeSignals.length > MAX_POSITIONS * 2) activeSignals = activeSignals.slice(-MAX_POSITIONS * 2);
+    }
+    
+    function checkSLTPHit() {
+        const candleArray = getCandleArray();
+        if (candleArray.length === 0) return;
+        const currentHigh = Math.max(...candleArray.slice(-5).map(c => c.h));
+        const currentLow = Math.min(...candleArray.slice(-5).map(c => c.l));
+        
+        for (let i = 0; i < activeSignals.length; i++) {
+            const sig = activeSignals[i];
+            if (sig.pair !== currentPair || sig.timeframe !== currentTF) continue;
+            
+            const isBuy = sig.direction === 'BUY';
+            if (isBuy && currentHigh >= sig.tp) {
+                activeSignals.splice(i, 1);
+                i--;
+            } else if (!isBuy && currentLow <= sig.tp) {
+                activeSignals.splice(i, 1);
+                i--;
+            } else if (isBuy && currentLow <= sig.sl) {
+                activeSignals.splice(i, 1);
+                i--;
+            } else if (!isBuy && currentHigh >= sig.sl) {
+                activeSignals.splice(i, 1);
+                i--;
+            }
+        }
+    }
     
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     function getConfig() { return PAIR_CONFIG[currentPair]; }
-    function logDebug(message, data = null) { if (data) console.log(`[DEBUG] ${message}`, data); else console.log(`[DEBUG] ${message}`); }
     
     function getCandleArray() { const now = Date.now(); if (!cachedCandleArray || (now - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = now; } return cachedCandleArray; }
     function invalidateCandleCache() { cachedCandleArray = null; }
@@ -1074,106 +960,6 @@
         }
     }
     
-    function detectOrderBlocks() {
-        const candleArray = getCandleArray();
-        if (candleArray.length < 20) return [];
-        const avgVolume = candleArray.slice(-20).reduce((s,d)=>s+d.v,0)/20;
-        const config = getConfig();
-        const volumeMultiplier = config.volumeMultiplier;
-        const bodyRatioThreshold = config.bodyRatioThreshold;
-        const blocks = [];
-        for (let i=5; i<candleArray.length-2; i++) {
-            const candle = candleArray[i], prev = candleArray[i-1];
-            const bodyRange = Math.abs(candle.c - candle.o);
-            const totalRange = candle.h - candle.l;
-            const isImpulsive = (totalRange>0) && (bodyRange/totalRange) >= bodyRatioThreshold && candle.v >= avgVolume * volumeMultiplier;
-            if (isImpulsive && prev.c < prev.o && candle.c > candle.o && candle.c > prev.h) {
-                const obLow = Math.min(prev.l, candleArray[i-2]?.l || prev.l);
-                const obHigh = prev.h;
-                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
-                blocks.push({ type: 'BULLISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false, mitigatedAt: null });
-            }
-            if (isImpulsive && prev.c > prev.o && candle.c < candle.o && candle.c < prev.l) {
-                const obHigh = Math.max(prev.h, candleArray[i-2]?.h || prev.h);
-                const obLow = prev.l;
-                const strength = Math.min(10, Math.floor((candle.v/avgVolume)*3) + 2);
-                blocks.push({ type: 'BEARISH', low: obLow, high: obHigh, price: (obLow+obHigh)/2, strength, mitigated: false, mitigatedAt: null });
-            }
-        }
-        return blocks;
-    }
-    
-    function evaluateOB(price) {
-        const p = safeValue(price,0);
-        const fiveMinutesAgo = Date.now() - 300000;
-        const relevant = orderBlocks.filter(b => !b.mitigated && (!b.mitigatedAt || b.mitigatedAt >= fiveMinutesAgo));
-        if (!relevant.length) return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
-        let best=null, maxScore=0, mitigation=0, isActive=false;
-        for (const b of relevant) {
-            let score = b.strength;
-            const inZone = p>=b.low && p<=b.high;
-            if ((engine.bias==="BULLISH" && b.type==='BULLISH') || (engine.bias==="BEARISH" && b.type==='BEARISH')) score += 3;
-            if (inZone) { score += 4; mitigation = ((p-b.low)/(b.high-b.low))*100; isActive=true; }
-            else if (p >= b.low - (b.high-b.low)*0.3 && p <= b.high + (b.high-b.low)*0.3) score += 1;
-            if (score > maxScore) { maxScore=score; best=b; }
-        }
-        maxScore = Math.min(10, maxScore);
-        if (best) return { hasOB:true, score:maxScore, strength: maxScore>=7?'STRONG':(maxScore>=4?'MEDIUM':'WEAK'), block:best, mitigation:Math.min(100,Math.max(0,mitigation)), isActive };
-        return { hasOB:false, score:0, strength:'NONE', block:null, mitigation:0, isActive:false };
-    }
-    
-    function calculateADX() {
-        const candleArray = getCandleArray();
-        if (candleArray.length < 28) return 15;
-        const period=14;
-        let tr=[], plusDM=[], minusDM=[];
-        for (let i=1; i<candleArray.length; i++) {
-            const h=candleArray[i].h, l=candleArray[i].l, ph=candleArray[i-1].h, pl=candleArray[i-1].l, pc=candleArray[i-1].c;
-            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
-            const upMove = h-ph, downMove = pl-l;
-            if (upMove > downMove && upMove>0) { plusDM.push(upMove); minusDM.push(0); }
-            else if (downMove > upMove && downMove>0) { plusDM.push(0); minusDM.push(downMove); }
-            else { plusDM.push(0); minusDM.push(0); }
-        }
-        let atr = tr.slice(0,period).reduce((a,b)=>a+b,0);
-        let pDM = plusDM.slice(0,period).reduce((a,b)=>a+b,0);
-        let mDM = minusDM.slice(0,period).reduce((a,b)=>a+b,0);
-        let dxValues=[];
-        let lastPDI=0, lastMDI=0;
-        for (let i=period; i<tr.length; i++) {
-            atr = (atr*(period-1)+tr[i])/period;
-            pDM = (pDM*(period-1)+plusDM[i])/period;
-            mDM = (mDM*(period-1)+minusDM[i])/period;
-            lastPDI = atr>0 ? (pDM/atr)*100 : 0;
-            lastMDI = atr>0 ? (mDM/atr)*100 : 0;
-            const dx = (lastPDI+lastMDI)>0 ? (Math.abs(lastPDI-lastMDI)/(lastPDI+lastMDI))*100 : 0;
-            dxValues.push(dx);
-        }
-        let adxValue;
-        if (dxValues.length>=period) {
-            let smoothedADX = dxValues.slice(0,period).reduce((a,b)=>a+b,0)/period;
-            for (let i=period; i<dxValues.length; i++) smoothedADX = (smoothedADX*(period-1)+dxValues[i])/period;
-            adxValue = smoothedADX;
-        } else adxValue=15;
-        adxValue = Math.max(5, Math.min(100, adxValue));
-        engine.plusDI = Math.round(lastPDI);
-        engine.minusDI = Math.round(lastMDI);
-        engine.adxBias = lastPDI>lastMDI ? "BULLISH" : (lastMDI>lastPDI ? "BEARISH" : "NEUTRAL");
-        return adxValue;
-    }
-    
-    function computeRSI() {
-        const candleArray = getCandleArray();
-        if (candleArray.length<15) return 50;
-        const closes = candleArray.map(c=>c.c);
-        let gains=[], losses=[];
-        for (let i=1; i<closes.length; i++) { const diff = closes[i]-closes[i-1]; gains.push(diff>0?diff:0); losses.push(diff<0?-diff:0); }
-        let avgG = gains.slice(0,14).reduce((a,b)=>a+b,0)/14;
-        let avgL = losses.slice(0,14).reduce((a,b)=>a+b,0)/14;
-        for (let i=14; i<gains.length; i++) { avgG = (avgG*13+gains[i])/14; avgL = (avgL*13+losses[i])/14; }
-        return avgL===0?100:100-(100/(1+avgG/avgL));
-    }
-    
     function updateDecision() {
         if (isDataStale) {
             UI.decision.textContent = 'DATA STALE';
@@ -1186,8 +972,13 @@
         const p = lastPrice;
         const config = getConfig();
         const prec = getPrecision();
+        
         engine.ema21 = calculateEMA(candleArray, 21);
-        engine.adx = calculateADX();
+        const adxResult = calculateADX(candleArray);
+        engine.adx = adxResult.adx;
+        engine.plusDI = adxResult.plusDI;
+        engine.minusDI = adxResult.minusDI;
+        engine.adxBias = engine.plusDI > engine.minusDI ? "BULLISH" : (engine.minusDI > engine.plusDI ? "BEARISH" : "NEUTRAL");
         
         const isRanging = engine.adx < 20;
         
@@ -1195,14 +986,11 @@
         const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
         factorStatus.f2 = bullishCount >= 3 || bearishCount >= 3;
         
-        const { swingHigh, swingLow } = findSwingPointsTV(candleArray, currentTF);
+        const { swingHigh, swingLow } = findSwingPoints(candleArray, currentTF);
         const tempBias = p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH";
         engine.bias = tempBias;
-        fvgList = detectFVG(candleArray);
-        obEvaluation = evaluateOB(p);
-        obEvaluation = evaluateOBWithFVG(p, obEvaluation, fvgList);
-        factorStatus.ob = obEvaluation.hasOB && obEvaluation.score >= config.minOBStrength;
-        const rsi = computeRSI();
+        
+        const rsi = computeRSI(candleArray);
         
         UI.rsiValue.textContent = rsi.toFixed(1);
         UI.rsiFill.style.width = Math.min(100, Math.max(0, rsi)) + '%';
@@ -1218,27 +1006,26 @@
         UI.adxValue.textContent = Math.round(engine.adx);
         if (engine.adx<config.adxThreshold) UI.adxValue.classList.add('adx-warning');
         else UI.adxValue.classList.remove('adx-warning');
-        UI.diValues.textContent = `+DI ${engine.plusDI} | -DI ${engine.minusDI}`;
+        UI.diValues.textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
-        // Calculate temp entry zone
-        const f618 = tempBias === "BULLISH" ? swingLow + (swingHigh-swingLow)*0.618 : swingHigh - (swingHigh-swingLow)*0.618;
-        const f786 = tempBias === "BULLISH" ? swingLow + (swingHigh-swingLow)*0.786 : swingHigh - (swingHigh-swingLow)*0.786;
+        // Calculate entry zone
+        const range = swingHigh - swingLow;
+        const f618 = tempBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
+        const f786 = tempBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
         const tempATR = calculateATR(candleArray, config.atrPeriod);
         const tempEntryLow = Math.min(f618, f786) - tempATR * config.entryZoneATRFactor;
         const tempEntryHigh = Math.max(f618, f786) + tempATR * config.entryZoneATRFactor;
         const inZoneTemp = p >= tempEntryLow && p <= tempEntryHigh;
         const adxValid = engine.adx >= config.adxThreshold;
         const f1 = tempBias !== "NEUTRAL";
-        const f3 = adxValid && (inZoneTemp || obEvaluation.isActive);
-        const obAligned = obEvaluation.hasOB && activeOB && ((engine.adxBias === "BULLISH" && activeOB.type === 'BULLISH') || (engine.adxBias === "BEARISH" && activeOB.type === 'BEARISH'));
+        const f3 = adxValid && inZoneTemp;
         
         let score = 0;
         if (f1) score += 3;
         if (factorStatus.f2) score += 2;
         if (f3) score += 2;
-        if (factorStatus.ob) score += obEvaluation.strength === 'STRONG' ? 3 : (obEvaluation.strength === 'MEDIUM' ? 2 : 1);
         score = Math.min(10, score);
         
         const direction = engine.adxBias;
@@ -1248,7 +1035,7 @@
         
         let active = null;
         let decisionText = '', color = '', bgColor = '';
-        const isInValidZone = inZoneTemp || obEvaluation.isActive;
+        const isInValidZone = inZoneTemp;
         
         if (isRanging) {
             decisionText = `🔄 SIDEWAYS`;
@@ -1269,10 +1056,15 @@
             active = null; 
         }
         else {
-            // Simulasi active count (di sini selalu 0 karena tidak ada log)
-            const activeCount = 0;
+            const activeCount = getActiveSignalCount(action);
             if (activeCount >= MAX_POSITIONS) {
                 decisionText = `⏸️ MAX POSITION (${MAX_POSITIONS})`;
+                color = 'var(--accent-gold)';
+                bgColor = 'var(--bg-secondary)';
+                active = null;
+            }
+            else if (activeCount === 1) {
+                decisionText = `🔄 PULLBACK HOLD`;
                 color = 'var(--accent-gold)';
                 bgColor = 'var(--bg-secondary)';
                 active = null;
@@ -1283,7 +1075,7 @@
                 color = 'var(--accent-green)';
                 bgColor = 'rgba(16,185,129,0.08)';
             }
-            else if (adxValid && f1 && factorStatus.ob && obAligned && score >= 7 && inZoneTemp) {
+            else if (adxValid && f1 && score >= 7 && inZoneTemp) {
                 active = 'sniper';
                 decisionText = `SNIPER ${action}`;
                 color = 'var(--accent-purple)';
@@ -1315,20 +1107,11 @@
         else if (active === 'retail') document.querySelector('[data-mode="retail"]')?.classList.add('active');
         
         updateLevels(active, action);
-        updateOBUI(p, active, action);
-        
-        const finalInZone = (active && (lastPrice >= engine.entryZoneLow && lastPrice <= engine.entryZoneHigh)) || obEvaluation.isActive;
-        UI.levelsGrid.classList.toggle('zone-warning', !finalInZone && adxValid);
-        
-        const signalSummary = `${active || 'NO_SIGNAL'}|${action}|${score}|${adxValid}|${f1}|${factorStatus.f2}|${f3}|${factorStatus.ob}`;
-        if (signalSummary !== lastLoggedSignal) {
-            lastLoggedSignal = signalSummary;
-            logDebug(`Decision: active=${active}, action=${action}, score=${score}, adxValid=${adxValid}`);
-        }
         
         let displayText = '';
         if (active === 'conservative' || active === 'sniper' || active === 'retail') {
             displayText = `${action} NOW 🔥`;
+            addActiveSignal(action, lastPrice, engine.sl, engine.tp, active);
         } else {
             displayText = decisionText;
         }
@@ -1336,6 +1119,7 @@
         UI.decision.style.color = color;
         UI.signalBar.style.background = bgColor;
         UI.signalBar.style.borderColor = active ? color : 'var(--border-subtle)';
+        UI.levelsGrid.classList.toggle('zone-warning', !isInValidZone && adxValid);
     }
     
     function updateUI(price) {
@@ -1354,6 +1138,7 @@
         lastPrice = p;
         prevPrice = p;
         updateDecision();
+        checkSLTPHit();
     }
     
     function safeValue(val, fallback=0) { return (typeof val==='number' && !isNaN(val) && isFinite(val)) ? val : fallback; }
@@ -1391,7 +1176,6 @@
                 if (candleBuffer.length > 0) {
                     const latest = candleBuffer.getLatest();
                     lastPrice = prevPrice = latest.c;
-                    orderBlocks = detectOrderBlocks();
                     updateUI(lastPrice);
                 }
                 return true;
@@ -1443,8 +1227,6 @@
                                 if (isClosed && lastCandle.t !== candleTime) {
                                     candleBuffer.push({ t: candleTime, o: open, h: high, l: low, c: price, v: parseFloat(k.v) });
                                     invalidateCandleCache();
-                                    orderBlocks = detectOrderBlocks();
-                                    fvgList = detectFVG(getCandleArray());
                                 } else if (!isClosed && lastCandle.t === candleTime) {
                                     lastCandle.c = price;
                                     lastCandle.h = Math.max(lastCandle.h, high);
@@ -1480,8 +1262,8 @@
         document.querySelectorAll('.tf-btn').forEach(btn => { const tf = btn.getAttribute('data-tf'); if (tf === currentTF) btn.classList.add('active'); else btn.classList.remove('active'); });
         updateWSStatus('connecting','LOADING');
         engine = { swingHigh:0, swingLow:0, bias:"NEUTRAL", adxBias:"NEUTRAL", adx:0, ema21:0, plusDI:0, minusDI:0, atr:0, entryZoneLow:0, entryZoneHigh:0, tp:0, sl:0 };
-        factorStatus = { f1:false, f2:false, f3:false, ob:false };
-        orderBlocks=[]; activeOB=null; fvgList = [];
+        factorStatus = { f1:false, f2:false, f3:false };
+        activeSignals = [];
         await fetchKlines();
         if (currentRequestId !== requestId) return;
         await updateMTFBias();
@@ -1503,6 +1285,8 @@
         isReloading = false;
         if (reloadQueue) setTimeout(() => fullReload(), 100);
     }
+    
+    setInterval(() => { checkSLTPHit(); }, 5000);
     
     document.querySelectorAll('[data-pair]').forEach(btn => btn.onclick = () => { if(!isReloading){ currentPair=btn.getAttribute('data-pair'); localStorage.setItem('lastPair',currentPair); fullReload(); } });
     document.querySelectorAll('.tf-btn').forEach(btn => btn.onclick = () => { if(!isReloading){ currentTF=btn.getAttribute('data-tf'); localStorage.setItem('lastTF',currentTF); fullReload(); } });
