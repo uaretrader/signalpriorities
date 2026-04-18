@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v0.9 – UR ADVISOR</title>
+    <title>URA v1.0 – UR ADVISOR</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -84,7 +84,7 @@
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         
         .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 8px; }
-        .tab-group { display: flex; gap: 3px; background: var(--bg-secondary); padding: 3px; border-radius: 8px; border: 1px solid var(--border-subtle); flex-wrap: wrap; }
+        .tab-group { display: flex; gap: 3px; background: var(--bg-secondary); padding: 3px; border-radius: 4px; border: 1px solid var(--border-subtle); flex-wrap: wrap; }
         .tab-btn { 
             background: transparent; 
             border: none; 
@@ -287,7 +287,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">URA · UR ADVISOR</span>
-            <span class="version-tag">v0.9</span>
+            <span class="version-tag">v1.0</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
@@ -350,7 +350,7 @@
 
     <div class="levels-grid-vertical" id="levels-grid">
         <div class="level-row" onclick="copyText('swing-high', 'swing-low', 'Swing')">
-            <span class="level-label-lg">SWING H/L</span>
+            <span class="level-label-lg">SWING (FRACTAL)</span>
             <span class="level-value-lg"><span id="swing-high">—</span> / <span id="swing-low">—</span></span>
         </div>
         <div class="level-row" onclick="copyText('sl-value', null, 'SL')">
@@ -358,7 +358,7 @@
             <span class="level-value-lg text-red" id="sl-value">—</span>
         </div>
         <div class="level-row" onclick="copyText('entry-zone-low', 'entry-zone-high', 'Entry Zone')">
-            <span class="level-label-lg">ENTRY ZONE</span>
+            <span class="level-label-lg">ENTRY ZONE (0.618-0.786)</span>
             <span class="level-value-lg"><span class="text-gold" id="entry-zone-low">—</span> / <span class="text-gold" id="entry-zone-high">—</span></span>
         </div>
         <div class="level-row" onclick="copyText('tp-value', null, 'TP')">
@@ -396,113 +396,87 @@
     const CONSOLE_MAX_ENTRIES = 50;
     const CONSOLE_TTL_MS = 24 * 60 * 60 * 1000;
     
-    // ==================== SWING POINTS ====================
-    const TRADINGVIEW_SWINGS = {
-        XAUUSDT: {
-            '4h': { swingHigh: 4871.380, swingLow: 4644.465 },
-            '1h': { swingHigh: 4891.540, swingLow: 4767.845 },
-            '15m': { swingHigh: 4891.540, swingLow: 4853.790 },
-            '5m': { swingHigh: 4873.535, swingLow: 4853.790 }
-        },
-        BTCUSDT: {
-            '4h': { swingHigh: 76126.5, swingLow: 65698.0 },
-            '1h': { swingHigh: 78545.0, swingLow: 73335.0 },
-            '15m': { swingHigh: 78358.5, swingLow: 75127.5 },
-            '5m': { swingHigh: 78358.5, swingLow: 77127.5 }
+    // ==================== FUNGSI FRACTAL SWING (METODE BARU) ====================
+    function detectFractalSwingPoints(data, lookback = 3) {
+        if (!data || data.length < lookback * 2 + 1) return { swingHigh: 0, swingLow: 0 };
+        let swingHigh = 0, swingLow = Infinity;
+        for (let i = lookback; i < data.length - lookback; i++) {
+            const currHigh = data[i].h, currLow = data[i].l;
+            let isSwingHigh = true, isSwingLow = true;
+            for (let j = i - lookback; j <= i + lookback; j++) {
+                if (j !== i && data[j].h >= currHigh) isSwingHigh = false;
+                if (j !== i && data[j].l <= currLow) isSwingLow = false;
+            }
+            if (isSwingHigh && currHigh > swingHigh) swingHigh = currHigh;
+            if (isSwingLow && currLow < swingLow) swingLow = currLow;
         }
-    };
+        if (swingHigh === 0) swingHigh = Math.max(...data.map(c => c.h));
+        if (swingLow === Infinity) swingLow = Math.min(...data.map(c => c.l));
+        return { swingHigh, swingLow };
+    }
     
-    const WEIGHTS = { adx: 25, ema: 20, rsi: 15, mtf: 20, zone: 20 };
+    function getFractalLookback() {
+        if (currentPair === "BTCUSDT") {
+            switch(currentTF) { case "5m": return 3; case "15m": return 4; case "1h": return 5; case "4h": return 5; default: return 4; }
+        } else {
+            switch(currentTF) { case "5m": return 2; case "15m": return 3; case "1h": return 4; case "4h": return 4; default: return 3; }
+        }
+    }
+    
+    function getMinRangeRequired() {
+        if (currentPair === "XAUUSDT") {
+            switch(currentTF) { case "5m": return 2.5; case "15m": return 5.0; case "1h": return 8.0; case "4h": return 15.0; default: return 5.0; }
+        } else {
+            switch(currentTF) { case "5m": return 250; case "15m": return 500; case "1h": return 800; case "4h": return 1200; default: return 500; }
+        }
+    }
+    
+    function detectValidSwingPoints() {
+        const candleArray = getCandleArray();
+        if (candleArray.length < 30) return { swingHigh: 0, swingLow: 0, range: 0 };
+        const lookback = getFractalLookback();
+        const minRange = getMinRangeRequired();
+        const dataSlice = candleArray.slice(-Math.min(candleArray.length, 100));
+        let { swingHigh, swingLow } = detectFractalSwingPoints(dataSlice, lookback);
+        let range = swingHigh - swingLow;
+        if (range < minRange && dataSlice.length > lookback * 3) {
+            const extendedLookback = Math.min(lookback + 2, 8);
+            const extendedResult = detectFractalSwingPoints(dataSlice, extendedLookback);
+            const extendedRange = extendedResult.swingHigh - extendedResult.swingLow;
+            if (extendedRange > range && extendedRange >= minRange * 0.8) {
+                swingHigh = extendedResult.swingHigh;
+                swingLow = extendedResult.swingLow;
+                range = extendedRange;
+            }
+        }
+        if (range <= 0 || swingHigh === 0 || swingLow === 0) {
+            swingHigh = Math.max(...dataSlice.map(c => c.h));
+            swingLow = Math.min(...dataSlice.map(c => c.l));
+            range = swingHigh - swingLow;
+        }
+        return { swingHigh, swingLow, range };
+    }
     
     // ==================== CONSOLE MANAGER ====================
     class ConsoleManager {
-        constructor() {
-            this.logs = this.loadLogs();
-            this.cleanExpired();
-        }
-        loadLogs() {
-            try { const stored = localStorage.getItem('ura_console_logs'); return stored ? JSON.parse(stored) : []; }
-            catch(e) { return []; }
-        }
+        constructor() { this.logs = this.loadLogs(); this.cleanExpired(); }
+        loadLogs() { try { const stored = localStorage.getItem('ura_console_logs'); return stored ? JSON.parse(stored) : []; } catch(e) { return []; } }
         saveLogs() { try { localStorage.setItem('ura_console_logs', JSON.stringify(this.logs)); } catch(e) {} }
-        cleanExpired() {
-            const now = Date.now();
-            this.logs = this.logs.filter(log => (now - log.timestamp) < CONSOLE_TTL_MS);
-            if (this.logs.length > CONSOLE_MAX_ENTRIES) this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES);
-            this.saveLogs();
-        }
-        addLog(pair, tf, bias, price, range, tp, sl) {
-            const prec = pair === "XAUUSDT" ? 2 : 1;
-            const tpDist = Math.abs(tp - price);
-            const slDist = Math.abs(sl - price);
-            const rr = (tpDist / slDist).toFixed(2);
-            const log = { timestamp: Date.now(), pair, tf, bias, price, range, tp, sl, tpDist, slDist, rr, prec };
-            this.logs.push(log);
-            this.cleanExpired();
-            this.saveLogs();
-            this.render();
-            return log;
-        }
-        addEventLog(event) {
-            const log = { timestamp: Date.now(), type: 'event', message: event };
-            this.logs.push(log);
-            this.cleanExpired();
-            this.saveLogs();
-            this.render();
-        }
-        formatLogLine(log) {
-            if (log.type === 'event') return `<span class="console-output" style="color:var(--accent-gold);">> ${log.message}</span>`;
-            const prec = log.prec || 2;
-            const biasClass = log.bias === 'BEARISH' ? 'bearish' : '';
-            return `<span class="console-output ${biasClass}">> ${log.pair} ${log.tf} | ${log.bias} | Price: ${log.price.toFixed(prec)} | Range: ${log.range.toFixed(prec)} | TP: ${log.tp.toFixed(prec)} (+${log.tpDist.toFixed(prec)}) | SL: ${log.sl.toFixed(prec)} (-${log.slDist.toFixed(prec)}) | R:R 1:${log.rr}</span>`;
-        }
-        render() {
-            const container = document.getElementById('console-f12');
-            if (!container) return;
-            const recentLogs = this.logs.slice(-5);
-            let html = '';
-            recentLogs.forEach(log => {
-                if (log.type === 'event') html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --event</span> ${this.formatLogLine(log)}</div>`;
-                else html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --status</span> ${this.formatLogLine(log)}</div>`;
-            });
-            html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd" style="opacity:0.5;">_</span></div>`;
-            container.innerHTML = html;
-        }
+        cleanExpired() { const now = Date.now(); this.logs = this.logs.filter(log => (now - log.timestamp) < CONSOLE_TTL_MS); if (this.logs.length > CONSOLE_MAX_ENTRIES) this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES); this.saveLogs(); }
+        addLog(pair, tf, bias, price, range, tp, sl) { const prec = pair === "XAUUSDT" ? 2 : 1; const tpDist = Math.abs(tp - price); const slDist = Math.abs(sl - price); const rr = (tpDist / slDist).toFixed(2); const log = { timestamp: Date.now(), pair, tf, bias, price, range, tp, sl, tpDist, slDist, rr, prec }; this.logs.push(log); this.cleanExpired(); this.saveLogs(); this.render(); return log; }
+        addEventLog(event) { const log = { timestamp: Date.now(), type: 'event', message: event }; this.logs.push(log); this.cleanExpired(); this.saveLogs(); this.render(); }
+        formatLogLine(log) { if (log.type === 'event') return `<span class="console-output" style="color:var(--accent-gold);">> ${log.message}</span>`; const prec = log.prec || 2; const biasClass = log.bias === 'BEARISH' ? 'bearish' : ''; return `<span class="console-output ${biasClass}">> ${log.pair} ${log.tf} | ${log.bias} | Price: ${log.price.toFixed(prec)} | Range: ${log.range.toFixed(prec)} | TP: ${log.tp.toFixed(prec)} (+${log.tpDist.toFixed(prec)}) | SL: ${log.sl.toFixed(prec)} (-${log.slDist.toFixed(prec)}) | R:R 1:${log.rr}</span>`; }
+        render() { const container = document.getElementById('console-f12'); if (!container) return; const recentLogs = this.logs.slice(-5); let html = ''; recentLogs.forEach(log => { if (log.type === 'event') html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --event</span> ${this.formatLogLine(log)}</div>`; else html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --status</span> ${this.formatLogLine(log)}</div>`; }); html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd" style="opacity:0.5;">_</span></div>`; container.innerHTML = html; }
     }
     
     const consoleManager = new ConsoleManager();
     
-    window.copyText = function(...args) {
-        let text = '';
-        if (args.length === 1 && typeof args[0] === 'string') {
-            const el = document.getElementById(args[0]);
-            if (el) text = el.textContent.trim();
-        } else if (args.length >= 2) {
-            const el1 = document.getElementById(args[0]);
-            const el2 = args[1] ? document.getElementById(args[1]) : null;
-            const label = args[2] || '';
-            if (el1 && el2) text = `${label}: ${el1.textContent} / ${el2.textContent}`;
-            else if (el1) text = el1.textContent.trim();
-        }
-        if (text) navigator.clipboard?.writeText(text).catch(() => {
-            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-        });
-    };
-    
-    window.copyConsoleLine = function(el) {
-        const text = el.textContent.trim();
-        navigator.clipboard?.writeText(text).catch(() => {
-            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
-        });
-    };
+    window.copyText = function(...args) { let text = ''; if (args.length === 1 && typeof args[0] === 'string') { const el = document.getElementById(args[0]); if (el) text = el.textContent.trim(); } else if (args.length >= 2) { const el1 = document.getElementById(args[0]); const el2 = args[1] ? document.getElementById(args[1]) : null; const label = args[2] || ''; if (el1 && el2) text = `${label}: ${el1.textContent} / ${el2.textContent}`; else if (el1) text = el1.textContent.trim(); } if (text) navigator.clipboard?.writeText(text).catch(() => { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }); };
+    window.copyConsoleLine = function(el) { const text = el.textContent.trim(); navigator.clipboard?.writeText(text).catch(() => { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }); };
     
     class CircularBuffer {
         constructor(maxSize) { this.maxSize = maxSize; this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap = new Map(); }
-        push(item) {
-            if (this.timestampMap.has(item.t)) { this.data[this.timestampMap.get(item.t)] = item; return; }
-            if (this.length < this.maxSize) { this.data.push(item); this.timestampMap.set(item.t, this.length); this.length++; this.end = this.length; }
-            else { const old = this.data[this.start]; if (old) this.timestampMap.delete(old.t); this.data[this.start] = item; this.timestampMap.set(item.t, this.start); this.start = (this.start + 1) % this.maxSize; this.end = (this.end + 1) % this.maxSize; }
-        }
+        push(item) { if (this.timestampMap.has(item.t)) { this.data[this.timestampMap.get(item.t)] = item; return; } if (this.length < this.maxSize) { this.data.push(item); this.timestampMap.set(item.t, this.length); this.length++; this.end = this.length; } else { const old = this.data[this.start]; if (old) this.timestampMap.delete(old.t); this.data[this.start] = item; this.timestampMap.set(item.t, this.start); this.start = (this.start + 1) % this.maxSize; this.end = (this.end + 1) % this.maxSize; } }
         getLatest() { if (this.length === 0) return null; return this.data[(this.end - 1 + this.maxSize) % this.maxSize]; }
         toArray() { if (this.length === 0) return []; const r = []; for (let i = 0; i < this.length; i++) r.push(this.data[(this.start + i) % this.maxSize]); return r; }
         clear() { this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap.clear(); }
@@ -525,88 +499,16 @@
     };
     
     const PAIR_CONFIG = {
-        XAUUSDT: { adxThreshold: 24, rsiOverbought: 75, rsiOversold: 25, atrPeriod: 14, entryZoneATRFactor: 0.3 },
-        BTCUSDT: { adxThreshold: 22, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, entryZoneATRFactor: 0.5 }
+        XAUUSDT: { adxThreshold: 24, rsiOverbought: 75, rsiOversold: 25, atrPeriod: 14, entryZoneATRFactor: 0.2 },
+        BTCUSDT: { adxThreshold: 22, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, entryZoneATRFactor: 0.3 }
     };
     
-    function getTradingViewSwingPoints() {
-        const pairSwings = TRADINGVIEW_SWINGS[currentPair];
-        if (!pairSwings) return { swingHigh: 0, swingLow: 0 };
-        return pairSwings[currentTF] || pairSwings['15m'] || { swingHigh: 0, swingLow: 0 };
-    }
+    function calculateEMA(data, period) { if (!data || data.length < period) return 0; const closes = data.slice(-period * 2).map(c => c.c); if (closes.length < period) return 0; let ema = closes.slice(0, period).reduce((a,b) => a+b,0) / period; const multiplier = 2/(period+1); for (let i=period; i<closes.length; i++) ema = (closes[i]-ema)*multiplier + ema; return ema; }
+    function calculateATR(data, period=14) { if (!data || data.length < period+1) return 0; let tr = []; for (let i=1; i<data.length; i++) { const h = data[i].h, l = data[i].l, pc = data[i-1].c; tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc))); } if (tr.length < period) return 0; return tr.slice(-period).reduce((a,b)=>a+b,0)/period; }
+    function calculateADX(data) { if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 }; const period=14; let tr=[], plusDM=[], minusDM=[]; for (let i=1; i<data.length; i++) { const h=data[i].h, l=data[i].l, ph=data[i-1].h, pl=data[i-1].l, pc=data[i-1].c; tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc))); const upMove = h-ph, downMove = pl-l; if (upMove > downMove && upMove>0) { plusDM.push(upMove); minusDM.push(0); } else if (downMove > upMove && downMove>0) { plusDM.push(0); minusDM.push(downMove); } else { plusDM.push(0); minusDM.push(0); } } let atr = tr.slice(0,period).reduce((a,b)=>a+b,0); let pDM = plusDM.slice(0,period).reduce((a,b)=>a+b,0); let mDM = minusDM.slice(0,period).reduce((a,b)=>a+b,0); let dxValues=[], lastPDI=0, lastMDI=0; for (let i=period; i<tr.length; i++) { atr = (atr*(period-1)+tr[i])/period; pDM = (pDM*(period-1)+plusDM[i])/period; mDM = (mDM*(period-1)+minusDM[i])/period; lastPDI = atr>0 ? (pDM/atr)*100 : 0; lastMDI = atr>0 ? (mDM/atr)*100 : 0; const dx = (lastPDI+lastMDI)>0 ? (Math.abs(lastPDI-lastMDI)/(lastPDI+lastMDI))*100 : 0; dxValues.push(dx); } let adxValue = 15; if (dxValues.length>=period) { let smoothedADX = dxValues.slice(0,period).reduce((a,b)=>a+b,0)/period; for (let i=period; i<dxValues.length; i++) smoothedADX = (smoothedADX*(period-1)+dxValues[i])/period; adxValue = smoothedADX; } return { adx: Math.max(5, Math.min(100, adxValue)), plusDI: lastPDI, minusDI: lastMDI }; }
+    function computeRSI(data) { if (data.length<15) return 50; const closes = data.map(c=>c.c); let gains=[], losses=[]; for (let i=1; i<closes.length; i++) { const diff = closes[i]-closes[i-1]; gains.push(diff>0?diff:0); losses.push(diff<0?-diff:0); } let avgG = gains.slice(0,14).reduce((a,b)=>a+b,0)/14; let avgL = losses.slice(0,14).reduce((a,b)=>a+b,0)/14; for (let i=14; i<gains.length; i++) { avgG = (avgG*13+gains[i])/14; avgL = (avgL*13+losses[i])/14; } return avgL===0?100:100-(100/(1+avgG/avgL)); }
     
-    function calculateEMA(data, period) { 
-        if (!data || data.length < period) return 0;
-        const closes = data.slice(-period * 2).map(c => c.c);
-        if (closes.length < period) return 0;
-        let ema = closes.slice(0, period).reduce((a,b) => a+b,0) / period;
-        const multiplier = 2/(period+1);
-        for (let i=period; i<closes.length; i++) ema = (closes[i]-ema)*multiplier + ema;
-        return ema;
-    }
-    
-    function calculateATR(data, period=14) { 
-        if (!data || data.length < period+1) return 0;
-        let tr = [];
-        for (let i=1; i<data.length; i++) {
-            const h = data[i].h, l = data[i].l, pc = data[i-1].c;
-            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
-        }
-        if (tr.length < period) return 0;
-        return tr.slice(-period).reduce((a,b)=>a+b,0)/period;
-    }
-    
-    function calculateADX(data) {
-        if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 };
-        const period=14;
-        let tr=[], plusDM=[], minusDM=[];
-        for (let i=1; i<data.length; i++) {
-            const h=data[i].h, l=data[i].l, ph=data[i-1].h, pl=data[i-1].l, pc=data[i-1].c;
-            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc)));
-            const upMove = h-ph, downMove = pl-l;
-            if (upMove > downMove && upMove>0) { plusDM.push(upMove); minusDM.push(0); }
-            else if (downMove > upMove && downMove>0) { plusDM.push(0); minusDM.push(downMove); }
-            else { plusDM.push(0); minusDM.push(0); }
-        }
-        let atr = tr.slice(0,period).reduce((a,b)=>a+b,0);
-        let pDM = plusDM.slice(0,period).reduce((a,b)=>a+b,0);
-        let mDM = minusDM.slice(0,period).reduce((a,b)=>a+b,0);
-        let dxValues=[], lastPDI=0, lastMDI=0;
-        for (let i=period; i<tr.length; i++) {
-            atr = (atr*(period-1)+tr[i])/period;
-            pDM = (pDM*(period-1)+plusDM[i])/period;
-            mDM = (mDM*(period-1)+minusDM[i])/period;
-            lastPDI = atr>0 ? (pDM/atr)*100 : 0;
-            lastMDI = atr>0 ? (mDM/atr)*100 : 0;
-            const dx = (lastPDI+lastMDI)>0 ? (Math.abs(lastPDI-lastMDI)/(lastPDI+lastMDI))*100 : 0;
-            dxValues.push(dx);
-        }
-        let adxValue = 15;
-        if (dxValues.length>=period) {
-            let smoothedADX = dxValues.slice(0,period).reduce((a,b)=>a+b,0)/period;
-            for (let i=period; i<dxValues.length; i++) smoothedADX = (smoothedADX*(period-1)+dxValues[i])/period;
-            adxValue = smoothedADX;
-        }
-        return { adx: Math.max(5, Math.min(100, adxValue)), plusDI: lastPDI, minusDI: lastMDI };
-    }
-    
-    function computeRSI(data) {
-        if (data.length<15) return 50;
-        const closes = data.map(c=>c.c);
-        let gains=[], losses=[];
-        for (let i=1; i<closes.length; i++) {
-            const diff = closes[i]-closes[i-1];
-            gains.push(diff>0?diff:0); losses.push(diff<0?-diff:0);
-        }
-        let avgG = gains.slice(0,14).reduce((a,b)=>a+b,0)/14;
-        let avgL = losses.slice(0,14).reduce((a,b)=>a+b,0)/14;
-        for (let i=14; i<gains.length; i++) {
-            avgG = (avgG*13+gains[i])/14;
-            avgL = (avgL*13+losses[i])/14;
-        }
-        return avgL===0?100:100-(100/(1+avgG/avgL));
-    }
-    
+    const WEIGHTS = { adx: 25, ema: 20, rsi: 15, mtf: 20, zone: 20 };
     function calculateWeightedScore(adx, ema21, lastPrice, rsi, mtfBullishCount, inZone, config) {
         let weightedSum = 0, totalWeight = 0;
         let adxScore = adx >= 40 ? 100 : adx >= 30 ? 80 : adx >= config.adxThreshold ? 60 : adx >= 20 ? 30 : 0;
@@ -623,57 +525,27 @@
     }
     
     let lastLogHash = '';
+    let engine = { swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL", adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0, entryZoneLow: 0, entryZoneHigh: 0, tp: 0, sl: 0 };
+    let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
+    let currentTF = localStorage.getItem('lastTF') || "15m";
+    let wsConnection = null, candleBuffer = new CircularBuffer(150);
+    let isReloading = false, reloadQueue = false, currentRequestId = null;
+    let lastPriceUpdateTime = 0, lastWSMessageTime = 0;
+    let isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
+    let reconnectDelay = 1000, reconnectTimer = null;
+    let lastPrice = 0, prevPrice = 0;
+    let lastUIUpdateTime = 0, pendingUIUpdate = false;
+    let cachedCandleArray = null, lastCacheTime = 0;
     
-    function updateLevels(signalAction) {
-        const candleArray = getCandleArray();
-        if (candleArray.length === 0) return;
-        const { swingHigh, swingLow } = getTradingViewSwingPoints();
-        engine.swingHigh = swingHigh; engine.swingLow = swingLow;
-        const range = swingHigh - swingLow;
-        if (range <= 0) return;
-        const price = lastPrice;
-        
-        let levelBias;
-        if (signalAction === "BUY") levelBias = "BULLISH";
-        else if (signalAction === "SELL") levelBias = "BEARISH";
-        else levelBias = engine.adxBias !== "NEUTRAL" ? engine.adxBias : (price > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH");
-        engine.bias = levelBias;
-        
-        const atr = calculateATR(candleArray, getConfig().atrPeriod);
-        engine.atr = atr;
-        const entryFactor = getConfig().entryZoneATRFactor;
-        
-        const f618 = levelBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
-        const f786 = levelBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
-        engine.entryZoneLow = Math.min(f618, f786) - atr * entryFactor;
-        engine.entryZoneHigh = Math.max(f618, f786) + atr * entryFactor;
-        
-        const tpDistance = range * TP_RANGE_PCT;
-        const fib065 = levelBias === "BULLISH" ? swingLow + range*0.65 : swingHigh - range*0.65;
-        
-        if (levelBias === "BULLISH") {
-            engine.tp = fib065 + tpDistance;
-            engine.sl = fib065 - (tpDistance * SL_TP_RATIO);
-        } else {
-            engine.tp = fib065 - tpDistance;
-            engine.sl = fib065 + (tpDistance * SL_TP_RATIO);
-        }
-        
-        const prec = getPrecision();
-        UI.swingHigh.textContent = swingHigh.toFixed(prec);
-        UI.swingLow.textContent = swingLow.toFixed(prec);
-        UI.entryZoneLow.textContent = engine.entryZoneLow.toFixed(prec);
-        UI.entryZoneHigh.textContent = engine.entryZoneHigh.toFixed(prec);
-        UI.tpValue.textContent = engine.tp.toFixed(prec);
-        UI.slValue.textContent = engine.sl.toFixed(prec);
-        const rangePoints = currentPair === "XAUUSDT" ? range.toFixed(2) : range.toFixed(1);
-        UI.rangeValue.textContent = `${rangePoints} pts`;
-        
-        const currentHash = `${currentPair}_${currentTF}_${levelBias}_${price.toFixed(prec)}`;
-        if (currentHash !== lastLogHash && signalAction) {
-            consoleManager.addLog(currentPair, currentTF, levelBias, price, range, engine.tp, engine.sl);
-            lastLogHash = currentHash;
-        }
+    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
+    function getConfig() { return PAIR_CONFIG[currentPair]; }
+    function getCandleArray() { const now = Date.now(); if (!cachedCandleArray || (now - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = now; } return cachedCandleArray; }
+    function invalidateCandleCache() { cachedCandleArray = null; }
+    
+    function throttledUIUpdate(price, force = false) {
+        const now = Date.now();
+        if (force || now - lastUIUpdateTime >= 100) { lastUIUpdateTime = now; updateUI(price); pendingUIUpdate = false; }
+        else if (!pendingUIUpdate) { pendingUIUpdate = true; setTimeout(() => { if (pendingUIUpdate) { updateUI(lastPrice); pendingUIUpdate = false; } }, 100); }
     }
     
     let mtfBiasCache = { h4: "NEUTRAL", h1: "NEUTRAL", m15: "NEUTRAL", m5: "NEUTRAL", timestamp: 0, pair: null };
@@ -687,9 +559,7 @@
     
     async function updateMTFBias() {
         const now = Date.now();
-        if (mtfBiasCache.timestamp && (now - mtfBiasCache.timestamp) < 120000 && mtfBiasCache.pair === currentPair) {
-            updateTimeframeBiasUI(); return;
-        }
+        if (mtfBiasCache.timestamp && (now - mtfBiasCache.timestamp) < 120000 && mtfBiasCache.pair === currentPair) { updateTimeframeBiasUI(); return; }
         const tfs = [{ id: '4h', label: 'h4', apiInterval: '4h' }, { id: '1h', label: 'h1', apiInterval: '1h' }, { id: '15m', label: 'm15', apiInterval: '15m' }, { id: '5m', label: 'm5', apiInterval: '5m' }];
         for (const tf of tfs) {
             try {
@@ -723,27 +593,78 @@
         });
     }
     
-    let engine = { swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL", adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0, entryZoneLow: 0, entryZoneHigh: 0, tp: 0, sl: 0 };
-    let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
-    let currentTF = localStorage.getItem('lastTF') || "15m";
-    let wsConnection = null, candleBuffer = new CircularBuffer(150);
-    let isReloading = false, reloadQueue = false, currentRequestId = null;
-    let lastPriceUpdateTime = 0, lastWSMessageTime = 0;
-    let isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
-    let reconnectDelay = 1000, reconnectTimer = null;
-    let lastPrice = 0, prevPrice = 0;
-    let lastUIUpdateTime = 0, pendingUIUpdate = false;
-    let cachedCandleArray = null, lastCacheTime = 0;
-    
-    function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
-    function getConfig() { return PAIR_CONFIG[currentPair]; }
-    function getCandleArray() { const now = Date.now(); if (!cachedCandleArray || (now - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = now; } return cachedCandleArray; }
-    function invalidateCandleCache() { cachedCandleArray = null; }
-    
-    function throttledUIUpdate(price, force = false) {
-        const now = Date.now();
-        if (force || now - lastUIUpdateTime >= 100) { lastUIUpdateTime = now; updateUI(price); pendingUIUpdate = false; }
-        else if (!pendingUIUpdate) { pendingUIUpdate = true; setTimeout(() => { if (pendingUIUpdate) { updateUI(lastPrice); pendingUIUpdate = false; } }, 100); }
+    // ==================== PERBAIKAN UTAMA: updateLevels DENGAN FRACTAL ====================
+    function updateLevels(signalAction) {
+        const candleArray = getCandleArray();
+        if (candleArray.length === 0) return;
+        
+        // GUNAKAN DETEKSI SWING FRACTAL
+        const { swingHigh, swingLow, range } = detectValidSwingPoints();
+        if (range <= 0) return;
+        
+        engine.swingHigh = swingHigh;
+        engine.swingLow = swingLow;
+        const price = lastPrice;
+        const ema21 = calculateEMA(candleArray, 21);
+        
+        // Sinkronisasi Tren
+        let levelBias;
+        const emaBias = price > ema21 ? "BULLISH" : "BEARISH";
+        const adxBias = engine.adxBias;
+        
+        if (signalAction === "BUY") levelBias = "BULLISH";
+        else if (signalAction === "SELL") levelBias = "BEARISH";
+        else levelBias = (adxBias !== "NEUTRAL") ? adxBias : emaBias;
+        
+        engine.bias = levelBias;
+        
+        const atr = calculateATR(candleArray, getConfig().atrPeriod);
+        engine.atr = atr;
+        const entryFactor = getConfig().entryZoneATRFactor;
+        
+        // Entry Zone 0.618 - 0.786
+        let f618, f786;
+        if (levelBias === "BULLISH") {
+            f618 = swingLow + range * 0.618;
+            f786 = swingLow + range * 0.786;
+        } else {
+            f618 = swingHigh - range * 0.618;
+            f786 = swingHigh - range * 0.786;
+        }
+        
+        const zoneLow = Math.min(f618, f786) - (atr * entryFactor);
+        const zoneHigh = Math.max(f618, f786) + (atr * entryFactor);
+        engine.entryZoneLow = zoneLow;
+        engine.entryZoneHigh = zoneHigh;
+        
+        // TP = 27% Range
+        const tpDistance = range * TP_RANGE_PCT;
+        let entryReference;
+        if (levelBias === "BULLISH") {
+            entryReference = engine.entryZoneHigh;
+            engine.tp = entryReference + tpDistance;
+            engine.sl = entryReference - (tpDistance * SL_TP_RATIO);
+        } else {
+            entryReference = engine.entryZoneLow;
+            engine.tp = entryReference - tpDistance;
+            engine.sl = entryReference + (tpDistance * SL_TP_RATIO);
+        }
+        
+        const prec = getPrecision();
+        UI.swingHigh.textContent = swingHigh.toFixed(prec);
+        UI.swingLow.textContent = swingLow.toFixed(prec);
+        UI.entryZoneLow.textContent = engine.entryZoneLow.toFixed(prec);
+        UI.entryZoneHigh.textContent = engine.entryZoneHigh.toFixed(prec);
+        UI.tpValue.textContent = engine.tp.toFixed(prec);
+        UI.slValue.textContent = engine.sl.toFixed(prec);
+        const rangePoints = currentPair === "XAUUSDT" ? range.toFixed(2) : range.toFixed(1);
+        UI.rangeValue.textContent = `${rangePoints} pts`;
+        
+        const currentHash = `${currentPair}_${currentTF}_${levelBias}_${price.toFixed(prec)}_${swingHigh.toFixed(prec)}`;
+        if (currentHash !== lastLogHash) {
+            consoleManager.addLog(currentPair, currentTF, levelBias, price, range, engine.tp, engine.sl);
+            lastLogHash = currentHash;
+        }
     }
     
     function updateDecision() {
@@ -774,12 +695,11 @@
         UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
         UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
         
-        const { swingHigh, swingLow } = getTradingViewSwingPoints();
-        const range = swingHigh - swingLow;
-        
-        const tempBias = engine.adxBias !== "NEUTRAL" ? engine.adxBias : (p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH");
+        // Gunakan Fractal Swing untuk inZone check
+        const { swingHigh, swingLow, range } = detectValidSwingPoints();
         const atr = calculateATR(candleArray, config.atrPeriod);
         
+        const tempBias = engine.adxBias !== "NEUTRAL" ? engine.adxBias : (p > (swingHigh+swingLow)/2 ? "BULLISH" : "BEARISH");
         const f618 = tempBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
         const f786 = tempBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
         const entryLow = Math.min(f618, f786) - atr * config.entryZoneATRFactor;
@@ -790,7 +710,10 @@
         let weightedScore = calculateWeightedScore(engine.adx, engine.ema21, p, rsi, bullishCount, inZoneTemp, config);
         weightedScore = Math.min(100, Math.max(0, weightedScore));
         
-        const direction = engine.adxBias, action = direction === "BULLISH" ? "BUY" : "SELL";
+        let direction, action;
+        if (p > engine.ema21) { direction = "BULLISH"; action = "BUY"; }
+        else { direction = "BEARISH"; action = "SELL"; }
+        
         UI.arrow.innerHTML = direction === "BULLISH" ? '▲' : '▼';
         UI.arrow.style.color = direction === "BULLISH" ? 'var(--accent-green)' : 'var(--accent-red)';
         
@@ -910,7 +833,7 @@
         document.querySelectorAll('[data-pair]').forEach(btn => { if (btn.getAttribute('data-pair') === currentPair) btn.classList.add('active'); else btn.classList.remove('active'); });
         document.querySelectorAll('.tf-btn').forEach(btn => { const tf = btn.getAttribute('data-tf'); if (tf === currentTF) btn.classList.add('active'); else btn.classList.remove('active'); });
         updateWSStatus('connecting','LOADING');
-        consoleManager.addEventLog(`Switched to ${currentPair} ${currentTF}`);
+        consoleManager.addEventLog(`Switched to ${currentPair} ${currentTF} [FRACTAL]`);
         await fetchKlines(); if (currentRequestId !== requestId) { isReloading = false; return; }
         await updateMTFBias(); if (currentRequestId !== requestId) { isReloading = false; return; }
         initWebSocket();
