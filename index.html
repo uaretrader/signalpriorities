@@ -350,15 +350,15 @@
 
     <div class="levels-grid-vertical" id="levels-grid">
         <div class="level-row" onclick="copyText('swing-high', 'swing-low', 'Swing')">
-            <span class="level-label-lg">SWING (FRACTAL)</span>
+            <span class="level-label-lg">SWING HIGH/LOW</span>
             <span class="level-value-lg"><span id="swing-high">—</span> / <span id="swing-low">—</span></span>
         </div>
         <div class="level-row" onclick="copyText('sl-value', null, 'SL')">
-            <span class="level-label-lg">SL (50% TP)</span>
+            <span class="level-label-lg">STOP LOSS</span>
             <span class="level-value-lg text-red" id="sl-value">—</span>
         </div>
         <div class="level-row" onclick="copyText('entry-zone-low', 'entry-zone-high', 'Entry Zone')">
-            <span class="level-label-lg">ENTRY ZONE (0.618-0.786)</span>
+            <span class="level-label-lg">ENTRY ZONE</span>
             <span class="level-value-lg"><span class="text-gold" id="entry-zone-low">—</span> / <span class="text-gold" id="entry-zone-high">—</span></span>
         </div>
         <div class="level-row" onclick="copyText('tp-value', null, 'TP')">
@@ -392,7 +392,7 @@
     
     // ==================== KONFIGURASI ====================
     const TP_RANGE_PCT = 0.27;
-    const SL_TP_RATIO = 0.5;
+    const SL_TP_RATIO = 1;
     const CONSOLE_MAX_ENTRIES = 50;
     const CONSOLE_TTL_MS = 24 * 60 * 60 * 1000;
     
