@@ -269,7 +269,6 @@
         .text-blue { color: var(--accent-blue); }
         .text-cyan { color: var(--accent-cyan); }
         
-        /* Scrollbar styling */
         ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
         ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
@@ -390,13 +389,12 @@
 (function() {
     'use strict';
     
-    // ==================== KONFIGURASI ====================
     const TP_RANGE_PCT = 0.27;
     const SL_TP_RATIO = 0.5;
     const CONSOLE_MAX_ENTRIES = 50;
     const CONSOLE_TTL_MS = 24 * 60 * 60 * 1000;
     
-    // ==================== SWING POINTS ====================
+    // ==================== SWING POINTS (FINAL AKURAT) ====================
     const TRADINGVIEW_SWINGS = {
         XAUUSDT: {
             '4h': { swingHigh: 4871.380, swingLow: 4644.465 },
@@ -406,15 +404,14 @@
         },
         BTCUSDT: {
             '4h': { swingHigh: 76126.5, swingLow: 65698.0 },
-            '1h': { swingHigh: 78545.0, swingLow: 73335.0 },
-            '15m': { swingHigh: 78358.5, swingLow: 75127.5 },
-            '5m': { swingHigh: 78358.5, swingLow: 77127.5 }
+            '1h': { swingHigh: 75545.0, swingLow: 73335.0 },  // <-- DIKOREKSI (H1)
+            '15m': { swingHigh: 78358.5, swingLow: 77059.5 },
+            '5m': { swingHigh: 77678.0, swingLow: 77059.5 }
         }
     };
     
     const WEIGHTS = { adx: 25, ema: 20, rsi: 15, mtf: 20, zone: 20 };
     
-    // ==================== CONSOLE MANAGER ====================
     class ConsoleManager {
         constructor() {
             this.logs = this.loadLogs();
