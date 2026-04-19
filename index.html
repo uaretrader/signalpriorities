@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v2.1 – THRESHOLD EDITION</title>
+    <title>URA v2.1 – UR ADVISOR</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -369,7 +369,7 @@
 (function() {
     'use strict';
     
-    // ==================== KONFIGURASI OPTIMIZED ====================
+    // ==================== KONFIGURASI v2.1 ASLI (TIDAK DIUBAH) ====================
     const TP_RANGE_PCT = 0.27;
     const SL_TP_RATIO_CONSERVATIVE = 1.2;
     const SL_TP_RATIO_SNIPER = 0.9;
@@ -380,7 +380,7 @@
     const CONSOLE_MAX_ENTRIES = 50;
     const CONSOLE_TTL_MS = 24 * 60 * 60 * 1000;
     
-    // ==================== THRESHOLD SINYAL PER MODE (NEW v2.1) ====================
+    // ==================== THRESHOLD SINYAL PER MODE (TIDAK DIUBAH) ====================
     const THRESHOLDS = {
         conservative: { strong: 80, zone: 65, wait: 70, weakAdx: 22 },
         sniper: { strong: 70, zone: 55, wait: 60, weakAdx: 20 }
@@ -388,8 +388,13 @@
     
     let currentMode = localStorage.getItem('ura_mode') || 'conservative';
     
-    // ==================== FUNGSI FRACTAL SWING (FIXED) ====================
-    function detectFractalSwingPoints(data, lookback = 3) {
+    // ==================== PURE FRACTAL + 30 CANDLE (HANYA INI YANG DIUBAH) ====================
+    const FRACTAL_LOOKBACK = 2; // Pure Bill Williams
+    const DATA_SLICE_CANDLES = 30; // Responsif struktur terbaru
+    
+    function detectFractalSwingPoints(data) {
+        const lookback = FRACTAL_LOOKBACK;
+        
         if (!data || data.length < lookback * 2 + 1) {
             if (data && data.length > 0) {
                 const highs = data.map(c => c.h);
@@ -427,22 +432,6 @@
         return { swingHigh, swingLow };
     }
     
-    function getFractalLookback() {
-        if (currentPair === "BTCUSDT") {
-            switch(currentTF) { case "5m": return 3; case "15m": return 4; case "1h": return 5; case "4h": return 5; default: return 4; }
-        } else {
-            switch(currentTF) { case "5m": return 3; case "15m": return 3; case "1h": return 4; case "4h": return 4; default: return 3; }
-        }
-    }
-    
-    function getMinRangeRequired() {
-        if (currentPair === "XAUUSDT") {
-            switch(currentTF) { case "5m": return 4.0; case "15m": return 6.0; case "1h": return 10.0; case "4h": return 18.0; default: return 6.0; }
-        } else {
-            switch(currentTF) { case "5m": return 300; case "15m": return 600; case "1h": return 1000; case "4h": return 1500; default: return 600; }
-        }
-    }
-    
     function detectValidSwingPoints() {
         const candleArray = getCandleArray();
         if (candleArray.length < 20) {
@@ -453,23 +442,11 @@
             };
         }
         
-        const lookback = getFractalLookback();
-        const minRange = getMinRangeRequired();
-        const dataSlice = candleArray.slice(-Math.min(candleArray.length, 100));
+        // v2.1 FINAL: Hanya 30 candle terakhir
+        const dataSlice = candleArray.slice(-Math.min(candleArray.length, DATA_SLICE_CANDLES));
         
-        let { swingHigh, swingLow } = detectFractalSwingPoints(dataSlice, lookback);
+        let { swingHigh, swingLow } = detectFractalSwingPoints(dataSlice);
         let range = swingHigh - swingLow;
-        
-        if (range < minRange && dataSlice.length > lookback * 3) {
-            const extendedLookback = Math.min(lookback + 2, 6);
-            const extendedResult = detectFractalSwingPoints(dataSlice, extendedLookback);
-            const extendedRange = extendedResult.swingHigh - extendedResult.swingLow;
-            if (extendedRange > range && extendedRange >= minRange * 0.7) {
-                swingHigh = extendedResult.swingHigh;
-                swingLow = extendedResult.swingLow;
-                range = extendedRange;
-            }
-        }
         
         if (range <= 0 || isNaN(range) || !isFinite(range)) {
             swingHigh = Math.max(...dataSlice.map(c => c.h));
@@ -480,7 +457,7 @@
         return { swingHigh, swingLow, range };
     }
     
-    // ==================== CONSOLE MANAGER ====================
+    // ==================== CONSOLE MANAGER (TIDAK DIUBAH) ====================
     class ConsoleManager {
         constructor() { this.logs = this.loadLogs(); this.cleanExpired(); }
         loadLogs() { try { const stored = localStorage.getItem('ura_console_logs_v2'); return stored ? JSON.parse(stored) : []; } catch(e) { return []; } }
@@ -516,14 +493,14 @@
                 if (log.type === 'event') html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd">ura --event</span> ${this.formatLogLine(log)}</div>`; 
                 else html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd">ura --signal</span> ${this.formatLogLine(log)}</div>`; 
             }); 
-            html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd" style="opacity:0.4;">_ ready</span></div>`; 
+            html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd" style="opacity:0.4;">_ pure fractal 30c ready</span></div>`; 
             container.innerHTML = html; 
         }
     }
     
     const consoleManager = new ConsoleManager();
     
-    // ==================== SMART COPY (FIXED v2.1) ====================
+    // ==================== SMART COPY (TIDAK DIUBAH) ====================
     window.copyText = function(...args) { 
         let text = ''; 
         if (args.length === 1 && typeof args[0] === 'string') { 
@@ -808,7 +785,7 @@
         }
     }
     
-    // ==================== updateDecision DENGAN THRESHOLD DINAMIS (v2.1) ====================
+    // ==================== updateDecision (TIDAK DIUBAH) ====================
     function updateDecision() {
         if (isDataStale) { UI.decision.textContent = 'DATA STALE'; UI.decision.style.color = 'var(--warning)'; UI.signalBar.style.background = 'rgba(239, 68, 68, 0.1)'; return; }
         const candleArray = getCandleArray();
@@ -860,7 +837,6 @@
         UI.arrow.innerHTML = direction === "BULLISH" ? '▲' : '▼';
         UI.arrow.style.color = direction === "BULLISH" ? 'var(--accent-green)' : 'var(--accent-red)';
         
-        // ========== THRESHOLD BERBASIS MODE (v2.1) ==========
         const thresholds = THRESHOLDS[currentMode] || THRESHOLDS.conservative;
         const isRanging = engine.adx < 18;
         const isWeakTrend = engine.adx < thresholds.weakAdx && engine.adx >= 18;
@@ -1001,7 +977,7 @@
         updateWSStatus('connecting','LOADING');
         
         const thresholds = THRESHOLDS[currentMode] || THRESHOLDS.conservative;
-        consoleManager.addEventLog(`INIT ${currentPair} ${currentTF} | MODE: ${currentMode.toUpperCase()} | TH: STRONG ${thresholds.strong}%`);
+        consoleManager.addEventLog(`INIT ${currentPair} ${currentTF} | MODE: ${currentMode.toUpperCase()} | PURE FRACTAL 30c`);
         
         await fetchKlines(); if (currentRequestId !== requestId) { isReloading = false; return; }
         await updateMTFBias(); if (currentRequestId !== requestId) { isReloading = false; return; }
