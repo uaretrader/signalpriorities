@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v2.0 – UR ADVISOR OPTIMIZED</title>
+    <title>URA v1.0 – UR ADVISOR</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         :root { 
-            --bg-primary: #0F0F0F;
-            --bg-secondary: #1A1A1A;
-            --bg-tertiary: #262626;
-            --border-subtle: #333333;
-            --text-primary: #F5F5F5;
+            --bg-primary: #1A1A1A;
+            --bg-secondary: #262626;
+            --bg-tertiary: #333333;
+            --border-subtle: #404040;
+            --text-primary: #E5E5E5;
             --text-secondary: #A3A3A3;
             --text-tertiary: #737373;
-            --accent-green: #10B981;
-            --accent-red: #EF4444;
-            --accent-blue: #3B82F6;
-            --accent-purple: #8B5CF6;
-            --accent-gold: #F59E0B;
-            --accent-cyan: #06B6D4;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --silver-line: #404040;
+            --accent-green: #4ADE80;
+            --accent-red: #F87171;
+            --accent-blue: #60A5FA;
+            --accent-purple: #A78BFA;
+            --accent-orange: #FBBF24;
+            --accent-gold: #FBBF24;
+            --accent-cyan: #67E8F9;
+            --success: #4ADE80;
+            --warning: #FBBF24;
+            --danger: #F87171;
+            --silver-line: #525252;
         }
         
         body { 
@@ -46,8 +47,8 @@
             flex-direction: column;
             height: 100vh;
             width: 100%;
-            padding: 10px 14px;
-            gap: 6px;
+            padding: 12px 16px;
+            gap: 8px;
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -56,82 +57,87 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 6px;
+            padding-bottom: 8px;
             border-bottom: 1px solid var(--border-subtle);
             flex-shrink: 0;
         }
         
-        .logo-section { display: flex; align-items: baseline; gap: 8px; }
-        .logo { font-weight: 700; font-size: 0.9rem; letter-spacing: -0.3px; color: var(--text-primary); }
+        .logo-section { display: flex; align-items: baseline; gap: 10px; }
+        .logo { font-weight: 700; font-size: 0.95rem; letter-spacing: -0.3px; color: var(--text-primary); }
         .logo-accent { color: var(--accent-cyan); font-weight: 800; }
         .version-tag { 
-            font-size: 0.5rem; 
-            font-weight: 700; 
-            color: var(--accent-gold); 
-            background: rgba(245, 158, 11, 0.15); 
-            padding: 2px 6px; 
+            font-size: 0.55rem; 
+            font-weight: 600; 
+            color: var(--text-secondary); 
+            background: var(--bg-tertiary); 
+            padding: 2px 8px; 
             border-radius: 100px; 
-            border: 1px solid rgba(245, 158, 11, 0.3); 
+            border: 1px solid var(--border-subtle); 
         }
-        .connection-badge { display: flex; align-items: center; gap: 6px; font-size: 0.6rem; font-weight: 600; color: var(--text-secondary); }
+        .connection-badge { display: flex; align-items: center; gap: 8px; font-size: 0.65rem; font-weight: 500; color: var(--text-secondary); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-tertiary); transition: all 0.2s ease; }
-        .status-dot.live { background: var(--success); box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); animation: pulse 2s infinite; }
+        .status-dot.live { background: var(--success); box-shadow: 0 0 8px rgba(74, 222, 128, 0.5); animation: pulse 2s infinite; }
         .status-dot.connecting { background: var(--warning); animation: pulse 1.5s infinite; }
-        .status-dot.reconnect { background: var(--accent-gold); animation: pulse 1s infinite; }
+        .status-dot.reconnect { background: var(--accent-orange); animation: pulse 1s infinite; }
         .status-dot.fallback { background: var(--accent-blue); animation: pulse 1.5s infinite; }
         .status-dot.stale { background: var(--danger); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         
-        .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 6px; }
-        .tab-group { display: flex; gap: 2px; background: var(--bg-secondary); padding: 2px; border-radius: 4px; border: 1px solid var(--border-subtle); }
+        .nav-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 8px; }
+        .tab-group { display: flex; gap: 3px; background: var(--bg-secondary); padding: 3px; border-radius: 8px; border: 1px solid var(--border-subtle); flex-wrap: wrap; }
         .tab-btn { 
             background: transparent; 
             border: none; 
             color: var(--text-tertiary); 
-            padding: 5px 10px; 
-            font-size: 0.55rem; 
+            padding: 5px 12px; 
+            font-size: 0.7rem; 
             font-weight: 600; 
             cursor: pointer; 
-            border-radius: 4px; 
-            transition: all 0.15s; 
+            border-radius: 6px; 
+            transition: all 0.15s ease; 
             white-space: nowrap; 
             display: inline-flex; 
-            align-items: center; 
-            gap: 3px; 
+            align-items: baseline; 
+            gap: 2px; 
         }
         .tab-btn.active { color: var(--text-primary); background: var(--bg-tertiary); }
-        .tf-bias-symbol { font-weight: 700; font-size: 0.75rem; }
+        .tf-label { transition: color 0.15s ease; }
+        .tab-btn.active .tf-label { color: var(--text-primary); }
+        .tab-btn:not(.active) .tf-label { color: var(--text-tertiary); }
+        .tf-bias-symbol { font-weight: 600; }
         .tf-bias-symbol.bullish { color: var(--accent-green); }
         .tf-bias-symbol.bearish { color: var(--accent-red); }
         .tf-bias-symbol.neutral { color: var(--text-tertiary); }
         
-        .mode-row { display: flex; gap: 6px; flex-shrink: 0; }
+        .mode-row { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; gap: 6px; }
         .mode-btn { 
-            flex: 1;
             background: var(--bg-secondary); 
             border: 1px solid var(--border-subtle); 
             color: var(--text-tertiary); 
-            padding: 6px 8px; 
+            padding: 7px 12px; 
             font-size: 0.55rem; 
             font-weight: 700; 
             cursor: pointer; 
             border-radius: 4px; 
-            transition: all 0.2s; 
-            text-align: center;
+            transition: all 0.2s ease; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 5px; 
             letter-spacing: 0.3px; 
         }
         .mode-btn.active { 
             background: var(--bg-tertiary); 
-            border-color: var(--accent-cyan); 
-            color: var(--accent-cyan); 
-            box-shadow: 0 0 8px rgba(6, 182, 212, 0.2); 
+            border-color: var(--text-secondary); 
+            color: var(--text-primary); 
+            box-shadow: 0 0 6px rgba(163, 163, 163, 0.2); 
         }
         
         .signal-bar { 
             background: var(--bg-secondary); 
             border: 1px solid var(--border-subtle); 
-            border-radius: 6px; 
-            padding: 10px 14px; 
+            border-radius: 4px; 
+            padding: 10px 16px; 
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
@@ -139,16 +145,24 @@
             cursor: pointer; 
             transition: all 0.2s; 
         }
-        .signal-content { display: flex; align-items: baseline; gap: 10px; }
-        .signal-badge { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--accent-gold); letter-spacing: 0.5px; }
+        .signal-content { display: flex; align-items: baseline; gap: 12px; }
+        .signal-badge { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: var(--accent-gold); letter-spacing: 0.5px; }
         .signal-text { font-size: 0.85rem; font-weight: 700; letter-spacing: -0.3px; }
-        .signal-arrow { font-size: 1.3rem; font-weight: 300; line-height: 1; }
+        .signal-arrow { font-size: 1.2rem; font-weight: 300; line-height: 1; }
+        .probability-badge {
+            font-size: 0.55rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 100px;
+            background: var(--bg-tertiary);
+            margin-left: 8px;
+        }
         
-        .price-section { display: flex; align-items: baseline; justify-content: space-between; padding: 2px 0; flex-shrink: 0; }
-        .price-main { font-size: 2.2rem; font-weight: 700; letter-spacing: -1.5px; line-height: 1; color: var(--text-primary); }
-        .price-decimal { font-size: 1.4rem; opacity: 0.5; font-weight: 500; }
+        .price-section { display: flex; align-items: baseline; justify-content: space-between; padding: 4px 0; flex-shrink: 0; }
+        .price-main { font-size: 2rem; font-weight: 700; letter-spacing: -1.5px; line-height: 1; color: var(--text-primary); }
+        .price-decimal { font-size: 1.5rem; opacity: 0.6; font-weight: 500; }
         .price-change { 
-            font-size: 0.65rem; 
+            font-size: 0.7rem; 
             font-weight: 600; 
             padding: 3px 8px; 
             border-radius: 100px; 
@@ -161,94 +175,110 @@
             flex: 1; 
             background: var(--bg-secondary); 
             border: 1px solid var(--border-subtle); 
-            border-radius: 6px; 
+            border-radius: 8px; 
             padding: 8px 10px; 
         }
-        .metric-header { display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .metric-label { font-size: 0.5rem; font-weight: 700; text-transform: uppercase; color: var(--text-tertiary); letter-spacing: 0.3px; }
+        .metric-header { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .metric-label { font-size: 0.55rem; font-weight: 600; text-transform: uppercase; color: var(--text-tertiary); }
         .metric-value { font-size: 1rem; font-weight: 700; letter-spacing: -0.3px; color: var(--text-primary); }
-        .metric-sub { font-size: 0.5rem; color: var(--text-secondary); }
+        .metric-sub { font-size: 0.55rem; color: var(--text-secondary); }
         .adx-warning { color: var(--warning) !important; }
         
         .rsi-bar-container { 
             background: var(--bg-secondary); 
             border: 1px solid var(--border-subtle); 
-            border-radius: 6px; 
-            padding: 8px 10px; 
+            border-radius: 8px; 
+            padding: 8px 12px; 
             flex-shrink: 0; 
             cursor: pointer; 
         }
-        .rsi-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .rsi-bar-title { font-size: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); }
+        .rsi-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .rsi-bar-title { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-tertiary); }
         .rsi-bar-value { font-size: 0.7rem; font-weight: 700; color: var(--text-primary); }
-        .rsi-track { height: 3px; background: var(--bg-tertiary); border-radius: 100px; overflow: hidden; margin: 5px 0; }
-        .rsi-fill { height: 100%; width: 50%; border-radius: 100px; transition: width 0.2s ease; }
+        .divergence-indicator {
+            font-size: 0.5rem;
+            margin-left: 8px;
+            padding: 2px 6px;
+            border-radius: 100px;
+            background: var(--bg-tertiary);
+        }
+        .divergence-bullish { color: var(--accent-green); }
+        .divergence-bearish { color: var(--accent-red); }
+        .rsi-track { height: 2px; background: var(--bg-tertiary); border-radius: 100px; overflow: hidden; margin: 6px 0 4px; }
+        .rsi-fill { height: 100%; width: 50%; border-radius: 100px; transition: width 0.3s ease; }
         .rsi-fill.oversold { background: var(--accent-green); }
         .rsi-fill.neutral { background: var(--text-tertiary); }
         .rsi-fill.overbought { background: var(--accent-red); }
-        .rsi-labels { display: flex; justify-content: space-between; font-size: 0.4rem; color: var(--text-tertiary); font-weight: 600; }
+        .rsi-labels { display: flex; justify-content: space-between; font-size: 0.45rem; color: var(--text-tertiary); }
         
         .levels-grid-vertical { 
             display: flex; 
             flex-direction: column; 
             background: var(--bg-secondary); 
             border: 1px solid var(--border-subtle); 
-            border-radius: 6px; 
-            padding: 6px 10px; 
+            border-radius: 8px; 
+            padding: 8px 12px; 
             flex-shrink: 0; 
-            gap: 4px; 
+            gap: 6px; 
         }
         .level-row { 
             display: flex; 
             justify-content: space-between; 
             align-items: baseline; 
             cursor: pointer; 
-            padding: 3px 0; 
+            padding: 2px 0; 
             border-bottom: 1px solid var(--border-subtle);
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
+        .level-row:active { background: transparent; }
         .level-row:last-child { border-bottom: none; }
-        .level-label-lg { font-size: 0.65rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px; }
-        .level-value-lg { font-size: 0.65rem; font-weight: 700; color: var(--text-primary); text-align: right; font-family: 'Inter', monospace; }
+        .level-label-lg { font-size: 0.7rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
+        .level-value-lg { font-size: 0.65rem; font-weight: 700; color: var(--text-primary); text-align: right; font-family: 'Inter', monospace; letter-spacing: 0.2px; }
         
-        .divider-silver { height: 1px; background: var(--silver-line); margin: 2px 0; flex-shrink: 0; }
+        .divider-silver { height: 1px; background: var(--silver-line); margin: 4px 0; flex-shrink: 0; }
         
         .console-f12 {
             font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-            font-size: 0.45rem;
+            font-size: 0.5rem;
             color: var(--text-tertiary);
-            padding: 2px 0;
-            line-height: 1.4;
+            padding: 4px 0;
+            line-height: 1.5;
             flex-shrink: 0;
-            max-height: 70px;
+            max-height: 80px;
             overflow-y: auto;
             user-select: text;
+            -webkit-user-select: text;
         }
         .console-line { 
             display: flex; 
-            gap: 5px; 
+            gap: 6px; 
             cursor: pointer;
             padding: 1px 0;
+            user-select: text;
+            -webkit-user-select: text;
         }
-        .console-prompt { color: var(--accent-cyan); flex-shrink: 0; font-weight: 700; }
+        .console-line:active { background: var(--bg-tertiary); }
+        .console-prompt { color: var(--text-secondary); flex-shrink: 0; }
         .console-cmd { color: var(--text-tertiary); flex-shrink: 0; }
         .console-output { color: var(--accent-green); word-break: break-all; }
         .console-output.bearish { color: var(--accent-red); }
-        .console-output.neutral { color: var(--warning); }
         
         .footer-bar { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding-top: 4px; 
+            padding-top: 5px; 
             flex-shrink: 0; 
-            gap: 6px; 
+            gap: 8px; 
+            flex-wrap: wrap; 
         }
-        .footer-left { display: flex; align-items: center; gap: 10px; }
-        .session-info { display: flex; gap: 8px; font-size: 0.5rem; }
-        .session-label { color: var(--text-tertiary); margin-right: 3px; }
-        .session-value { font-weight: 700; color: var(--text-secondary); }
-        .clock { font-size: 0.6rem; font-weight: 700; color: var(--text-tertiary); }
+        .footer-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .session-info { display: flex; gap: 10px; font-size: 0.55rem; }
+        .session-label { color: var(--text-tertiary); margin-right: 4px; }
+        .session-value { font-weight: 600; color: var(--text-secondary); }
+        .clock { font-size: 0.65rem; font-weight: 700; color: var(--text-tertiary); }
         
         .text-green { color: var(--accent-green); }
         .text-red { color: var(--accent-red); }
@@ -256,9 +286,16 @@
         .text-blue { color: var(--accent-blue); }
         .text-cyan { color: var(--accent-cyan); }
         
-        ::-webkit-scrollbar { width: 2px; height: 2px; }
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
-        ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 3px; }
+        
+        @media (max-width: 480px) {
+            .footer-left { gap: 8px; }
+            .session-info { gap: 6px; }
+            .tab-btn { padding: 4px 8px; font-size: 0.65rem; }
+            .mode-btn { padding: 7px 8px; font-size: 0.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -266,11 +303,11 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">URA · UR ADVISOR</span>
-            <span class="version-tag">v2.0 OPT</span>
+            <span class="version-tag">v1.0</span>
         </div>
         <div class="connection-badge">
             <span class="status-dot" id="status-dot"></span>
-            <span id="status-text">INIT</span>
+            <span id="status-text">CONNECTING</span>
         </div>
     </header>
 
@@ -288,14 +325,15 @@
     </nav>
 
     <div class="mode-row">
-        <button class="mode-btn" data-mode="conservative">🛡️ CONSERVATIVE</button>
-        <button class="mode-btn" data-mode="sniper">🎯 SNIPER</button>
+        <button class="mode-btn" data-mode="conservative">🛡️ CONSERVATIVE (ADX≥25)</button>
+        <button class="mode-btn" data-mode="sniper">🎯 SNIPER (ADX≥20)</button>
     </div>
 
     <div class="signal-bar" id="signal-bar" onclick="copyText('decision-status')">
         <div class="signal-content">
             <span class="signal-badge">SIGNAL</span>
-            <span class="signal-text" id="decision-status">CALIBRATING</span>
+            <span class="signal-text" id="decision-status">ANALYZING</span>
+            <span class="probability-badge" id="probability-badge">--%</span>
         </div>
         <div class="signal-arrow" id="direction-arrow">—</div>
     </div>
@@ -307,9 +345,9 @@
 
     <div class="metrics-duo">
         <div class="metric-card">
-            <div class="metric-header"><span class="metric-label">EMA 21</span><span id="ema-trend">—</span></div>
-            <div class="metric-value" id="ema-value">—</div>
-            <div class="metric-sub" id="ema-distance">—</div>
+            <div class="metric-header"><span class="metric-label">MA20 / MA50</span><span id="ma-trend">—</span></div>
+            <div class="metric-value" id="ma20-value">—</div>
+            <div class="metric-sub" id="ma50-value">MA50: —</div>
         </div>
         <div class="metric-card">
             <div class="metric-header"><span class="metric-label">ADX / DI</span><span id="adx-trend">—</span></div>
@@ -320,33 +358,40 @@
 
     <div class="rsi-bar-container" id="rsi-bar-container" onclick="copyText('rsi-bar-value')">
         <div class="rsi-bar-header">
-            <span class="rsi-bar-title">RSI (14)</span>
+            <div style="display: flex; align-items: center;">
+                <span class="rsi-bar-title">RSI (14) + DIVERGENCE</span>
+                <span class="divergence-indicator" id="divergence-indicator">—</span>
+            </div>
             <span class="rsi-bar-value" id="rsi-bar-value">—</span>
         </div>
         <div class="rsi-track"><div class="rsi-fill" id="rsi-fill"></div></div>
-        <div class="rsi-labels"><span>OVERSOLD</span><span>50</span><span>OVERBOUGHT</span></div>
+        <div class="rsi-labels"><span>OVERSOLD (30)</span><span>NEUTRAL</span><span>OVERBOUGHT (70)</span></div>
     </div>
 
     <div class="levels-grid-vertical" id="levels-grid">
         <div class="level-row" onclick="copyText('swing-high', 'swing-low', 'Swing')">
-            <span class="level-label-lg">SWING HIGH/LOW</span>
+            <span class="level-label-lg">SWING H/L</span>
             <span class="level-value-lg"><span id="swing-high">—</span> / <span id="swing-low">—</span></span>
         </div>
-        <div class="level-row" onclick="copyText('sl-value', null, 'SL')">
-            <span class="level-label-lg">STOP LOSS</span>
-            <span class="level-value-lg text-red" id="sl-value">—</span>
+        <div class="level-row" onclick="copyText('resistance-value', null, 'Resistance')">
+            <span class="level-label-lg">RESISTANCE</span>
+            <span class="level-value-lg text-red" id="resistance-value">—</span>
+        </div>
+        <div class="level-row" onclick="copyText('support-value', null, 'Support')">
+            <span class="level-label-lg">SUPPORT</span>
+            <span class="level-value-lg text-green" id="support-value">—</span>
         </div>
         <div class="level-row" onclick="copyText('entry-zone-low', 'entry-zone-high', 'Entry Zone')">
             <span class="level-label-lg">ENTRY ZONE</span>
             <span class="level-value-lg"><span class="text-gold" id="entry-zone-low">—</span> / <span class="text-gold" id="entry-zone-high">—</span></span>
         </div>
-        <div class="level-row" onclick="copyText('tp-value', null, 'TP')">
-            <span class="level-label-lg">TAKE PROFIT</span>
-            <span class="level-value-lg text-blue" id="tp-value">—</span>
+        <div class="level-row" onclick="copyText('sl-value', null, 'SL')">
+            <span class="level-label-lg">SL</span>
+            <span class="level-value-lg text-red" id="sl-value">—</span>
         </div>
-        <div class="level-row" onclick="copyText('range-value', null, 'Range')">
-            <span class="level-label-lg">RANGE (PTS)</span>
-            <span class="level-value-lg" id="range-value">—</span>
+        <div class="level-row" onclick="copyText('tp-value', null, 'TP')">
+            <span class="level-label-lg">TP</span>
+            <span class="level-value-lg text-blue" id="tp-value">—</span>
         </div>
     </div>
     
@@ -369,337 +414,368 @@
 (function() {
     'use strict';
     
-    // ==================== KONFIGURASI OPTIMIZED ====================
-    const TP_RANGE_PCT = 0.27;
-    const SL_TP_RATIO_CONSERVATIVE = 1.2;  // SL lebih lebar untuk mode aman
-    const SL_TP_RATIO_SNIPER = 0.9;        // SL lebih ketat untuk mode agresif
-    const ENTRY_ZONE_FACTOR_CONSERVATIVE = 0.25;
-    const ENTRY_ZONE_FACTOR_SNIPER = 0.15;
-    const MIN_ADX_TREND = 22;
-    const STRONG_ADX_THRESHOLD = 35;
+    // ==================== KONFIGURASI RESET TOTAL ====================
     const CONSOLE_MAX_ENTRIES = 50;
     const CONSOLE_TTL_MS = 24 * 60 * 60 * 1000;
     
-    let currentMode = 'conservative'; // default
+    // Parameter spesifik per pair (dioptimasi)
+    const PAIR_CONFIG = {
+        XAUUSDT: { 
+            adxThresholdConservative: 25, 
+            adxThresholdSniper: 20,
+            rsiOverbought: 75, 
+            rsiOversold: 25, 
+            atrPeriod: 14, 
+            entryZoneATRFactor: 0.3,
+            bbPeriod: 20,
+            bbStdDev: 2,
+            maFast: 20,
+            maSlow: 50,
+            fibTPMin: 1.27,
+            fibTPMax: 1.618,
+            slBufferATR: 0.5
+        },
+        BTCUSDT: { 
+            adxThresholdConservative: 22, 
+            adxThresholdSniper: 18,
+            rsiOverbought: 70, 
+            rsiOversold: 30, 
+            atrPeriod: 14, 
+            entryZoneATRFactor: 0.5,
+            bbPeriod: 20,
+            bbStdDev: 2,
+            maFast: 20,
+            maSlow: 50,
+            fibTPMin: 1.27,
+            fibTPMax: 1.618,
+            slBufferATR: 0.7
+        }
+    };
     
-    // ==================== FUNGSI FRACTAL SWING (FIXED) ====================
-    function detectFractalSwingPoints(data, lookback = 3) {
-        if (!data || data.length < lookback * 2 + 1) {
-            // FIX: Fallback yang benar - gunakan data yang ada, jangan 0/Infinity
-            if (data && data.length > 0) {
-                const highs = data.map(c => c.h);
-                const lows = data.map(c => c.l);
-                return { 
-                    swingHigh: Math.max(...highs), 
-                    swingLow: Math.min(...lows) 
-                };
-            }
-            return { swingHigh: 0, swingLow: 0 };
-        }
-        
-        let swingHigh = -Infinity;
-        let swingLow = Infinity;
-        let foundHigh = false, foundLow = false;
-        
-        for (let i = lookback; i < data.length - lookback; i++) {
-            const currHigh = data[i].h, currLow = data[i].l;
-            let isSwingHigh = true, isSwingLow = true;
-            
-            for (let j = i - lookback; j <= i + lookback; j++) {
-                if (j !== i) {
-                    if (data[j].h >= currHigh) isSwingHigh = false;
-                    if (data[j].l <= currLow) isSwingLow = false;
-                }
-            }
-            
-            if (isSwingHigh) {
-                if (currHigh > swingHigh) swingHigh = currHigh;
-                foundHigh = true;
-            }
-            if (isSwingLow) {
-                if (currLow < swingLow) swingLow = currLow;
-                foundLow = true;
-            }
-        }
-        
-        // FIX: Gunakan max/min dari seluruh data sebagai fallback jika tidak ketemu fractal
-        const allHighs = data.map(c => c.h);
-        const allLows = data.map(c => c.l);
-        
-        if (!foundHigh || swingHigh === -Infinity) {
-            swingHigh = Math.max(...allHighs);
-        }
-        if (!foundLow || swingLow === Infinity) {
-            swingLow = Math.min(...allLows);
-        }
-        
-        // Validasi akhir
-        if (swingHigh <= swingLow) {
-            swingHigh = Math.max(...allHighs);
-            swingLow = Math.min(...allLows);
-        }
-        
-        return { swingHigh, swingLow };
-    }
-    
-    function getFractalLookback() {
-        if (currentPair === "BTCUSDT") {
-            switch(currentTF) { case "5m": return 3; case "15m": return 4; case "1h": return 5; case "4h": return 5; default: return 4; }
-        } else {
-            switch(currentTF) { case "5m": return 3; case "15m": return 3; case "1h": return 4; case "4h": return 4; default: return 3; }
-        }
-    }
-    
-    function getMinRangeRequired() {
-        if (currentPair === "XAUUSDT") {
-            // FIX: Range minimum dinaikkan untuk mengurangi noise
-            switch(currentTF) { case "5m": return 4.0; case "15m": return 6.0; case "1h": return 10.0; case "4h": return 18.0; default: return 6.0; }
-        } else {
-            switch(currentTF) { case "5m": return 300; case "15m": return 600; case "1h": return 1000; case "4h": return 1500; default: return 600; }
-        }
-    }
-    
-    function detectValidSwingPoints() {
-        const candleArray = getCandleArray();
-        if (candleArray.length < 20) {
-            // Fallback awal
-            const prices = candleArray.map(c => c.c);
-            return { 
-                swingHigh: Math.max(...candleArray.map(c => c.h)), 
-                swingLow: Math.min(...candleArray.map(c => c.l)), 
-                range: Math.max(...candleArray.map(c => c.h)) - Math.min(...candleArray.map(c => c.l))
-            };
-        }
-        
-        const lookback = getFractalLookback();
-        const minRange = getMinRangeRequired();
-        const dataSlice = candleArray.slice(-Math.min(candleArray.length, 100));
-        
-        let { swingHigh, swingLow } = detectFractalSwingPoints(dataSlice, lookback);
-        let range = swingHigh - swingLow;
-        
-        // Jika range terlalu kecil, perluas lookback
-        if (range < minRange && dataSlice.length > lookback * 3) {
-            const extendedLookback = Math.min(lookback + 2, 6);
-            const extendedResult = detectFractalSwingPoints(dataSlice, extendedLookback);
-            const extendedRange = extendedResult.swingHigh - extendedResult.swingLow;
-            
-            if (extendedRange > range && extendedRange >= minRange * 0.7) {
-                swingHigh = extendedResult.swingHigh;
-                swingLow = extendedResult.swingLow;
-                range = extendedRange;
-            }
-        }
-        
-        // FIX: Validasi akhir untuk memastikan tidak NaN
-        if (range <= 0 || isNaN(range) || !isFinite(range)) {
-            swingHigh = Math.max(...dataSlice.map(c => c.h));
-            swingLow = Math.min(...dataSlice.map(c => c.l));
-            range = swingHigh - swingLow;
-        }
-        
-        return { swingHigh, swingLow, range };
-    }
+    // Bobot Multi-Timeframe untuk Probabilitas
+    const MTF_WEIGHTS = { h4: 0.30, h1: 0.25, m15: 0.30, m5: 0.15 };
     
     // ==================== CONSOLE MANAGER ====================
     class ConsoleManager {
-        constructor() { this.logs = this.loadLogs(); this.cleanExpired(); }
-        loadLogs() { try { const stored = localStorage.getItem('ura_console_logs_v2'); return stored ? JSON.parse(stored) : []; } catch(e) { return []; } }
-        saveLogs() { try { localStorage.setItem('ura_console_logs_v2', JSON.stringify(this.logs)); } catch(e) {} }
-        cleanExpired() { const now = Date.now(); this.logs = this.logs.filter(log => (now - log.timestamp) < CONSOLE_TTL_MS); if (this.logs.length > CONSOLE_MAX_ENTRIES) this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES); this.saveLogs(); }
-        addLog(pair, tf, bias, price, range, tp, sl, score, mode) { 
-            const prec = pair === "XAUUSDT" ? 2 : 1; 
-            const tpDist = Math.abs(tp - price); 
-            const slDist = Math.abs(sl - price); 
-            const rr = tpDist > 0 && slDist > 0 ? (tpDist / slDist).toFixed(2) : 'N/A';
-            const log = { timestamp: Date.now(), pair, tf, bias, price, range, tp, sl, tpDist, slDist, rr, prec, score, mode }; 
-            this.logs.push(log); 
-            this.cleanExpired(); 
-            this.saveLogs(); 
-            this.render(); 
-            return log; 
+        constructor() {
+            this.logs = this.loadLogs();
+            this.cleanExpired();
         }
-        addEventLog(event) { const log = { timestamp: Date.now(), type: 'event', message: event }; this.logs.push(log); this.cleanExpired(); this.saveLogs(); this.render(); }
-        formatLogLine(log) { 
-            if (log.type === 'event') return `<span class="console-output" style="color:var(--accent-gold);">> ${log.message}</span>`; 
-            const prec = log.prec || 2; 
-            const biasClass = log.bias === 'BEARISH' ? 'bearish' : (log.bias === 'NEUTRAL' ? 'neutral' : '');
-            const scoreInfo = log.score ? ` | Score: ${Math.round(log.score)}%` : '';
-            const modeInfo = log.mode ? ` | ${log.mode}` : '';
-            return `<span class="console-output ${biasClass}">> ${log.pair} ${log.tf} | ${log.bias} | P: ${log.price.toFixed(prec)} | R: ${log.range.toFixed(prec)} | TP: ${log.tp.toFixed(prec)} | SL: ${log.sl.toFixed(prec)} | R:R ${log.rr}${scoreInfo}${modeInfo}</span>`; 
+        loadLogs() {
+            try { const stored = localStorage.getItem('ura_v1_console_logs'); return stored ? JSON.parse(stored) : []; }
+            catch(e) { return []; }
         }
-        render() { 
-            const container = document.getElementById('console-f12'); 
-            if (!container) return; 
-            const recentLogs = this.logs.slice(-5); 
-            let html = ''; 
-            recentLogs.forEach(log => { 
-                if (log.type === 'event') html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd">ura --event</span> ${this.formatLogLine(log)}</div>`; 
-                else html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd">ura --signal</span> ${this.formatLogLine(log)}</div>`; 
-            }); 
-            html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd" style="opacity:0.4;">_ ready</span></div>`; 
-            container.innerHTML = html; 
+        saveLogs() { try { localStorage.setItem('ura_v1_console_logs', JSON.stringify(this.logs)); } catch(e) {} }
+        cleanExpired() {
+            const now = Date.now();
+            this.logs = this.logs.filter(log => (now - log.timestamp) < CONSOLE_TTL_MS);
+            if (this.logs.length > CONSOLE_MAX_ENTRIES) this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES);
+            this.saveLogs();
+        }
+        addLog(pair, tf, bias, probability, price, entryLow, entryHigh, tp, sl, divergence) {
+            const prec = pair === "XAUUSDT" ? 2 : 1;
+            const tpDist = Math.abs(tp - price);
+            const slDist = Math.abs(sl - price);
+            const rr = (tpDist / slDist).toFixed(2);
+            const log = { timestamp: Date.now(), pair, tf, bias, probability, price, entryLow, entryHigh, tp, sl, tpDist, slDist, rr, prec, divergence };
+            this.logs.push(log);
+            this.cleanExpired();
+            this.saveLogs();
+            this.render();
+            return log;
+        }
+        addEventLog(event) {
+            const log = { timestamp: Date.now(), type: 'event', message: event };
+            this.logs.push(log);
+            this.cleanExpired();
+            this.saveLogs();
+            this.render();
+        }
+        formatLogLine(log) {
+            if (log.type === 'event') return `<span class="console-output" style="color:var(--accent-gold);">> ${log.message}</span>`;
+            const prec = log.prec || 2;
+            const biasClass = log.bias === 'BEARISH' ? 'bearish' : '';
+            return `<span class="console-output ${biasClass}">> ${log.pair} ${log.tf} | ${log.bias} (${log.probability}%) | ${log.divergence || 'NO DIV'} | Entry: ${log.entryLow.toFixed(prec)}-${log.entryHigh.toFixed(prec)} | TP: ${log.tp.toFixed(prec)} | SL: ${log.sl.toFixed(prec)} | R:R 1:${log.rr}</span>`;
+        }
+        render() {
+            const container = document.getElementById('console-f12');
+            if (!container) return;
+            const recentLogs = this.logs.slice(-5);
+            let html = '';
+            recentLogs.forEach(log => {
+                if (log.type === 'event') html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --event</span> ${this.formatLogLine(log)}</div>`;
+                else html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd">ura --signal</span> ${this.formatLogLine(log)}</div>`;
+            });
+            html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">$</span> <span class="console-cmd" style="opacity:0.5;">_</span></div>`;
+            container.innerHTML = html;
         }
     }
     
     const consoleManager = new ConsoleManager();
     
-    window.copyText = function(...args) { 
-        let text = ''; 
-        if (args.length === 1 && typeof args[0] === 'string') { 
-            const el = document.getElementById(args[0]); 
-            if (el) text = el.textContent.trim(); 
-        } else if (args.length >= 2) { 
-            const el1 = document.getElementById(args[0]); 
-            const el2 = args[1] ? document.getElementById(args[1]) : null; 
-            const label = args[2] || ''; 
-            if (el1 && el2) text = `${label}: ${el1.textContent} / ${el2.textContent}`; 
-            else if (el1) text = el1.textContent.trim(); 
-        } 
-        if (text) navigator.clipboard?.writeText(text).catch(() => { 
-            const ta = document.createElement('textarea'); 
-            ta.value = text; 
-            document.body.appendChild(ta); 
-            ta.select(); 
-            document.execCommand('copy'); 
-            document.body.removeChild(ta); 
-        }); 
-    };
-    window.copyConsoleLine = function(el) { 
-        const text = el.textContent.trim(); 
-        navigator.clipboard?.writeText(text).catch(() => {}); 
+    window.copyText = function(...args) {
+        let text = '';
+        if (args.length === 1 && typeof args[0] === 'string') {
+            const el = document.getElementById(args[0]);
+            if (el) text = el.textContent.trim();
+        } else if (args.length >= 2) {
+            const el1 = document.getElementById(args[0]);
+            const el2 = args[1] ? document.getElementById(args[1]) : null;
+            const label = args[2] || '';
+            if (el1 && el2) text = `${label}: ${el1.textContent} / ${el2.textContent}`;
+            else if (el1) text = el1.textContent.trim();
+        }
+        if (text) navigator.clipboard?.writeText(text).catch(() => {
+            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        });
     };
     
+    window.copyConsoleLine = function(el) {
+        const text = el.textContent.trim();
+        navigator.clipboard?.writeText(text).catch(() => {
+            const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        });
+    };
+    
+    // ==================== CIRCULAR BUFFER ====================
     class CircularBuffer {
         constructor(maxSize) { this.maxSize = maxSize; this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap = new Map(); }
-        push(item) { if (this.timestampMap.has(item.t)) { this.data[this.timestampMap.get(item.t)] = item; return; } if (this.length < this.maxSize) { this.data.push(item); this.timestampMap.set(item.t, this.length); this.length++; this.end = this.length; } else { const old = this.data[this.start]; if (old) this.timestampMap.delete(old.t); this.data[this.start] = item; this.timestampMap.set(item.t, this.start); this.start = (this.start + 1) % this.maxSize; this.end = (this.end + 1) % this.maxSize; } }
+        push(item) {
+            if (this.timestampMap.has(item.t)) { this.data[this.timestampMap.get(item.t)] = item; return; }
+            if (this.length < this.maxSize) { this.data.push(item); this.timestampMap.set(item.t, this.length); this.length++; this.end = this.length; }
+            else { const old = this.data[this.start]; if (old) this.timestampMap.delete(old.t); this.data[this.start] = item; this.timestampMap.set(item.t, this.start); this.start = (this.start + 1) % this.maxSize; this.end = (this.end + 1) % this.maxSize; }
+        }
         getLatest() { if (this.length === 0) return null; return this.data[(this.end - 1 + this.maxSize) % this.maxSize]; }
         toArray() { if (this.length === 0) return []; const r = []; for (let i = 0; i < this.length; i++) r.push(this.data[(this.start + i) % this.maxSize]); return r; }
         clear() { this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap.clear(); }
     }
     
+    // ==================== UI REFERENCES ====================
     const UI = {
         dot: document.getElementById('status-dot'), text: document.getElementById('status-text'),
         signalBar: document.getElementById('signal-bar'), priceMain: document.getElementById('live-price'),
         priceChange: document.getElementById('price-change'), decision: document.getElementById('decision-status'),
-        arrow: document.getElementById('direction-arrow'), emaValue: document.getElementById('ema-value'),
-        emaDistance: document.getElementById('ema-distance'), emaTrend: document.getElementById('ema-trend'),
+        probability: document.getElementById('probability-badge'),
+        arrow: document.getElementById('direction-arrow'), 
+        ma20Value: document.getElementById('ma20-value'), ma50Value: document.getElementById('ma50-value'),
+        maTrend: document.getElementById('ma-trend'),
         adxValue: document.getElementById('adx-value'), diValues: document.getElementById('di-values'),
         adxTrend: document.getElementById('adx-trend'), rsiValue: document.getElementById('rsi-bar-value'),
-        rsiFill: document.getElementById('rsi-fill'), swingHigh: document.getElementById('swing-high'),
-        swingLow: document.getElementById('swing-low'), entryZoneLow: document.getElementById('entry-zone-low'),
-        entryZoneHigh: document.getElementById('entry-zone-high'), tpValue: document.getElementById('tp-value'),
-        slValue: document.getElementById('sl-value'), rangeValue: document.getElementById('range-value'),
+        rsiFill: document.getElementById('rsi-fill'), divergenceInd: document.getElementById('divergence-indicator'),
+        swingHigh: document.getElementById('swing-high'), swingLow: document.getElementById('swing-low'),
+        resistanceValue: document.getElementById('resistance-value'), supportValue: document.getElementById('support-value'),
+        entryZoneLow: document.getElementById('entry-zone-low'), entryZoneHigh: document.getElementById('entry-zone-high'),
+        tpValue: document.getElementById('tp-value'), slValue: document.getElementById('sl-value'),
         clock: document.getElementById('clock-display'), date: document.getElementById('date-display'),
         session: document.getElementById('session-tag')
     };
     
-    const PAIR_CONFIG = {
-        XAUUSDT: { adxThreshold: 22, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14 },
-        BTCUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14 }
+    // ==================== FUNGSI TEKNIKAL RESET TOTAL ====================
+    
+    // 1. Calculate MA
+    function calculateMA(data, period) { 
+        if (!data || data.length < period) return 0;
+        const closes = data.slice(-period).map(c => c.c);
+        return closes.reduce((a,b) => a + b, 0) / period;
+    }
+    
+    // 2. Calculate Bollinger Bands
+    function calculateBollingerBands(data, period = 20, stdDev = 2) {
+        if (!data || data.length < period) return { upper: 0, middle: 0, lower: 0, bandwidth: 0 };
+        const closes = data.slice(-period).map(c => c.c);
+        const mean = closes.reduce((a,b) => a + b, 0) / period;
+        const variance = closes.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / period;
+        const std = Math.sqrt(variance);
+        return {
+            middle: mean,
+            upper: mean + stdDev * std,
+            lower: mean - stdDev * std,
+            bandwidth: (2 * stdDev * std) / mean * 100
+        };
+    }
+    
+    // 3. Calculate ATR
+    function calculateATR(data, period = 14) { 
+        if (!data || data.length < period + 1) return 0;
+        let tr = [];
+        for (let i = 1; i < data.length; i++) {
+            const h = data[i].h, l = data[i].l, pc = data[i-1].c;
+            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
+        }
+        if (tr.length < period) return 0;
+        return tr.slice(-period).reduce((a,b) => a + b, 0) / period;
+    }
+    
+    // 4. Calculate ADX
+    function calculateADX(data) {
+        if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 };
+        const period = 14;
+        let tr = [], plusDM = [], minusDM = [];
+        for (let i = 1; i < data.length; i++) {
+            const h = data[i].h, l = data[i].l, ph = data[i-1].h, pl = data[i-1].l, pc = data[i-1].c;
+            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
+            const upMove = h - ph, downMove = pl - l;
+            if (upMove > downMove && upMove > 0) { plusDM.push(upMove); minusDM.push(0); }
+            else if (downMove > upMove && downMove > 0) { plusDM.push(0); minusDM.push(downMove); }
+            else { plusDM.push(0); minusDM.push(0); }
+        }
+        let atr = tr.slice(0, period).reduce((a,b) => a + b, 0);
+        let pDM = plusDM.slice(0, period).reduce((a,b) => a + b, 0);
+        let mDM = minusDM.slice(0, period).reduce((a,b) => a + b, 0);
+        let dxValues = [], lastPDI = 0, lastMDI = 0;
+        for (let i = period; i < tr.length; i++) {
+            atr = (atr * (period - 1) + tr[i]) / period;
+            pDM = (pDM * (period - 1) + plusDM[i]) / period;
+            mDM = (mDM * (period - 1) + minusDM[i]) / period;
+            lastPDI = atr > 0 ? (pDM / atr) * 100 : 0;
+            lastMDI = atr > 0 ? (mDM / atr) * 100 : 0;
+            const dx = (lastPDI + lastMDI) > 0 ? (Math.abs(lastPDI - lastMDI) / (lastPDI + lastMDI)) * 100 : 0;
+            dxValues.push(dx);
+        }
+        let adxValue = 15;
+        if (dxValues.length >= period) {
+            let smoothedADX = dxValues.slice(0, period).reduce((a,b) => a + b, 0) / period;
+            for (let i = period; i < dxValues.length; i++) {
+                smoothedADX = (smoothedADX * (period - 1) + dxValues[i]) / period;
+            }
+            adxValue = smoothedADX;
+        }
+        return { adx: Math.max(5, Math.min(100, adxValue)), plusDI: lastPDI, minusDI: lastMDI };
+    }
+    
+    // 5. Calculate RSI
+    function computeRSI(data) {
+        if (data.length < 15) return 50;
+        const closes = data.map(c => c.c);
+        let gains = [], losses = [];
+        for (let i = 1; i < closes.length; i++) {
+            const diff = closes[i] - closes[i-1];
+            gains.push(diff > 0 ? diff : 0);
+            losses.push(diff < 0 ? -diff : 0);
+        }
+        let avgG = gains.slice(0, 14).reduce((a,b) => a + b, 0) / 14;
+        let avgL = losses.slice(0, 14).reduce((a,b) => a + b, 0) / 14;
+        for (let i = 14; i < gains.length; i++) {
+            avgG = (avgG * 13 + gains[i]) / 14;
+            avgL = (avgL * 13 + losses[i]) / 14;
+        }
+        return avgL === 0 ? 100 : 100 - (100 / (1 + avgG / avgL));
+    }
+    
+    // 6. Detect RSI Divergence
+    function detectRSIDivergence(data) {
+        if (data.length < 20) return { type: 'NONE', strength: 0 };
+        
+        const closes = data.map(c => c.c);
+        const highs = data.map(c => c.h);
+        const lows = data.map(c => c.l);
+        
+        let swingHighIdx = -1, swingLowIdx = -1;
+        let swingHighPrice = -Infinity, swingLowPrice = Infinity;
+        
+        for (let i = 2; i < data.length - 2; i++) {
+            if (highs[i] > highs[i-1] && highs[i] > highs[i-2] && highs[i] > highs[i+1] && highs[i] > highs[i+2]) {
+                if (highs[i] > swingHighPrice) {
+                    swingHighPrice = highs[i];
+                    swingHighIdx = i;
+                }
+            }
+            if (lows[i] < lows[i-1] && lows[i] < lows[i-2] && lows[i] < lows[i+1] && lows[i] < lows[i+2]) {
+                if (lows[i] < swingLowPrice) {
+                    swingLowPrice = lows[i];
+                    swingLowIdx = i;
+                }
+            }
+        }
+        
+        const rsiCurrent = computeRSI(data);
+        const rsiSwingHigh = swingHighIdx > 0 ? computeRSI(data.slice(0, swingHighIdx + 1)) : rsiCurrent;
+        const rsiSwingLow = swingLowIdx > 0 ? computeRSI(data.slice(0, swingLowIdx + 1)) : rsiCurrent;
+        
+        const currentPrice = closes[closes.length - 1];
+        
+        if (swingHighPrice > 0 && currentPrice > swingHighPrice && rsiCurrent < rsiSwingHigh) {
+            return { type: 'BEARISH', strength: Math.abs(rsiSwingHigh - rsiCurrent) };
+        }
+        
+        if (swingLowPrice < Infinity && currentPrice < swingLowPrice && rsiCurrent > rsiSwingLow) {
+            return { type: 'BULLISH', strength: Math.abs(rsiCurrent - rsiSwingLow) };
+        }
+        
+        return { type: 'NONE', strength: 0 };
+    }
+    
+    // 7. Detect Swing High/Low
+    function detectSwingPoints(data, config) {
+        if (data.length < 50) return { swingHigh: 0, swingLow: 0, validHigh: false, validLow: false };
+        
+        const highs = data.map(c => c.h);
+        const lows = data.map(c => c.l);
+        
+        let swingHigh = -Infinity, swingLow = Infinity;
+        let swingHighIdx = -1, swingLowIdx = -1;
+        
+        for (let i = 3; i < data.length - 3; i++) {
+            if (highs[i] >= Math.max(highs[i-1], highs[i-2], highs[i-3], highs[i+1], highs[i+2], highs[i+3])) {
+                if (highs[i] > swingHigh) {
+                    swingHigh = highs[i];
+                    swingHighIdx = i;
+                }
+            }
+            if (lows[i] <= Math.min(lows[i-1], lows[i-2], lows[i-3], lows[i+1], lows[i+2], lows[i+3])) {
+                if (lows[i] < swingLow) {
+                    swingLow = lows[i];
+                    swingLowIdx = i;
+                }
+            }
+        }
+        
+        const divergence = detectRSIDivergence(data);
+        let validHigh = false, validLow = false;
+        
+        if (swingHighIdx > 0) {
+            const rsiAtSwing = computeRSI(data.slice(0, swingHighIdx + 1));
+            const rsiCurrent = computeRSI(data);
+            validHigh = (rsiCurrent < rsiAtSwing - 5);
+        }
+        
+        if (swingLowIdx > 0) {
+            const rsiAtSwing = computeRSI(data.slice(0, swingLowIdx + 1));
+            const rsiCurrent = computeRSI(data);
+            validLow = (rsiCurrent > rsiAtSwing + 5);
+        }
+        
+        return { swingHigh, swingLow, validHigh, validLow };
+    }
+    
+    // 8. Get Timeframe Bias
+    function getTimeframeBias(data) {
+        if (!data || data.length < 50) return "NEUTRAL";
+        const price = data[data.length - 1].c;
+        const ma20 = calculateMA(data, 20);
+        const ma50 = calculateMA(data, 50);
+        const adxResult = calculateADX(data);
+        
+        if (adxResult.adx < 20) return "NEUTRAL";
+        if (price > ma20 && price > ma50 && adxResult.plusDI > adxResult.minusDI) return "BULLISH";
+        if (price < ma20 && price < ma50 && adxResult.minusDI > adxResult.plusDI) return "BEARISH";
+        return "NEUTRAL";
+    }
+    
+    // ==================== STATE MANAGEMENT ====================
+    let engine = {
+        swingHigh: 0, swingLow: 0, validHigh: false, validLow: false,
+        bias: "NEUTRAL", adxBias: "NEUTRAL", adx: 0,
+        ma20: 0, ma50: 0, plusDI: 0, minusDI: 0, atr: 0,
+        bbUpper: 0, bbMiddle: 0, bbLower: 0,
+        entryZoneLow: 0, entryZoneHigh: 0, tp: 0, sl: 0,
+        divergence: 'NONE', probability: 0
     };
     
-    function calculateEMA(data, period) { if (!data || data.length < period) return 0; const closes = data.slice(-period * 2).map(c => c.c); if (closes.length < period) return 0; let ema = closes.slice(0, period).reduce((a,b) => a+b,0) / period; const multiplier = 2/(period+1); for (let i=period; i<closes.length; i++) ema = (closes[i]-ema)*multiplier + ema; return ema; }
-    function calculateATR(data, period=14) { if (!data || data.length < period+1) return 0; let tr = []; for (let i=1; i<data.length; i++) { const h = data[i].h, l = data[i].l, pc = data[i-1].c; tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc))); } if (tr.length < period) return 0; return tr.slice(-period).reduce((a,b)=>a+b,0)/period; }
-    function calculateADX(data) { 
-        if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 }; 
-        const period=14; 
-        let tr=[], plusDM=[], minusDM=[]; 
-        for (let i=1; i<data.length; i++) { 
-            const h=data[i].h, l=data[i].l, ph=data[i-1].h, pl=data[i-1].l, pc=data[i-1].c; 
-            tr.push(Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc))); 
-            const upMove = h-ph, downMove = pl-l; 
-            if (upMove > downMove && upMove>0) { plusDM.push(upMove); minusDM.push(0); } 
-            else if (downMove > upMove && downMove>0) { plusDM.push(0); minusDM.push(downMove); } 
-            else { plusDM.push(0); minusDM.push(0); } 
-        } 
-        let atr = tr.slice(0,period).reduce((a,b)=>a+b,0); 
-        let pDM = plusDM.slice(0,period).reduce((a,b)=>a+b,0); 
-        let mDM = minusDM.slice(0,period).reduce((a,b)=>a+b,0); 
-        let dxValues=[], lastPDI=0, lastMDI=0; 
-        for (let i=period; i<tr.length; i++) { 
-            atr = (atr*(period-1)+tr[i])/period; 
-            pDM = (pDM*(period-1)+plusDM[i])/period; 
-            mDM = (mDM*(period-1)+minusDM[i])/period; 
-            lastPDI = atr>0 ? (pDM/atr)*100 : 0; 
-            lastMDI = atr>0 ? (mDM/atr)*100 : 0; 
-            const dx = (lastPDI+lastMDI)>0 ? (Math.abs(lastPDI-lastMDI)/(lastPDI+lastMDI))*100 : 0; 
-            dxValues.push(dx); 
-        } 
-        let adxValue = 15; 
-        if (dxValues.length>=period) { 
-            let smoothedADX = dxValues.slice(0,period).reduce((a,b)=>a+b,0)/period; 
-            for (let i=period; i<dxValues.length; i++) smoothedADX = (smoothedADX*(period-1)+dxValues[i])/period; 
-            adxValue = smoothedADX; 
-        } 
-        return { adx: Math.max(5, Math.min(100, adxValue)), plusDI: lastPDI, minusDI: lastMDI }; 
-    }
-    function computeRSI(data) { if (data.length<15) return 50; const closes = data.map(c=>c.c); let gains=[], losses=[]; for (let i=1; i<closes.length; i++) { const diff = closes[i]-closes[i-1]; gains.push(diff>0?diff:0); losses.push(diff<0?-diff:0); } let avgG = gains.slice(0,14).reduce((a,b)=>a+b,0)/14; let avgL = losses.slice(0,14).reduce((a,b)=>a+b,0)/14; for (let i=14; i<gains.length; i++) { avgG = (avgG*13+gains[i])/14; avgL = (avgL*13+losses[i])/14; } return avgL===0?100:100-(100/(1+avgG/avgL)); }
+    let currentPair = localStorage.getItem('lastPair') || "XAUUSDT";
+    let currentTF = localStorage.getItem('lastTF') || "15m";
+    let currentMode = localStorage.getItem('lastMode') || "conservative";
     
-    // ==================== PERBAIKAN UTAMA: WEIGHTED SCORE DENGAN KONTEKS ARAH ====================
-    const WEIGHTS = { adx: 30, ema: 15, rsi: 15, mtf: 20, zone: 20 };
-    
-    function calculateWeightedScore(adx, ema21, lastPrice, rsi, mtfBullishCount, mtfBearishCount, inZone, config, direction) {
-        let weightedSum = 0, totalWeight = 0;
-        
-        // ADX Score - sekarang mempertimbangkan arah
-        let adxScore = 0;
-        if (adx >= STRONG_ADX_THRESHOLD) {
-            adxScore = 100;
-        } else if (adx >= config.adxThreshold) {
-            adxScore = 75;
-        } else if (adx >= 18) {
-            adxScore = 40;
-        } else {
-            adxScore = 10; // Ranging
-        }
-        weightedSum += adxScore * WEIGHTS.adx; totalWeight += WEIGHTS.adx;
-        
-        // EMA Score - sinkron dengan arah
-        let emaScore = 0;
-        if (direction === "BULLISH" && lastPrice > ema21) emaScore = 100;
-        else if (direction === "BEARISH" && lastPrice < ema21) emaScore = 100;
-        else if (direction === "BULLISH" && lastPrice <= ema21) emaScore = 20;
-        else if (direction === "BEARISH" && lastPrice >= ema21) emaScore = 20;
-        weightedSum += emaScore * WEIGHTS.ema; totalWeight += WEIGHTS.ema;
-        
-        // RSI Score - kontekstual dengan arah
-        let rsiScore = 50;
-        if (direction === "BULLISH") {
-            if (rsi < 30) rsiScore = 90; // Oversold - good for buy
-            else if (rsi >= 30 && rsi < 50) rsiScore = 80;
-            else if (rsi >= 50 && rsi < 60) rsiScore = 70;
-            else if (rsi >= 60 && rsi < 70) rsiScore = 50;
-            else if (rsi >= 70) rsiScore = 20; // Overbought - bad for buy
-        } else {
-            if (rsi > 70) rsiScore = 90; // Overbought - good for sell
-            else if (rsi > 50 && rsi <= 70) rsiScore = 80;
-            else if (rsi > 40 && rsi <= 50) rsiScore = 70;
-            else if (rsi > 30 && rsi <= 40) rsiScore = 50;
-            else if (rsi <= 30) rsiScore = 20; // Oversold - bad for sell
-        }
-        weightedSum += rsiScore * WEIGHTS.rsi; totalWeight += WEIGHTS.rsi;
-        
-        // MTF Score - gunakan count yang sesuai arah
-        let mtfScore = 0;
-        if (direction === "BULLISH") {
-            mtfScore = (mtfBullishCount / 4) * 100;
-        } else {
-            mtfScore = (mtfBearishCount / 4) * 100;
-        }
-        weightedSum += mtfScore * WEIGHTS.mtf; totalWeight += WEIGHTS.mtf;
-        
-        // Zone Score - paling penting untuk eksekusi
-        let zoneScore = inZone ? 100 : 0;
-        weightedSum += zoneScore * WEIGHTS.zone; totalWeight += WEIGHTS.zone;
-        
-        return totalWeight === 0 ? 50 : weightedSum / totalWeight;
-    }
-    
-    let lastLogHash = '';
-    let engine = { swingHigh: 0, swingLow: 0, bias: "NEUTRAL", adxBias: "NEUTRAL", adx: 0, ema21: 0, plusDI: 0, minusDI: 0, atr: 0, entryZoneLow: 0, entryZoneHigh: 0, tp: 0, sl: 0 };
-    let currentPair = localStorage.getItem('lastPair_v2') || "XAUUSDT";
-    let currentTF = localStorage.getItem('lastTF_v2') || "15m";
     let wsConnection = null, candleBuffer = new CircularBuffer(150);
     let isReloading = false, reloadQueue = false, currentRequestId = null;
     let lastPriceUpdateTime = 0, lastWSMessageTime = 0;
@@ -708,56 +784,47 @@
     let lastPrice = 0, prevPrice = 0;
     let lastUIUpdateTime = 0, pendingUIUpdate = false;
     let cachedCandleArray = null, lastCacheTime = 0;
-    let finalScore = 50;
+    
+    let mtfBiasCache = { h4: "NEUTRAL", h1: "NEUTRAL", m15: "NEUTRAL", m5: "NEUTRAL", timestamp: 0, pair: null };
+    let lastLogHash = '';
     
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     function getConfig() { return PAIR_CONFIG[currentPair]; }
-    function getCandleArray() { const now = Date.now(); if (!cachedCandleArray || (now - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = now; } return cachedCandleArray; }
+    function getCandleArray() { 
+        const now = Date.now(); 
+        if (!cachedCandleArray || (now - lastCacheTime) > 500) { 
+            cachedCandleArray = candleBuffer.toArray(); 
+            lastCacheTime = now; 
+        } 
+        return cachedCandleArray; 
+    }
     function invalidateCandleCache() { cachedCandleArray = null; }
     
-    function throttledUIUpdate(price, force = false) {
-        const now = Date.now();
-        if (force || now - lastUIUpdateTime >= 100) { lastUIUpdateTime = now; updateUI(price); pendingUIUpdate = false; }
-        else if (!pendingUIUpdate) { pendingUIUpdate = true; setTimeout(() => { if (pendingUIUpdate) { updateUI(lastPrice); pendingUIUpdate = false; } }, 100); }
-    }
-    
-    let mtfBiasCache = { h4: "NEUTRAL", h1: "NEUTRAL", m15: "NEUTRAL", m5: "NEUTRAL", timestamp: 0, pair: null };
-    
-    function getTimeframeBiasEnhanced(data) {
-        // Analisis struktur sederhana, bukan hanya EMA
-        if (!data || data.length < 30) return "NEUTRAL";
-        const closes = data.map(c => c.c);
-        const highs = data.map(c => c.h);
-        const lows = data.map(c => c.l);
-        
-        const price = closes[closes.length - 1];
-        const sma20 = closes.slice(-20).reduce((a,b) => a+b, 0) / 20;
-        const sma50 = closes.length >= 50 ? closes.slice(-50).reduce((a,b) => a+b, 0) / 50 : sma20;
-        
-        // Cek Higher High / Higher Low sederhana
-        const recentHighs = highs.slice(-10);
-        const recentLows = lows.slice(-10);
-        const maxHigh = Math.max(...recentHighs);
-        const minLow = Math.min(...recentLows);
-        
-        if (price > sma20 && price > sma50 && price > (maxHigh * 0.998)) return "BULLISH";
-        if (price < sma20 && price < sma50 && price < (minLow * 1.002)) return "BEARISH";
-        if (price > sma20) return "BULLISH";
-        if (price < sma20) return "BEARISH";
-        return "NEUTRAL";
-    }
-    
+    // ==================== UPDATE MTF BIAS ====================
     async function updateMTFBias() {
         const now = Date.now();
-        if (mtfBiasCache.timestamp && (now - mtfBiasCache.timestamp) < 60000 && mtfBiasCache.pair === currentPair) { updateTimeframeBiasUI(); return; }
-        const tfs = [{ id: '4h', label: 'h4', apiInterval: '4h' }, { id: '1h', label: 'h1', apiInterval: '1h' }, { id: '15m', label: 'm15', apiInterval: '15m' }, { id: '5m', label: 'm5', apiInterval: '5m' }];
+        if (mtfBiasCache.timestamp && (now - mtfBiasCache.timestamp) < 120000 && mtfBiasCache.pair === currentPair) {
+            updateTFButtonBias();
+            return;
+        }
+        
+        const tfs = [
+            { id: '4h', label: 'h4', apiInterval: '4h' },
+            { id: '1h', label: 'h1', apiInterval: '1h' },
+            { id: '15m', label: 'm15', apiInterval: '15m' },
+            { id: '5m', label: 'm5', apiInterval: '5m' }
+        ];
+        
         for (const tf of tfs) {
             try {
-                const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf.apiInterval}&limit=100`);
+                const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${tf.apiInterval}&limit=150`);
                 const data = await resp.json();
                 if (Array.isArray(data) && data.length > 0) {
-                    const formattedData = data.map(d => ({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }));
-                    const bias = getTimeframeBiasEnhanced(formattedData);
+                    const formattedData = data.map(d => ({ 
+                        t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), 
+                        l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) 
+                    }));
+                    const bias = getTimeframeBias(formattedData);
                     if (tf.id === '4h') mtfBiasCache.h4 = bias;
                     else if (tf.id === '1h') mtfBiasCache.h1 = bias;
                     else if (tf.id === '15m') mtfBiasCache.m15 = bias;
@@ -765,245 +832,312 @@
                 }
             } catch(e) {}
         }
-        mtfBiasCache.timestamp = now; mtfBiasCache.pair = currentPair;
-        updateTimeframeBiasUI();
+        
+        mtfBiasCache.timestamp = now;
+        mtfBiasCache.pair = currentPair;
+        updateTFButtonBias();
     }
     
-    function updateTimeframeBiasUI() {
+    function updateTFButtonBias() {
         const tfMap = { '4h': mtfBiasCache.h4, '1h': mtfBiasCache.h1, '15m': mtfBiasCache.m15, '5m': mtfBiasCache.m5 };
         document.querySelectorAll('.tf-btn').forEach(btn => {
-            const tf = btn.getAttribute('data-tf'), bias = tfMap[tf] || 'NEUTRAL';
+            const tf = btn.getAttribute('data-tf');
+            const bias = tfMap[tf] || 'NEUTRAL';
             const symbolSpan = btn.querySelector('.tf-bias-symbol');
             if (!symbolSpan) return;
             let symbol = '', biasClass = '';
             if (bias === 'BULLISH') { symbol = ' ▲'; biasClass = 'bullish'; }
             else if (bias === 'BEARISH') { symbol = ' ▼'; biasClass = 'bearish'; }
             else { symbol = ' ●'; biasClass = 'neutral'; }
-            symbolSpan.textContent = symbol; symbolSpan.className = `tf-bias-symbol ${biasClass}`;
+            symbolSpan.textContent = symbol;
+            symbolSpan.className = `tf-bias-symbol ${biasClass}`;
         });
     }
     
-    // ==================== PERBAIKAN UTAMA: updateLevels DENGAN MODE DINAMIS ====================
-    function updateLevels(directionBias) {
-        const candleArray = getCandleArray();
-        if (candleArray.length === 0) return;
+    // ==================== CALCULATE PROBABILITY ====================
+    function calculateProbability(adx, divergence, mtfAlignment, priceVsMA, config) {
+        let prob = 50;
+        const modeThreshold = currentMode === 'conservative' ? config.adxThresholdConservative : config.adxThresholdSniper;
         
-        const { swingHigh, swingLow, range } = detectValidSwingPoints();
-        if (range <= 0 || isNaN(range) || !isFinite(range)) return;
+        if (adx >= 40) prob += 25;
+        else if (adx >= 30) prob += 20;
+        else if (adx >= modeThreshold) prob += 15;
+        else if (adx >= 20) prob += 5;
+        else prob -= 10;
         
-        engine.swingHigh = swingHigh;
-        engine.swingLow = swingLow;
-        const price = lastPrice;
-        const atr = calculateATR(candleArray, getConfig().atrPeriod);
-        engine.atr = atr;
+        if (divergence.type !== 'NONE') prob += 20;
         
-        // Tentukan levelBias berdasarkan konsensus ADX dan EMA
-        const emaBias = price > engine.ema21 ? "BULLISH" : "BEARISH";
-        let levelBias;
+        const mtfScore = mtfAlignment * 30;
+        prob += mtfScore;
         
-        if (directionBias) {
-            levelBias = directionBias;
-        } else if (engine.adx >= MIN_ADX_TREND) {
-            // ADX kuat, ikuti ADX
-            levelBias = engine.adxBias !== "NEUTRAL" ? engine.adxBias : emaBias;
-        } else {
-            levelBias = emaBias;
-        }
+        if (priceVsMA) prob += 15;
+        else prob -= 10;
         
-        engine.bias = levelBias;
+        if (adx < 20) prob -= 20;
         
-        // Entry Zone Factor berdasarkan mode
-        const entryFactor = currentMode === 'conservative' ? ENTRY_ZONE_FACTOR_CONSERVATIVE : ENTRY_ZONE_FACTOR_SNIPER;
-        
-        // Fibonacci Levels
-        let f618, f786;
-        if (levelBias === "BULLISH") {
-            f618 = swingLow + range * 0.618;
-            f786 = swingLow + range * 0.786;
-        } else {
-            f618 = swingHigh - range * 0.618;
-            f786 = swingHigh - range * 0.786;
-        }
-        
-        const zoneLow = Math.min(f618, f786) - (atr * entryFactor);
-        const zoneHigh = Math.max(f618, f786) + (atr * entryFactor);
-        engine.entryZoneLow = zoneLow;
-        engine.entryZoneHigh = zoneHigh;
-        
-        // TP = 27% Range
-        const tpDistance = range * TP_RANGE_PCT;
-        const slRatio = currentMode === 'conservative' ? SL_TP_RATIO_CONSERVATIVE : SL_TP_RATIO_SNIPER;
-        
-        let entryReference;
-        if (levelBias === "BULLISH") {
-            entryReference = engine.entryZoneHigh;
-            engine.tp = entryReference + tpDistance;
-            engine.sl = entryReference - (tpDistance * slRatio);
-        } else {
-            entryReference = engine.entryZoneLow;
-            engine.tp = entryReference - tpDistance;
-            engine.sl = entryReference + (tpDistance * slRatio);
-        }
-        
-        const prec = getPrecision();
-        UI.swingHigh.textContent = swingHigh.toFixed(prec);
-        UI.swingLow.textContent = swingLow.toFixed(prec);
-        UI.entryZoneLow.textContent = engine.entryZoneLow.toFixed(prec);
-        UI.entryZoneHigh.textContent = engine.entryZoneHigh.toFixed(prec);
-        UI.tpValue.textContent = engine.tp.toFixed(prec);
-        UI.slValue.textContent = engine.sl.toFixed(prec);
-        const rangePoints = range.toFixed(prec);
-        UI.rangeValue.textContent = `${rangePoints} pts`;
-        
-        const currentHash = `${currentPair}_${currentTF}_${levelBias}_${price.toFixed(prec)}_${swingHigh.toFixed(prec)}_${currentMode}`;
-        if (currentHash !== lastLogHash) {
-            consoleManager.addLog(currentPair, currentTF, levelBias, price, range, engine.tp, engine.sl, finalScore, currentMode.toUpperCase());
-            lastLogHash = currentHash;
-        }
+        return Math.max(0, Math.min(100, Math.round(prob)));
     }
     
-    // ==================== PERBAIKAN UTAMA: updateDecision DENGAN KONSENSUS ADX+EMA ====================
+    // ==================== UPDATE DECISION ====================
     function updateDecision() {
-        if (isDataStale) { UI.decision.textContent = 'DATA STALE'; UI.decision.style.color = 'var(--warning)'; UI.signalBar.style.background = 'rgba(239, 68, 68, 0.1)'; return; }
+        if (isDataStale) {
+            UI.decision.textContent = 'DATA STALE';
+            UI.decision.style.color = 'var(--warning)';
+            UI.signalBar.style.background = 'rgba(248, 113, 113, 0.1)';
+            return;
+        }
+        
         const candleArray = getCandleArray();
         if (candleArray.length === 0) return;
-        const p = lastPrice, config = getConfig(), prec = getPrecision();
         
-        engine.ema21 = calculateEMA(candleArray, 21);
+        const p = lastPrice;
+        const config = getConfig();
+        const prec = getPrecision();
+        
+        engine.ma20 = calculateMA(candleArray, config.maFast);
+        engine.ma50 = calculateMA(candleArray, config.maSlow);
+        
+        const bb = calculateBollingerBands(candleArray, config.bbPeriod, config.bbStdDev);
+        engine.bbUpper = bb.upper;
+        engine.bbMiddle = bb.middle;
+        engine.bbLower = bb.lower;
+        
         const adxResult = calculateADX(candleArray);
-        engine.adx = adxResult.adx; engine.plusDI = adxResult.plusDI; engine.minusDI = adxResult.minusDI;
+        engine.adx = adxResult.adx;
+        engine.plusDI = adxResult.plusDI;
+        engine.minusDI = adxResult.minusDI;
         engine.adxBias = engine.plusDI > engine.minusDI ? "BULLISH" : (engine.minusDI > engine.plusDI ? "BEARISH" : "NEUTRAL");
         
-        const rsi = computeRSI(candleArray);
+        engine.atr = calculateATR(candleArray, config.atrPeriod);
         
-        // Update UI Metrics
+        const rsi = computeRSI(candleArray);
+        const divergence = detectRSIDivergence(candleArray);
+        engine.divergence = divergence.type;
+        
+        const swingPoints = detectSwingPoints(candleArray, config);
+        engine.swingHigh = swingPoints.swingHigh > 0 ? swingPoints.swingHigh : bb.upper;
+        engine.swingLow = swingPoints.swingLow < Infinity ? swingPoints.swingLow : bb.lower;
+        engine.validHigh = swingPoints.validHigh;
+        engine.validLow = swingPoints.validLow;
+        
+        UI.ma20Value.textContent = engine.ma20.toFixed(prec);
+        UI.ma50Value.textContent = `MA50: ${engine.ma50.toFixed(prec)}`;
+        UI.maTrend.textContent = p > engine.ma20 ? '▲' : '▼';
+        UI.maTrend.style.color = p > engine.ma20 ? 'var(--accent-green)' : 'var(--accent-red)';
+        
+        UI.adxValue.textContent = Math.round(engine.adx);
+        const modeThreshold = currentMode === 'conservative' ? config.adxThresholdConservative : config.adxThresholdSniper;
+        if (engine.adx < modeThreshold) UI.adxValue.classList.add('adx-warning');
+        else UI.adxValue.classList.remove('adx-warning');
+        
+        UI.diValues.textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
+        UI.adxTrend.textContent = engine.plusDI > engine.minusDI ? '▲' : '▼';
+        UI.adxTrend.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
+        
         UI.rsiValue.textContent = rsi.toFixed(1);
         UI.rsiFill.style.width = Math.min(100, Math.max(0, rsi)) + '%';
         UI.rsiFill.className = 'rsi-fill ' + (rsi < config.rsiOversold ? 'oversold' : rsi > config.rsiOverbought ? 'overbought' : 'neutral');
         
-        UI.emaValue.textContent = engine.ema21.toFixed(prec);
-        UI.emaDistance.textContent = `${(p>engine.ema21?'+':'')}${(p-engine.ema21).toFixed(prec)} (${((p-engine.ema21)/engine.ema21*100).toFixed(2)}%)`;
-        UI.emaTrend.textContent = p>engine.ema21?'▲':'▼';
-        UI.emaTrend.style.color = p>engine.ema21?'var(--accent-green)':'var(--accent-red)';
-        UI.adxValue.textContent = Math.round(engine.adx);
-        if (engine.adx<config.adxThreshold) UI.adxValue.classList.add('adx-warning'); else UI.adxValue.classList.remove('adx-warning');
-        UI.diValues.textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
-        UI.adxTrend.textContent = engine.plusDI>engine.minusDI?'▲':'▼';
-        UI.adxTrend.style.color = engine.plusDI>engine.minusDI?'var(--accent-green)':'var(--accent-red)';
-        
-        // ==================== KONSENSUS ARAH (ADX + EMA) ====================
-        let direction, action;
-        const emaDirection = p > engine.ema21 ? "BULLISH" : "BEARISH";
-        
-        if (engine.adx >= STRONG_ADX_THRESHOLD) {
-            // ADX sangat kuat, ADX mem-veto EMA
-            direction = engine.adxBias !== "NEUTRAL" ? engine.adxBias : emaDirection;
-        } else if (engine.adx >= config.adxThreshold) {
-            // ADX cukup kuat, konsensus
-            if (engine.adxBias === emaDirection) {
-                direction = emaDirection;
-            } else {
-                direction = engine.adxBias; // Prioritaskan ADX
-            }
+        if (divergence.type !== 'NONE') {
+            UI.divergenceInd.textContent = divergence.type;
+            UI.divergenceInd.className = `divergence-indicator ${divergence.type === 'BULLISH' ? 'divergence-bullish' : 'divergence-bearish'}`;
         } else {
-            // ADX lemah, ikuti EMA
-            direction = emaDirection;
+            UI.divergenceInd.textContent = '—';
+            UI.divergenceInd.className = 'divergence-indicator';
         }
         
-        action = direction === "BULLISH" ? "BUY" : "SELL";
+        UI.swingHigh.textContent = engine.swingHigh.toFixed(prec);
+        UI.swingLow.textContent = engine.swingLow.toFixed(prec);
+        UI.resistanceValue.textContent = engine.bbUpper.toFixed(prec);
+        UI.supportValue.textContent = engine.bbLower.toFixed(prec);
         
-        // Cek apakah harga di dalam Entry Zone
-        const { swingHigh, swingLow, range } = detectValidSwingPoints();
-        const atr = calculateATR(candleArray, config.atrPeriod);
-        const entryFactor = currentMode === 'conservative' ? ENTRY_ZONE_FACTOR_CONSERVATIVE : ENTRY_ZONE_FACTOR_SNIPER;
+        const mtfBullishCount = [mtfBiasCache.h4, mtfBiasCache.h1, mtfBiasCache.m15, mtfBiasCache.m5]
+            .filter(b => b === "BULLISH").length;
+        const mtfBearishCount = [mtfBiasCache.h4, mtfBiasCache.h1, mtfBiasCache.m15, mtfBiasCache.m5]
+            .filter(b => b === "BEARISH").length;
         
-        const tempBias = direction;
-        const f618 = tempBias === "BULLISH" ? swingLow + range*0.618 : swingHigh - range*0.618;
-        const f786 = tempBias === "BULLISH" ? swingLow + range*0.786 : swingHigh - range*0.786;
-        const entryLow = Math.min(f618, f786) - atr * entryFactor;
-        const entryHigh = Math.max(f618, f786) + atr * entryFactor;
-        const inZone = p >= entryLow && p <= entryHigh;
+        let bias = "NEUTRAL";
+        if (engine.adx >= modeThreshold) {
+            if (engine.plusDI > engine.minusDI && mtfBullishCount >= 2) bias = "BULLISH";
+            else if (engine.minusDI > engine.plusDI && mtfBearishCount >= 2) bias = "BEARISH";
+        }
         
-        const bullishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BULLISH").length;
-        const bearishCount = [mtfBiasCache.m5, mtfBiasCache.m15, mtfBiasCache.h1, mtfBiasCache.h4].filter(b=>b==="BEARISH").length;
+        const entryBuffer = engine.atr * config.entryZoneATRFactor;
+        engine.entryZoneLow = engine.ma20 - entryBuffer;
+        engine.entryZoneHigh = engine.ma20 + entryBuffer;
         
-        // Hitung skor dengan konteks arah
-        finalScore = calculateWeightedScore(engine.adx, engine.ema21, p, rsi, bullishCount, bearishCount, inZone, config, direction);
-        finalScore = Math.min(100, Math.max(0, finalScore));
+        const range = Math.abs(engine.swingHigh - engine.swingLow);
         
-        UI.arrow.innerHTML = direction === "BULLISH" ? '▲' : '▼';
-        UI.arrow.style.color = direction === "BULLISH" ? 'var(--accent-green)' : 'var(--accent-red)';
-        
-        const isRanging = engine.adx < 18;
-        const isWeakTrend = engine.adx < config.adxThreshold && engine.adx >= 18;
-        
-        let displayText = '', color = '', bgColor = '';
-        
-        // Logika Sinyal yang Diperbaiki
-        if (isRanging) {
-            displayText = `SIDEWAYS [${Math.round(finalScore)}%]`;
-            color = 'var(--warning)';
-            bgColor = 'rgba(245, 158, 11, 0.1)';
-        } else if (isWeakTrend) {
-            displayText = `WEAK ${action} [${Math.round(finalScore)}%]`;
-            color = 'var(--warning)';
-            bgColor = 'rgba(245, 158, 11, 0.1)';
-        } else if (inZone && finalScore >= 70) {
-            displayText = `STRONG ${action} [${Math.round(finalScore)}%]`;
-            color = action === 'BUY' ? 'var(--accent-green)' : 'var(--accent-red)';
-            bgColor = action === 'BUY' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
-        } else if (inZone && finalScore >= 55) {
-            displayText = `${action} ZONE [${Math.round(finalScore)}%]`;
-            color = action === 'BUY' ? 'var(--accent-green)' : 'var(--accent-red)';
-            bgColor = action === 'BUY' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)';
-        } else if (finalScore >= 65) {
-            displayText = `WAIT ${action} [${Math.round(finalScore)}%]`;
-            color = 'var(--accent-blue)';
-            bgColor = 'rgba(59, 130, 246, 0.08)';
+        if (bias === "BULLISH") {
+            engine.tp = p + (range * config.fibTPMin);
+            engine.sl = engine.swingLow - (engine.atr * config.slBufferATR);
+        } else if (bias === "BEARISH") {
+            engine.tp = p - (range * config.fibTPMin);
+            engine.sl = engine.swingHigh + (engine.atr * config.slBufferATR);
         } else {
-            displayText = `NO SIGNAL [${Math.round(finalScore)}%]`;
+            engine.tp = p;
+            engine.sl = p;
+        }
+        
+        UI.entryZoneLow.textContent = engine.entryZoneLow.toFixed(prec);
+        UI.entryZoneHigh.textContent = engine.entryZoneHigh.toFixed(prec);
+        UI.tpValue.textContent = engine.tp.toFixed(prec);
+        UI.slValue.textContent = engine.sl.toFixed(prec);
+        
+        let mtfAlignmentScore = 0;
+        if (bias === "BULLISH") {
+            if (mtfBiasCache.h4 === "BULLISH") mtfAlignmentScore += MTF_WEIGHTS.h4;
+            if (mtfBiasCache.h1 === "BULLISH") mtfAlignmentScore += MTF_WEIGHTS.h1;
+            if (mtfBiasCache.m15 === "BULLISH") mtfAlignmentScore += MTF_WEIGHTS.m15;
+            if (mtfBiasCache.m5 === "BULLISH") mtfAlignmentScore += MTF_WEIGHTS.m5;
+        } else if (bias === "BEARISH") {
+            if (mtfBiasCache.h4 === "BEARISH") mtfAlignmentScore += MTF_WEIGHTS.h4;
+            if (mtfBiasCache.h1 === "BEARISH") mtfAlignmentScore += MTF_WEIGHTS.h1;
+            if (mtfBiasCache.m15 === "BEARISH") mtfAlignmentScore += MTF_WEIGHTS.m15;
+            if (mtfBiasCache.m5 === "BEARISH") mtfAlignmentScore += MTF_WEIGHTS.m5;
+        }
+        
+        const priceAboveMA = bias === "BULLISH" ? p > engine.ma20 : (bias === "BEARISH" ? p < engine.ma20 : false);
+        
+        engine.probability = calculateProbability(
+            engine.adx, 
+            divergence, 
+            mtfAlignmentScore, 
+            priceAboveMA, 
+            config
+        );
+        
+        let displayText = '', color = '', bgColor = '', signalAction = null;
+        const isRanging = engine.adx < 20;
+        const isWeakTrend = engine.adx < modeThreshold;
+        
+        if (isRanging) {
+            displayText = `SIDEWAYS (ADX ${Math.round(engine.adx)})`;
+            color = 'var(--warning)';
+            bgColor = 'rgba(251, 191, 36, 0.1)';
+        } else if (isWeakTrend) {
+            displayText = `WEAK TREND (ADX ${Math.round(engine.adx)})`;
+            color = 'var(--warning)';
+            bgColor = 'rgba(251, 191, 36, 0.1)';
+        } else if (bias !== "NEUTRAL" && engine.probability >= 60) {
+            const strength = engine.probability >= 75 ? 'STRONG' : '';
+            displayText = `${strength} ${bias} [${engine.probability}%] ${divergence.type !== 'NONE' ? '⚡DIV' : ''}`;
+            color = bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
+            bgColor = bias === 'BULLISH' ? 'rgba(74, 222, 128, 0.08)' : 'rgba(248, 113, 113, 0.08)';
+            signalAction = bias;
+        } else if (bias !== "NEUTRAL" && engine.probability >= 45) {
+            displayText = `WEAK ${bias} [${engine.probability}%]`;
+            color = 'var(--accent-gold)';
+            bgColor = 'rgba(251, 191, 36, 0.08)';
+        } else {
+            displayText = `NO SIGNAL [${engine.probability}%]`;
             color = 'var(--text-tertiary)';
             bgColor = 'var(--bg-secondary)';
         }
         
         UI.decision.textContent = displayText;
         UI.decision.style.color = color;
+        UI.probability.textContent = `${engine.probability}%`;
+        UI.probability.style.color = color;
         UI.signalBar.style.background = bgColor;
         UI.signalBar.style.borderColor = color;
         
-        // Panggil updateLevels dengan arah yang sudah dikonsensus
-        updateLevels(direction);
+        UI.arrow.innerHTML = bias === 'BULLISH' ? '▲' : (bias === 'BEARISH' ? '▼' : '—');
+        UI.arrow.style.color = bias === 'BULLISH' ? 'var(--accent-green)' : (bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-tertiary)');
+        
+        const currentHash = `${currentPair}_${currentTF}_${bias}_${engine.probability}_${divergence.type}`;
+        if (currentHash !== lastLogHash && bias !== "NEUTRAL" && engine.probability >= 45) {
+            consoleManager.addLog(
+                currentPair, currentTF, bias, engine.probability, p,
+                engine.entryZoneLow, engine.entryZoneHigh, engine.tp, engine.sl, divergence.type
+            );
+            lastLogHash = currentHash;
+        }
+    }
+    
+    // ==================== UI UPDATE ====================
+    function throttledUIUpdate(price, force = false) {
+        const now = Date.now();
+        if (force || now - lastUIUpdateTime >= 100) {
+            lastUIUpdateTime = now;
+            updateUI(price);
+            pendingUIUpdate = false;
+        } else if (!pendingUIUpdate) {
+            pendingUIUpdate = true;
+            setTimeout(() => {
+                if (pendingUIUpdate) {
+                    updateUI(lastPrice);
+                    pendingUIUpdate = false;
+                }
+            }, 100);
+        }
     }
     
     function updateUI(price) {
-        const p = safeValue(price,0), prec = getPrecision();
-        const fixed = p.toFixed(prec), parts = fixed.split('.');
-        UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1]||'00'}</span>`;
-        UI.priceMain.style.color = p>prevPrice ? 'var(--accent-green)' : (p<prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
-        if (prevPrice>0) {
-            const change = p-prevPrice, pct = (change/prevPrice)*100;
-            UI.priceChange.innerHTML = `${change>0?'+':''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`;
-            UI.priceChange.style.color = change>0?'var(--accent-green)':'var(--accent-red)';
+        const p = safeValue(price, 0);
+        const prec = getPrecision();
+        const fixed = p.toFixed(prec);
+        const parts = fixed.split('.');
+        
+        UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`;
+        UI.priceMain.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
+        
+        if (prevPrice > 0) {
+            const change = p - prevPrice;
+            const pct = (change / prevPrice) * 100;
+            UI.priceChange.innerHTML = `${change > 0 ? '+' : ''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`;
+            UI.priceChange.style.color = change > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
         }
-        lastPrice = p; prevPrice = p;
+        
+        lastPrice = p;
+        prevPrice = p;
+        
         updateDecision();
     }
     
-    function safeValue(val, fallback=0) { return (typeof val==='number' && !isNaN(val) && isFinite(val)) ? val : fallback; }
+    function safeValue(val, fallback = 0) {
+        return (typeof val === 'number' && !isNaN(val) && isFinite(val)) ? val : fallback;
+    }
     
+    // ==================== WEBSOCKET ====================
     function updateWSStatus(status, message) {
         if (!UI.dot || !UI.text) return;
         UI.dot.className = 'status-dot';
-        if (status==='live') { UI.dot.classList.add('live'); UI.text.innerText=message||'LIVE'; reconnectDelay=1000; isUsingFallback=false; isDataStale=false; }
-        else if (status==='connecting') { UI.dot.classList.add('connecting'); UI.text.innerText=message||'CONNECTING'; }
-        else if (status==='reconnect') { UI.dot.classList.add('reconnect'); UI.text.innerText=message||'RECONNECT'; }
-        else if (status==='fallback') { UI.dot.classList.add('fallback'); UI.text.innerText=message||'FALLBACK'; isUsingFallback=true; }
-        else if (status==='stale') { UI.dot.classList.add('stale'); UI.text.innerText=message||'DATA STALE'; isDataStale=true; }
+        if (status === 'live') {
+            UI.dot.classList.add('live');
+            UI.text.innerText = message || 'LIVE';
+            reconnectDelay = 1000;
+            isUsingFallback = false;
+            isDataStale = false;
+        } else if (status === 'connecting') {
+            UI.dot.classList.add('connecting');
+            UI.text.innerText = message || 'CONNECTING';
+        } else if (status === 'reconnect') {
+            UI.dot.classList.add('reconnect');
+            UI.text.innerText = message || 'RECONNECT';
+        } else if (status === 'fallback') {
+            UI.dot.classList.add('fallback');
+            UI.text.innerText = message || 'FALLBACK';
+            isUsingFallback = true;
+        } else if (status === 'stale') {
+            UI.dot.classList.add('stale');
+            UI.text.innerText = message || 'DATA STALE';
+            isDataStale = true;
+        }
     }
     
     function cleanupWebSocket() {
-        if (wsConnection) { isManualDisconnect=true; try { wsConnection.onopen=wsConnection.onmessage=wsConnection.onclose=wsConnection.onerror=null; if (wsConnection.readyState===WebSocket.OPEN || wsConnection.readyState===WebSocket.CONNECTING) wsConnection.close(); } catch(e) {} wsConnection=null; }
-        setTimeout(()=>{ isManualDisconnect=false; },100);
+        if (wsConnection) {
+            isManualDisconnect = true;
+            try {
+                wsConnection.onopen = wsConnection.onmessage = wsConnection.onclose = wsConnection.onerror = null;
+                if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) {
+                    wsConnection.close();
+                }
+            } catch(e) {}
+            wsConnection = null;
+        }
+        setTimeout(() => { isManualDisconnect = false; }, 100);
     }
     
     async function fetchKlines() {
@@ -1012,9 +1146,18 @@
             const data = await resp.json();
             if (Array.isArray(data)) {
                 candleBuffer.clear();
-                data.forEach(d => { candleBuffer.push({ t:d[0], o:parseFloat(d[1]), h:parseFloat(d[2]), l:parseFloat(d[3]), c:parseFloat(d[4]), v:parseFloat(d[5]) }); });
+                data.forEach(d => {
+                    candleBuffer.push({
+                        t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]),
+                        l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5])
+                    });
+                });
                 invalidateCandleCache();
-                if (candleBuffer.length > 0) { const latest = candleBuffer.getLatest(); lastPrice = prevPrice = latest.c; updateUI(lastPrice); }
+                if (candleBuffer.length > 0) {
+                    const latest = candleBuffer.getLatest();
+                    lastPrice = prevPrice = latest.c;
+                    updateUI(lastPrice);
+                }
                 return true;
             }
         } catch(e) {}
@@ -1025,98 +1168,246 @@
         try {
             const resp = await fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentPair}`);
             const data = await resp.json();
-            if (data?.price) { const price = parseFloat(data.price); if (price>0 && (Date.now()-lastWSMessageTime>3000 || isUsingFallback)) { lastPriceUpdateTime = Date.now(); throttledUIUpdate(price, true); } }
+            if (data?.price) {
+                const price = parseFloat(data.price);
+                if (price > 0 && (Date.now() - lastWSMessageTime > 3000 || isUsingFallback)) {
+                    lastPriceUpdateTime = Date.now();
+                    throttledUIUpdate(price, true);
+                }
+            }
         } catch(e) {}
     }
     
     function initWebSocket() {
-        cleanupWebSocket(); updateWSStatus('connecting','CONNECTING');
+        cleanupWebSocket();
+        updateWSStatus('connecting', 'CONNECTING');
+        
         const streamName = `${currentPair.toLowerCase()}@kline_${currentTF}`;
         try {
             wsConnection = new WebSocket(`wss://fstream.binance.com/ws/${streamName}`);
-            wsConnection.onopen = () => { reconnectDelay=1000; lastWSMessageTime=lastPriceUpdateTime=Date.now(); isUsingFallback=false; isDataStale=false; updateWSStatus('live', `LIVE ${currentTF}`); };
+            
+            wsConnection.onopen = () => {
+                reconnectDelay = 1000;
+                lastWSMessageTime = lastPriceUpdateTime = Date.now();
+                isUsingFallback = false;
+                isDataStale = false;
+                updateWSStatus('live', `LIVE ${currentTF}`);
+            };
+            
             wsConnection.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
                     if (msg?.k) {
-                        const k = msg.k, price = parseFloat(k.c), high = parseFloat(k.h), low = parseFloat(k.l), open = parseFloat(k.o), isClosed = k.x, candleTime = k.t;
+                        const k = msg.k;
+                        const price = parseFloat(k.c);
+                        const high = parseFloat(k.h);
+                        const low = parseFloat(k.l);
+                        const open = parseFloat(k.o);
+                        const isClosed = k.x;
+                        const candleTime = k.t;
+                        
                         if (price > 0) {
                             lastWSMessageTime = lastPriceUpdateTime = Date.now();
+                            
                             if (isUsingFallback) updateWSStatus('live', `LIVE ${currentTF}`);
                             if (isDataStale) updateWSStatus('live', `LIVE ${currentTF}`);
+                            
                             const candleArray = getCandleArray();
                             if (candleArray.length > 0) {
                                 const lastCandle = candleArray[candleArray.length - 1];
-                                if (isClosed && lastCandle.t !== candleTime) { candleBuffer.push({ t: candleTime, o: open, h: high, l: low, c: price, v: parseFloat(k.v) }); invalidateCandleCache(); }
-                                else if (!isClosed && lastCandle.t === candleTime) { lastCandle.c = price; lastCandle.h = Math.max(lastCandle.h, high); lastCandle.l = Math.min(lastCandle.l, low); invalidateCandleCache(); }
+                                if (isClosed && lastCandle.t !== candleTime) {
+                                    candleBuffer.push({
+                                        t: candleTime, o: open, h: high,
+                                        l: low, c: price, v: parseFloat(k.v)
+                                    });
+                                    invalidateCandleCache();
+                                } else if (!isClosed && lastCandle.t === candleTime) {
+                                    lastCandle.c = price;
+                                    lastCandle.h = Math.max(lastCandle.h, high);
+                                    lastCandle.l = Math.min(lastCandle.l, low);
+                                    invalidateCandleCache();
+                                }
                             }
+                            
                             throttledUIUpdate(price);
                         }
                     }
                 } catch(err) {}
             };
-            wsConnection.onclose = () => { if (!isReloading && !isManualDisconnect) { updateWSStatus('reconnect','RECONNECT'); if (reconnectTimer) clearTimeout(reconnectTimer); reconnectTimer = setTimeout(() => { if (!isReloading && !isManualDisconnect) { reconnectDelay = Math.min(reconnectDelay*1.5, 30000); initWebSocket(); } }, reconnectDelay); } };
-            wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect','ERROR'); };
-        } catch(e) { updateWSStatus('fallback','FALLBACK'); isUsingFallback=true; }
+            
+            wsConnection.onclose = () => {
+                if (!isReloading && !isManualDisconnect) {
+                    updateWSStatus('reconnect', 'RECONNECT');
+                    if (reconnectTimer) clearTimeout(reconnectTimer);
+                    reconnectTimer = setTimeout(() => {
+                        if (!isReloading && !isManualDisconnect) {
+                            reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
+                            initWebSocket();
+                        }
+                    }, reconnectDelay);
+                }
+            };
+            
+            wsConnection.onerror = () => {
+                if (!isReloading && !isManualDisconnect) {
+                    updateWSStatus('reconnect', 'ERROR');
+                }
+            };
+        } catch(e) {
+            updateWSStatus('fallback', 'FALLBACK');
+            isUsingFallback = true;
+        }
     }
     
+    // ==================== FULL RELOAD ====================
     let heartbeatInterval, stuckCheckInterval, restFallbackInterval, mtfUpdateInterval = null;
     
     async function fullReload() {
-        if (isReloading) { reloadQueue = true; return; }
-        isReloading = true; reloadQueue = false;
+        if (isReloading) {
+            reloadQueue = true;
+            return;
+        }
+        
+        isReloading = true;
+        reloadQueue = false;
+        
         if (heartbeatInterval) clearInterval(heartbeatInterval);
         if (stuckCheckInterval) clearInterval(stuckCheckInterval);
         if (restFallbackInterval) clearInterval(restFallbackInterval);
         if (mtfUpdateInterval) clearInterval(mtfUpdateInterval);
+        
         cleanupWebSocket();
-        const requestId = Date.now(); currentRequestId = requestId;
-        document.querySelectorAll('[data-pair]').forEach(btn => { if (btn.getAttribute('data-pair') === currentPair) btn.classList.add('active'); else btn.classList.remove('active'); });
-        document.querySelectorAll('.tf-btn').forEach(btn => { const tf = btn.getAttribute('data-tf'); if (tf === currentTF) btn.classList.add('active'); else btn.classList.remove('active'); });
-        updateWSStatus('connecting','LOADING');
-        consoleManager.addEventLog(`INIT ${currentPair} ${currentTF} | MODE: ${currentMode.toUpperCase()}`);
-        await fetchKlines(); if (currentRequestId !== requestId) { isReloading = false; return; }
-        await updateMTFBias(); if (currentRequestId !== requestId) { isReloading = false; return; }
+        
+        const requestId = Date.now();
+        currentRequestId = requestId;
+        
+        document.querySelectorAll('[data-pair]').forEach(btn => {
+            if (btn.getAttribute('data-pair') === currentPair) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            const tf = btn.getAttribute('data-tf');
+            if (tf === currentTF) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        
+        updateWSStatus('connecting', 'LOADING');
+        consoleManager.addEventLog(`Reset: ${currentPair} ${currentTF} | Mode: ${currentMode}`);
+        
+        await fetchKlines();
+        if (currentRequestId !== requestId) {
+            isReloading = false;
+            return;
+        }
+        
+        await updateMTFBias();
+        if (currentRequestId !== requestId) {
+            isReloading = false;
+            return;
+        }
+        
         initWebSocket();
-        heartbeatInterval = setInterval(() => { if (wsConnection?.readyState===WebSocket.OPEN) try { wsConnection.send(JSON.stringify({method:"ping"})); } catch(e) {} }, 30000);
+        
+        heartbeatInterval = setInterval(() => {
+            if (wsConnection?.readyState === WebSocket.OPEN) {
+                try {
+                    wsConnection.send(JSON.stringify({ method: "ping" }));
+                } catch(e) {}
+            }
+        }, 30000);
+        
         stuckCheckInterval = setInterval(() => {
-            const now=Date.now(), timeSinceLastPrice = now-lastPriceUpdateTime;
-            if (timeSinceLastPrice>10000 && lastPrice>0 && !isDataStale) updateWSStatus('stale');
-            else if (isDataStale && timeSinceLastPrice<5000) updateWSStatus(isUsingFallback?'fallback':'live');
-            const timeSinceLastMsg = now-lastWSMessageTime;
-            if (wsConnection?.readyState===WebSocket.OPEN && timeSinceLastMsg>10000 && !isUsingFallback && !isReloading) { updateWSStatus('fallback'); isUsingFallback=true; fetchPriceREST(); }
-            if (wsConnection?.readyState!==WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect');
+            const now = Date.now();
+            const timeSinceLastPrice = now - lastPriceUpdateTime;
+            
+            if (timeSinceLastPrice > 10000 && lastPrice > 0 && !isDataStale) {
+                updateWSStatus('stale');
+            } else if (isDataStale && timeSinceLastPrice < 5000) {
+                updateWSStatus(isUsingFallback ? 'fallback' : 'live');
+            }
+            
+            const timeSinceLastMsg = now - lastWSMessageTime;
+            if (wsConnection?.readyState === WebSocket.OPEN && timeSinceLastMsg > 10000 && !isUsingFallback && !isReloading) {
+                updateWSStatus('fallback');
+                isUsingFallback = true;
+                fetchPriceREST();
+            }
+            
+            if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) {
+                updateWSStatus('reconnect');
+            }
         }, 5000);
+        
         restFallbackInterval = setInterval(fetchPriceREST, 5000);
-        mtfUpdateInterval = setInterval(() => { updateMTFBias(); }, currentTF === '5m' ? 30000 : 120000);
+        mtfUpdateInterval = setInterval(() => {
+            updateMTFBias();
+        }, currentTF === '5m' ? 30000 : 120000);
+        
         isReloading = false;
-        if (reloadQueue) setTimeout(() => fullReload(), 100);
+        
+        if (reloadQueue) {
+            setTimeout(() => fullReload(), 100);
+        }
     }
     
-    // Event Listeners
-    document.querySelectorAll('[data-pair]').forEach(btn => btn.onclick = () => { if(!isReloading){ currentPair=btn.getAttribute('data-pair'); localStorage.setItem('lastPair_v2',currentPair); fullReload(); } });
-    document.querySelectorAll('.tf-btn').forEach(btn => btn.onclick = () => { if(!isReloading){ currentTF=btn.getAttribute('data-tf'); localStorage.setItem('lastTF_v2',currentTF); fullReload(); } });
+    // ==================== EVENT LISTENERS ====================
+    document.querySelectorAll('[data-pair]').forEach(btn => {
+        btn.onclick = () => {
+            if (!isReloading) {
+                currentPair = btn.getAttribute('data-pair');
+                localStorage.setItem('lastPair', currentPair);
+                fullReload();
+            }
+        };
+    });
+    
+    document.querySelectorAll('.tf-btn').forEach(btn => {
+        btn.onclick = () => {
+            if (!isReloading) {
+                currentTF = btn.getAttribute('data-tf');
+                localStorage.setItem('lastTF', currentTF);
+                fullReload();
+            }
+        };
+    });
     
     document.querySelectorAll('.mode-btn').forEach(btn => {
         btn.onclick = () => {
             currentMode = btn.getAttribute('data-mode');
+            localStorage.setItem('lastMode', currentMode);
             document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            consoleManager.addEventLog(`Mode switched to ${currentMode.toUpperCase()}`);
-            // Trigger recalculation tanpa reload penuh
-            if (!isReloading && lastPrice > 0) {
+            if (candleBuffer.length > 0) {
                 updateDecision();
             }
         };
     });
     
-    setInterval(() => { const now=new Date(); UI.clock.textContent=now.toLocaleTimeString('id-ID'); UI.date.textContent=`${now.getDate().toString().padStart(2,'0')}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getFullYear()}`; UI.session.textContent = now.getHours()>=7 && now.getHours()<14 ? 'ASIA' : (now.getHours()>=14 && now.getHours()<20 ? 'LONDON' : 'NY'); }, 1000);
+    const savedMode = localStorage.getItem('lastMode') || 'conservative';
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        if (btn.getAttribute('data-mode') === savedMode) {
+            btn.classList.add('active');
+            currentMode = savedMode;
+        }
+    });
     
-    // Aktifkan mode default
-    document.querySelector('[data-mode="conservative"]').classList.add('active');
+    // ==================== CLOCK ====================
+    setInterval(() => {
+        const now = new Date();
+        UI.clock.textContent = now.toLocaleTimeString('id-ID');
+        UI.date.textContent = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
+        
+        const hour = now.getHours();
+        if (hour >= 7 && hour < 14) UI.session.textContent = 'ASIA';
+        else if (hour >= 14 && hour < 20) UI.session.textContent = 'LONDON';
+        else UI.session.textContent = 'NY';
+    }, 1000);
     
+    // ==================== INIT ====================
     consoleManager.render();
     fullReload();
+    
 })();
 </script>
 </body>
