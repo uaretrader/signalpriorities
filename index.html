@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v2.1 – UR ADVISOR</title>
+    <title>URA v2.2 – UR ADVISOR</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -28,6 +28,7 @@
             --warning: #E3B341;
             --danger: #F85149;
             --silver-line: #30363D;
+            --fvg-active: #9B59B6;
         }
         
         body { 
@@ -107,59 +108,57 @@
         .theme-check { color: var(--accent-green); font-weight: bold; }
         
         .nav-bar { 
-    display: flex; 
-    flex-direction: column;      /* Susun vertikal (atas-bawah) */
-    flex-wrap: nowrap; 
-    justify-content: center; 
-    align-items: center; 
-    flex-shrink: 0; 
-    gap: 4px;                    /* Jarak antara baris 1 dan baris 2 */
-    width: 100%;
-}
+            display: flex; 
+            flex-direction: column;
+            flex-wrap: nowrap; 
+            justify-content: center; 
+            align-items: center; 
+            flex-shrink: 0; 
+            gap: 4px;
+            width: 100%;
+        }
 
-.nav-row {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    width: 100%;
-}
+        .nav-row {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            width: 100%;
+        }
 
-/* Baris 1: XAUUSD kiri, BTCUSD kanan */
-.nav-row:first-child {
-    justify-content: space-between;
-}
+        .nav-row:first-child {
+            justify-content: space-between;
+        }
 
-/* Baris 2: MTF di tengah */
-.nav-row:last-child {
-    justify-content: center;
-}
+        .nav-row:last-child {
+            justify-content: center;
+        }
 
-.tab-group { 
-    display: flex; 
-    gap: 2px; 
-    background: var(--bg-secondary); 
-    padding: 2px; 
-    border-radius: 4px; 
-    border: 1px solid var(--border-subtle); 
-    flex-wrap: nowrap;
-}
+        .tab-group { 
+            display: flex; 
+            gap: 2px; 
+            background: var(--bg-secondary); 
+            padding: 2px; 
+            border-radius: 4px; 
+            border: 1px solid var(--border-subtle); 
+            flex-wrap: nowrap;
+        }
 
-.tab-btn { 
-    background: transparent; 
-    border: none; 
-    color: var(--text-tertiary); 
-    padding: 6px 18px; 
-    font-size: 0.55rem; 
-    font-weight: 600; 
-    cursor: help; 
-    border-radius: 4px; 
-    transition: all 0.15s ease; 
-    white-space: nowrap; 
-    display: inline-flex; 
-    align-items: baseline; 
-    gap: 4px; 
-    position: relative; 
-    }
+        .tab-btn { 
+            background: transparent; 
+            border: none; 
+            color: var(--text-tertiary); 
+            padding: 6px 16px; 
+            font-size: 0.6rem; 
+            font-weight: 600; 
+            cursor: help; 
+            border-radius: 4px; 
+            transition: all 0.15s ease; 
+            white-space: nowrap; 
+            display: inline-flex; 
+            align-items: baseline; 
+            gap: 4px; 
+            position: relative; 
+        }
         .tab-btn.active { color: var(--text-primary); background: var(--bg-tertiary); }
         .tf-label { transition: color 0.15s ease; }
         .tab-btn.active .tf-label { color: var(--text-primary); }
@@ -180,6 +179,8 @@
             border: 1px solid var(--border-subtle); z-index: 1000; margin-bottom: 4px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
+        
+        /* DOT INDIKATOR MTF - PERBAIKAN */
         .tf-btn.aligned::before {
             content: ''; position: absolute; top: 2px; right: 2px; width: 4px; height: 4px;
             border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 4px var(--accent-green);
@@ -229,9 +230,6 @@
         .metric-sub { font-size: 0.5rem; color: var(--text-secondary); }
         .adx-warning { color: var(--warning) !important; }
         
-        .rsi-bar-container { display: none !important; }
-        
-        /* TRADING CENTRAL LEVELS */
         .tc-levels-container {
             background: var(--bg-secondary); border: 1px solid var(--border-subtle);
             border-radius: 6px; padding: 6px 10px; flex-shrink: 0;
@@ -251,13 +249,16 @@
             cursor: pointer; user-select: none; -webkit-user-select: none; border-bottom: 1px dotted var(--border-subtle);
         }
         .tc-level-row:last-child { border-bottom: none; }
-        .tc-level-row.key-level { background: rgba(227, 179, 65, 0.08); border-radius: 3px; padding: 4px 6px; margin: 2px 0; }
+        .tc-level-row.key-level { background: rgba(227, 179, 65, 0.08); border-radius: 3px; padding: 4px 6px; margin: 2px 0; transition: all 0.2s ease; }
+        .tc-level-row.key-level.fvg-active { background: rgba(155, 89, 182, 0.15); border-left: 2px solid var(--fvg-active); }
         .tc-level-label { font-size: 0.6rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
         .tc-level-label.key { color: var(--accent-gold); }
+        .tc-level-label.key.fvg-active-label { color: var(--fvg-active); }
         .tc-level-value { font-size: 0.6rem; font-weight: 700; color: var(--text-primary); font-family: 'Inter', monospace; }
         .tc-level-value.resistance { color: var(--accent-red); }
         .tc-level-value.support { color: var(--accent-green); }
         .tc-level-value.pivot { color: var(--accent-gold); }
+        .tc-level-value.pivot.fvg-active-value { color: var(--fvg-active); font-weight: 800; }
         
         .action-section { display: flex; gap: 5px; flex-shrink: 0; }
         .action-card {
@@ -303,6 +304,7 @@
         .console-output.bullish { color: var(--accent-green); }
         .console-output.bearish { color: var(--accent-red); }
         .console-output.neutral { color: var(--accent-gold); }
+        .console-output.fvg { color: var(--fvg-active); }
         
         .footer-bar { 
             display: flex; justify-content: space-between; align-items: center; 
@@ -319,6 +321,7 @@
         .text-gold { color: var(--accent-gold); }
         .text-blue { color: var(--accent-blue); }
         .text-cyan { color: var(--accent-cyan); }
+        .text-fvg { color: var(--fvg-active); }
         
         * { transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease; }
     </style>
@@ -328,7 +331,7 @@
     <header class="header">
         <div class="logo-section">
             <span class="logo">URA · TC LOGIC</span>
-            <span class="version-tag">v2.1</span>
+            <span class="version-tag">v2.2</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <div class="connection-badge">
@@ -347,25 +350,25 @@
     </header>
 
     <nav class="nav-bar">
-    <div class="nav-row">
-        <div class="tab-group">
-            <button class="tab-btn active" data-pair="XAUUSDT">XAUUSD</button>
+        <div class="nav-row">
+            <div class="tab-group">
+                <button class="tab-btn active" data-pair="XAUUSDT">XAUUSD</button>
+            </div>
+            <div class="tab-group">
+                <button class="tab-btn" data-pair="BTCUSDT">BTCUSD</button>
+            </div>
         </div>
-        <div class="tab-group">
-            <button class="tab-btn" data-pair="BTCUSDT">BTCUSD</button>
+        
+        <div class="nav-row">
+            <div class="tab-group" id="tf-group">
+                <button class="tab-btn tf-btn" data-tf="4h"><span class="tf-label">H4</span><span class="tf-bias-symbol"></span></button>
+                <button class="tab-btn tf-btn" data-tf="1h"><span class="tf-label">H1</span><span class="tf-bias-symbol"></span></button>
+                <button class="tab-btn tf-btn active" data-tf="30m"><span class="tf-label">M30</span><span class="tf-bias-symbol"></span></button>
+                <button class="tab-btn tf-btn" data-tf="15m"><span class="tf-label">M15</span><span class="tf-bias-symbol"></span></button>
+                <button class="tab-btn tf-btn" data-tf="5m"><span class="tf-label">M5</span><span class="tf-bias-symbol"></span></button>
+            </div>
         </div>
-    </div>
-    
-    <div class="nav-row">
-        <div class="tab-group" id="tf-group">
-            <button class="tab-btn tf-btn" data-tf="4h"><span class="tf-label">H4</span><span class="tf-bias-symbol"></span></button>
-            <button class="tab-btn tf-btn" data-tf="1h"><span class="tf-label">H1</span><span class="tf-bias-symbol"></span></button>
-            <button class="tab-btn tf-btn active" data-tf="30m"><span class="tf-label">M30</span><span class="tf-bias-symbol"></span></button>
-            <button class="tab-btn tf-btn" data-tf="15m"><span class="tf-label">M15</span><span class="tf-bias-symbol"></span></button>
-            <button class="tab-btn tf-btn" data-tf="5m"><span class="tf-label">M5</span><span class="tf-bias-symbol"></span></button>
-        </div>
-    </div>
-</nav>
+    </nav>
 
     <div class="signal-bar" id="signal-bar" onclick="copyText('decision-status')">
         <div class="signal-content">
@@ -388,7 +391,7 @@
         </div>
         <div class="tc-level-row" onclick="copyText('r2-value', null, 'R2')"><span class="tc-level-label">R2</span><span class="tc-level-value resistance" id="r2-value">—</span></div>
         <div class="tc-level-row" onclick="copyText('r1-value', null, 'R1')"><span class="tc-level-label">R1</span><span class="tc-level-value resistance" id="r1-value">—</span></div>
-        <div class="tc-level-row key-level" onclick="copyText('pivot-value', null, 'PIVOT')"><span class="tc-level-label key">⚡ PIVOT (KEY)</span><span class="tc-level-value pivot" id="pivot-value">—</span></div>
+        <div class="tc-level-row key-level" id="pivot-row" onclick="copyText('pivot-value', null, 'PIVOT')"><span class="tc-level-label key" id="pivot-label">⚡ PIVOT (KEY)</span><span class="tc-level-value pivot" id="pivot-value">—</span></div>
         <div class="tc-level-row" onclick="copyText('last-value', null, 'LAST')"><span class="tc-level-label">LAST</span><span class="tc-level-value" id="last-value">—</span></div>
         <div class="tc-level-row" onclick="copyText('s1-value', null, 'S1')"><span class="tc-level-label">S1</span><span class="tc-level-value support" id="s1-value">—</span></div>
         <div class="tc-level-row" onclick="copyText('s2-value', null, 'S2')"><span class="tc-level-label">S2</span><span class="tc-level-value support" id="s2-value">—</span></div>
@@ -462,10 +465,10 @@
     
     // ==================== THEME MANAGER ====================
     const THEMES = {
-        dark: { name: 'Dark', icon: '🌙', variables: { '--bg-primary': '#0D1117', '--bg-secondary': '#161B22', '--bg-tertiary': '#21262D', '--border-subtle': '#30363D', '--text-primary': '#E6EDF3', '--text-secondary': '#8B949E', '--text-tertiary': '#6E7681', '--accent-green': '#3FB950', '--accent-red': '#F85149', '--accent-blue': '#58A6FF', '--accent-gold': '#E3B341', '--accent-cyan': '#56D4DD', '--success': '#3FB950', '--warning': '#E3B341', '--danger': '#F85149', '--silver-line': '#30363D' } },
-        light: { name: 'Light', icon: '☀️', variables: { '--bg-primary': '#FFFFFF', '--bg-secondary': '#F6F8FA', '--bg-tertiary': '#EBECF0', '--border-subtle': '#D0D7DE', '--text-primary': '#1F2328', '--text-secondary': '#656D76', '--text-tertiary': '#8B949E', '--accent-green': '#1A7F37', '--accent-red': '#CF222E', '--accent-blue': '#0969DA', '--accent-gold': '#9A6700', '--accent-cyan': '#1B7C83', '--success': '#1A7F37', '--warning': '#9A6700', '--danger': '#CF222E', '--silver-line': '#D0D7DE' } },
-        cyberpunk: { name: 'Cyber', icon: '🤖', variables: { '--bg-primary': '#0A0B1A', '--bg-secondary': '#131538', '--bg-tertiary': '#1C1F4A', '--border-subtle': '#FF00FF', '--text-primary': '#00FFFF', '--text-secondary': '#FF00FF', '--text-tertiary': '#7B68EE', '--accent-green': '#00FF00', '--accent-red': '#FF0040', '--accent-blue': '#00BFFF', '--accent-gold': '#FFD700', '--accent-cyan': '#00FFFF', '--success': '#00FF00', '--warning': '#FFD700', '--danger': '#FF0040', '--silver-line': '#FF00FF' } },
-        goldrush: { name: 'Gold', icon: '👑', variables: { '--bg-primary': '#1A1514', '--bg-secondary': '#2C201B', '--bg-tertiary': '#3D2B24', '--border-subtle': '#B8860B', '--text-primary': '#FFD700', '--text-secondary': '#DAA520', '--text-tertiary': '#B8860B', '--accent-green': '#32CD32', '--accent-red': '#DC143C', '--accent-blue': '#4169E1', '--accent-gold': '#FFD700', '--accent-cyan': '#00CED1', '--success': '#32CD32', '--warning': '#FFD700', '--danger': '#DC143C', '--silver-line': '#B8860B' } }
+        dark: { name: 'Dark', icon: '🌙', variables: { '--bg-primary': '#0D1117', '--bg-secondary': '#161B22', '--bg-tertiary': '#21262D', '--border-subtle': '#30363D', '--text-primary': '#E6EDF3', '--text-secondary': '#8B949E', '--text-tertiary': '#6E7681', '--accent-green': '#3FB950', '--accent-red': '#F85149', '--accent-blue': '#58A6FF', '--accent-gold': '#E3B341', '--accent-cyan': '#56D4DD', '--success': '#3FB950', '--warning': '#E3B341', '--danger': '#F85149', '--silver-line': '#30363D', '--fvg-active': '#9B59B6' } },
+        light: { name: 'Light', icon: '☀️', variables: { '--bg-primary': '#FFFFFF', '--bg-secondary': '#F6F8FA', '--bg-tertiary': '#EBECF0', '--border-subtle': '#D0D7DE', '--text-primary': '#1F2328', '--text-secondary': '#656D76', '--text-tertiary': '#8B949E', '--accent-green': '#1A7F37', '--accent-red': '#CF222E', '--accent-blue': '#0969DA', '--accent-gold': '#9A6700', '--accent-cyan': '#1B7C83', '--success': '#1A7F37', '--warning': '#9A6700', '--danger': '#CF222E', '--silver-line': '#D0D7DE', '--fvg-active': '#8E44AD' } },
+        cyberpunk: { name: 'Cyber', icon: '🤖', variables: { '--bg-primary': '#0A0B1A', '--bg-secondary': '#131538', '--bg-tertiary': '#1C1F4A', '--border-subtle': '#FF00FF', '--text-primary': '#00FFFF', '--text-secondary': '#FF00FF', '--text-tertiary': '#7B68EE', '--accent-green': '#00FF00', '--accent-red': '#FF0040', '--accent-blue': '#00BFFF', '--accent-gold': '#FFD700', '--accent-cyan': '#00FFFF', '--success': '#00FF00', '--warning': '#FFD700', '--danger': '#FF0040', '--silver-line': '#FF00FF', '--fvg-active': '#BF40BF' } },
+        goldrush: { name: 'Gold', icon: '👑', variables: { '--bg-primary': '#1A1514', '--bg-secondary': '#2C201B', '--bg-tertiary': '#3D2B24', '--border-subtle': '#B8860B', '--text-primary': '#FFD700', '--text-secondary': '#DAA520', '--text-tertiary': '#B8860B', '--accent-green': '#32CD32', '--accent-red': '#DC143C', '--accent-blue': '#4169E1', '--accent-gold': '#FFD700', '--accent-cyan': '#00CED1', '--success': '#32CD32', '--warning': '#FFD700', '--danger': '#DC143C', '--silver-line': '#B8860B', '--fvg-active': '#9370DB' } }
     };
     
     class ThemeManager {
@@ -515,14 +518,22 @@
         saveLogs() { try { localStorage.setItem('ura_v2_console_logs', JSON.stringify(this.logs)); } catch(e) {} }
         cleanExpired() { const now = Date.now(); this.logs = this.logs.filter(l => (now - l.timestamp) < CONSOLE_TTL_MS); if (this.logs.length > CONSOLE_MAX_ENTRIES) this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES); this.saveLogs(); }
         addLog(entry) { this.logs.push(entry); this.cleanExpired(); this.saveLogs(); this.render(); return entry; }
-        addSignalLog(pair, tf, bias, prob, price, pivot, r1, s1, action, lvl) { return this.addLog({ timestamp: Date.now(), type: 'signal', pair, tf, bias, prob, price, pivot, r1, s1, action, lvl }); }
+        addSignalLog(pair, tf, bias, prob, price, pivot, r1, s1, action, lvl, smcConfirm = '') { 
+            return this.addLog({ timestamp: Date.now(), type: 'signal', pair, tf, bias, prob, price, pivot, r1, s1, action, lvl, smcConfirm }); 
+        }
         addEventLog(event, details = '') { return this.addLog({ timestamp: Date.now(), type: 'event', event, details }); }
         addLevelTouchLog(level, val, price, result) { return this.addLog({ timestamp: Date.now(), type: 'level_touch', level, val, price, result }); }
+        addSMCLog(type, details) { return this.addLog({ timestamp: Date.now(), type: 'smc', smcType: type, details }); }
         formatLogLine(log) {
             const time = new Date(log.timestamp).toLocaleTimeString('id-ID', { hour12: false });
             if (log.type === 'event') return `<span class="console-output">[${time}] EVENT: ${log.event} ${log.details}</span>`;
-            if (log.type === 'signal') { const c = log.bias === 'BEARISH' ? 'bearish' : (log.bias === 'BULLISH' ? 'bullish' : 'neutral'); return `<span class="console-output ${c}">[${time}] ${log.pair} ${log.tf} | ${log.bias} (${log.prob}%) | P:${log.pivot} | ${log.action} | ${log.lvl}</span>`; }
+            if (log.type === 'signal') { 
+                const c = log.bias === 'BEARISH' ? 'bearish' : (log.bias === 'BULLISH' ? 'bullish' : 'neutral'); 
+                const smcText = log.smcConfirm ? ` [${log.smcConfirm}]` : '';
+                return `<span class="console-output ${c}">[${time}] ${log.pair} ${log.tf} | ${log.bias} (${log.prob}%)${smcText} | P:${log.pivot} | ${log.action} | ${log.lvl}</span>`; 
+            }
             if (log.type === 'level_touch') return `<span class="console-output">[${time}] LEVEL: ${log.level}=${log.val} | Price:${log.price} | ${log.result}</span>`;
+            if (log.type === 'smc') return `<span class="console-output fvg">[${time}] SMC: ${log.smcType} | ${log.details}</span>`;
             return '';
         }
         render() {
@@ -599,7 +610,7 @@
     
     // ==================== COPY FUNCTIONS ====================
     function copyTradeSetup() {
-        const txt = `=== URA TRADE SETUP ===\nPair: ${currentPair} | TF: ${currentTF}\nBias: ${UI.tcBias.textContent} | Price: ${UI.priceMain.textContent}\nPivot: ${UI.pivotValue.textContent} | R1: ${UI.r1Value.textContent} | S1: ${UI.s1Value.textContent}\nEntry: ${UI.entryLow.textContent} - ${UI.entryHigh.textContent}\nSL: ${UI.slDisplay.textContent} | Risk: ${UI.riskDisplay.textContent}\nTP1: ${UI.tp1Display.textContent} | TP2: ${UI.tp2Display.textContent}`;
+        const txt = `=== URA TRADE SETUP ===\nPair: ${currentPair} | TF: ${currentTF}\nBias: ${UI.tcBias.textContent} | Price: ${UI.priceMain.textContent}\nPivot: ${UI.pivotValue.textContent} | R1: ${UI.r1Value.textContent} | S1: ${UI.s1Value.textContent}\nEntry: ${UI.entryLow.textContent} - ${UI.entryHigh.textContent}\nSL: ${UI.slDisplay.textContent} | Risk: ${UI.riskDisplay.textContent}\nTP1: ${UI.tp1Display.textContent} | TP2: ${UI.tp2Display.textContent}${engine.smcConfirm ? `\nSMC: ${engine.smcConfirm}` : ''}`;
         navigator.clipboard?.writeText(txt).catch(() => { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); });
         consoleManager.addEventLog('COPY', 'Trade Setup');
         const btn = document.getElementById('copySetupBtn');
@@ -625,6 +636,49 @@
         clear() { this.data = []; this.start = 0; this.end = 0; this.length = 0; this.map.clear(); }
     }
     
+    // ==================== SMC DETECTION FUNCTIONS ====================
+    function detectFVG(candles) {
+        if (candles.length < 3) return { type: 'NONE', top: 0, bottom: 0 };
+        const c1 = candles[candles.length - 1];
+        const c2 = candles[candles.length - 2];
+        const c3 = candles[candles.length - 3];
+        
+        if (c1.l > c3.h) {
+            return { type: 'BULLISH', top: c1.l, bottom: c3.h };
+        } else if (c1.h < c3.l) {
+            return { type: 'BEARISH', top: c3.l, bottom: c1.h };
+        }
+        return { type: 'NONE', top: 0, bottom: 0 };
+    }
+    
+    function detectOrderBlock(candles, pivot, price) {
+        if (candles.length < 10) return { type: 'NONE', top: 0, bottom: 0 };
+        
+        for (let i = candles.length - 1; i > 5; i--) {
+            const curr = candles[i];
+            const prev = candles[i-1];
+            
+            if (curr.c > pivot && prev.c < pivot) {
+                for (let j = i-1; j > 0; j--) {
+                    if (candles[j].c < candles[j].o) {
+                        if (price <= candles[j].h && price >= candles[j].l) {
+                            return { type: 'BULLISH_OB', top: candles[j].h, bottom: candles[j].l };
+                        }
+                    }
+                }
+            } else if (curr.c < pivot && prev.c > pivot) {
+                for (let j = i-1; j > 0; j--) {
+                    if (candles[j].c > candles[j].o) {
+                        if (price >= candles[j].l && price <= candles[j].h) {
+                            return { type: 'BEARISH_OB', top: candles[j].h, bottom: candles[j].l };
+                        }
+                    }
+                }
+            }
+        }
+        return { type: 'NONE', top: 0, bottom: 0 };
+    }
+    
     // ==================== UI REFERENCES ====================
     const UI = {
         dot: document.getElementById('status-dot'), text: document.getElementById('status-text'),
@@ -638,13 +692,12 @@
         levelAction: document.getElementById('level-action'), ma20Value: document.getElementById('ma20-value'),
         ma50Value: document.getElementById('ma50-value'), maTrend: document.getElementById('ma-trend'),
         adxValue: document.getElementById('adx-value'), diValues: document.getElementById('di-values'),
-        adxTrend: document.getElementById('adx-trend'), rsiValue: document.getElementById('rsi-bar-value'),
-        rsiFill: document.getElementById('rsi-fill'), divergenceInd: document.getElementById('divergence-indicator'),
-        entryLow: document.getElementById('entry-low'), entryHigh: document.getElementById('entry-high'),
-        slDisplay: document.getElementById('sl-display'), riskDisplay: document.getElementById('risk-display'),
-        tp1Display: document.getElementById('tp1-display'), tp2Display: document.getElementById('tp2-display'),
-        clock: document.getElementById('clock-display'), date: document.getElementById('date-display'),
-        session: document.getElementById('session-tag')
+        adxTrend: document.getElementById('adx-trend'), entryLow: document.getElementById('entry-low'),
+        entryHigh: document.getElementById('entry-high'), slDisplay: document.getElementById('sl-display'),
+        riskDisplay: document.getElementById('risk-display'), tp1Display: document.getElementById('tp1-display'),
+        tp2Display: document.getElementById('tp2-display'), clock: document.getElementById('clock-display'),
+        date: document.getElementById('date-display'), session: document.getElementById('session-tag'),
+        pivotRow: document.getElementById('pivot-row'), pivotLabel: document.getElementById('pivot-label')
     };
     
     // ==================== FUNGSI TEKNIKAL ====================
@@ -659,17 +712,40 @@
     function determineTCBias(price, lvls, adx, rsi) { const cfg = getConfig(); let bias = 'NEUTRAL', str = 0; if (price > lvls.pivot) { bias = 'BULLISH'; str += 30; if (price > lvls.r1) str += 20; } else if (price < lvls.pivot) { bias = 'BEARISH'; str += 30; if (price < lvls.s1) str += 20; } if (adx.adx >= cfg.adxThreshold) { str += 25; if (adx.plusDI > adx.minusDI && bias === 'BULLISH') str += 15; else if (adx.minusDI > adx.plusDI && bias === 'BEARISH') str += 15; } if (bias === 'BULLISH' && rsi > 40 && rsi < 70) str += 15; else if (bias === 'BEARISH' && rsi > 30 && rsi < 60) str += 15; else if ((bias === 'BULLISH' && rsi > 70) || (bias === 'BEARISH' && rsi < 30)) str -= 10; return { bias, strength: Math.min(100, str) }; }
     function calculateSLTP(price, bias, lvls, atr, cfg) { let sl, tp1, tp2, eL, eH; const sb = price * cfg.slBufferPct; if (bias === 'BULLISH') { eL = lvls.pivot; eH = lvls.r1; sl = lvls.s1 - sb; const r = eL - sl; tp1 = eL + (r * cfg.tp1Ratio); tp2 = eL + (r * cfg.tp2Ratio); } else if (bias === 'BEARISH') { eH = lvls.pivot; eL = lvls.s1; sl = lvls.r1 + sb; const r = sl - eH; tp1 = eH - (r * cfg.tp1Ratio); tp2 = eH - (r * cfg.tp2Ratio); } else { eL = eH = price; sl = tp1 = tp2 = price; } return { sl, tp1, tp2, entryLow: eL, entryHigh: eH }; }
     
-    let engine = { ma20: 0, ma50: 0, adx: 0, plusDI: 0, minusDI: 0, atr: 0, rsi: 50, levels: { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }, bias: 'NEUTRAL', strength: 0, interactions: null, sl: 0, tp1: 0, tp2: 0, entryLow: 0, entryHigh: 0, mtfLevel: 'NEUTRAL' };
+    let engine = { 
+        ma20: 0, ma50: 0, adx: 0, plusDI: 0, minusDI: 0, atr: 0, rsi: 50, 
+        levels: { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }, 
+        bias: 'NEUTRAL', strength: 0, interactions: null, 
+        sl: 0, tp1: 0, tp2: 0, entryLow: 0, entryHigh: 0, mtfLevel: 'NEUTRAL',
+        fvgType: 'NONE', fvgZone: { top: 0, bottom: 0 },
+        obType: 'NONE', obZone: { top: 0, bottom: 0 },
+        isInHighProbZone: false, smcConfirm: ''
+    };
+    
     let currentPair = 'XAUUSDT', currentTF = '30m';
     let wsConnection = null, candleBuffer = new CircularBuffer(200);
     let isReloading = false, lastPriceUpdateTime = 0, lastWSMessageTime = 0, isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
     let reconnectDelay = 1000, reconnectTimer = null, lastPrice = 0, prevPrice = 0;
     let cachedCandleArray = null, lastCacheTime = 0, lastLogHash = '';
+    let lastFVGLogHash = '';
     
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     function getConfig() { return PAIR_CONFIG[currentPair]; }
     function getCandleArray() { const n = Date.now(); if (!cachedCandleArray || (n - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = n; } return cachedCandleArray; }
     function invalidateCandleCache() { cachedCandleArray = null; }
+    
+    function updatePivotFVGStyle(fvgType) {
+        if (!UI.pivotRow || !UI.pivotLabel || !UI.pivotValue) return;
+        if (fvgType === 'BULLISH' || fvgType === 'BEARISH') {
+            UI.pivotRow.classList.add('fvg-active');
+            UI.pivotLabel.classList.add('fvg-active-label');
+            UI.pivotValue.classList.add('fvg-active-value');
+        } else {
+            UI.pivotRow.classList.remove('fvg-active');
+            UI.pivotLabel.classList.remove('fvg-active-label');
+            UI.pivotValue.classList.remove('fvg-active-value');
+        }
+    }
     
     function updateDecision() {
         if (isDataStale) { UI.decision.textContent = 'DATA STALE'; UI.decision.style.color = 'var(--warning)'; UI.signalBar.style.background = 'rgba(248, 81, 73, 0.1)'; return; }
@@ -680,6 +756,52 @@
         engine.atr = calculateATR(arr, cfg.atrPeriod); engine.rsi = computeRSI(arr);
         engine.levels = calculateTCLevels(arr, cfg); engine.interactions = detectLevelInteraction(p, engine.levels, cfg);
         const tc = determineTCBias(p, engine.levels, adx, engine.rsi); engine.bias = tc.bias; engine.strength = tc.strength;
+        
+        // ==================== SMC DETECTION ====================
+        const fvg = detectFVG(arr);
+        const ob = detectOrderBlock(arr, engine.levels.pivot, p);
+        
+        engine.fvgType = fvg.type;
+        engine.fvgZone = { top: fvg.top, bottom: fvg.bottom };
+        engine.obType = ob.type;
+        engine.obZone = { top: ob.top, bottom: ob.bottom };
+        
+        // Update Pivot styling based on FVG
+        updatePivotFVGStyle(engine.fvgType);
+        
+        // Log FVG detection (only once per occurrence)
+        const fvgHash = `${engine.fvgType}_${fvg.top.toFixed(2)}_${fvg.bottom.toFixed(2)}`;
+        if (engine.fvgType !== 'NONE' && fvgHash !== lastFVGLogHash) {
+            consoleManager.addSMCLog('FVG', `${engine.fvgType} [${fvg.bottom.toFixed(prec)} - ${fvg.top.toFixed(prec)}]`);
+            lastFVGLogHash = fvgHash;
+        } else if (engine.fvgType === 'NONE') {
+            lastFVGLogHash = '';
+        }
+        
+        // Check High Probability Setup
+        let isHighProb = false;
+        let confirmReason = '';
+        
+        if (engine.bias === 'BULLISH') {
+            const inFvg = (fvg.type === 'BULLISH' && p <= fvg.top && p >= fvg.bottom);
+            const inOb = (ob.type === 'BULLISH_OB' && p <= ob.top && p >= ob.bottom);
+            
+            if (inFvg) { isHighProb = true; confirmReason = 'FVG RETEST'; }
+            else if (inOb) { isHighProb = true; confirmReason = 'OB RETEST'; }
+            
+            if (inOb) { consoleManager.addSMCLog('OB', `Bullish OB Retest [${ob.bottom.toFixed(prec)} - ${ob.top.toFixed(prec)}]`); }
+        } else if (engine.bias === 'BEARISH') {
+            const inFvg = (fvg.type === 'BEARISH' && p <= fvg.top && p >= fvg.bottom);
+            const inOb = (ob.type === 'BEARISH_OB' && p <= ob.top && p >= ob.bottom);
+            
+            if (inFvg) { isHighProb = true; confirmReason = 'FVG RETEST'; }
+            else if (inOb) { isHighProb = true; confirmReason = 'OB RETEST'; }
+            
+            if (inOb) { consoleManager.addSMCLog('OB', `Bearish OB Retest [${ob.bottom.toFixed(prec)} - ${ob.top.toFixed(prec)}]`); }
+        }
+        
+        engine.isInHighProbZone = isHighProb;
+        engine.smcConfirm = isHighProb ? confirmReason : '';
         
         // MTF ADJUSTMENT
         if (engine.bias !== 'NEUTRAL') { const mtfAdj = MTFManager.getConfirmationAdjustment(engine.bias); engine.strength = Math.max(0, Math.min(100, engine.strength + mtfAdj.adjustment)); engine.mtfLevel = mtfAdj.level; }
@@ -693,25 +815,16 @@
         UI.tcBias.textContent = engine.bias; UI.tcBias.className = `tc-intraday-bias ${engine.bias.toLowerCase()}`;
         
         let st = 'MONITORING';
-
-if (engine.interactions.pivot.status === 'testing') { 
-    st = 'TESTING PIVOT'; 
-} else if (engine.interactions.pivot.status === 'breakout') { 
-    st = 'PIVOT BREAKOUT'; 
-} else if (engine.interactions.r1.status === 'testing') { 
-    st = 'TESTING R1'; 
-} else if (engine.interactions.r1.status === 'rejection') { 
-    st = 'R1 REJECTED'; 
-} else if (engine.interactions.s1.status === 'testing') { 
-    st = 'TESTING S1'; 
-} else if (engine.interactions.s1.status === 'rejection') { 
-    st = 'S1 REJECTED'; 
-}
-
-UI.levelStatus.textContent = st;
-UI.levelAction.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : 
-                              (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-secondary)');
-MTFManager.updateMTFSummary();
+        if (engine.interactions.pivot.status === 'testing') { st = 'TESTING PIVOT'; } 
+        else if (engine.interactions.pivot.status === 'breakout') { st = 'PIVOT BREAKOUT'; } 
+        else if (engine.interactions.r1.status === 'testing') { st = 'TESTING R1'; } 
+        else if (engine.interactions.r1.status === 'rejection') { st = 'R1 REJECTED'; } 
+        else if (engine.interactions.s1.status === 'testing') { st = 'TESTING S1'; } 
+        else if (engine.interactions.s1.status === 'rejection') { st = 'S1 REJECTED'; }
+        
+        UI.levelStatus.textContent = st;
+        UI.levelAction.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-secondary)');
+        MTFManager.updateMTFSummary();
         
         UI.ma20Value.textContent = engine.ma20.toFixed(prec); UI.ma50Value.textContent = `MA50: ${engine.ma50.toFixed(prec)}`;
         UI.maTrend.textContent = p > engine.ma20 ? '▲' : '▼'; UI.maTrend.style.color = p > engine.ma20 ? 'var(--accent-green)' : 'var(--accent-red)';
@@ -725,17 +838,34 @@ MTFManager.updateMTFSummary();
         
         let dt = '', col = '', bg = '';
         if (engine.adx < 15) { dt = `SIDEWAYS`; col = 'var(--warning)'; bg = 'rgba(227, 179, 65, 0.1)'; }
-        else if (engine.bias !== 'NEUTRAL' && engine.strength >= 50) { const aw = engine.interactions?.pivot.status === 'breakout' ? 'BREAKOUT' : (engine.interactions?.r1.status === 'rejection' ? 'REVERSAL' : (engine.interactions?.s1.status === 'rejection' ? 'BOUNCE' : 'TREND')); dt = `${engine.bias} ${aw}`; col = engine.bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)'; bg = engine.bias === 'BULLISH' ? 'rgba(63, 185, 80, 0.08)' : 'rgba(248, 81, 73, 0.08)'; }
-        else if (engine.bias !== 'NEUTRAL') { dt = `WEAK ${engine.bias}`; col = 'var(--accent-gold)'; bg = 'rgba(227, 179, 65, 0.08)'; }
+        else if (engine.bias !== 'NEUTRAL' && engine.strength >= 50) {
+            if (isHighProb) {
+                const aw = engine.interactions?.pivot.status === 'breakout' ? 'BREAKOUT' : (engine.interactions?.r1.status === 'rejection' ? 'REVERSAL' : (engine.interactions?.s1.status === 'rejection' ? 'BOUNCE' : 'TREND'));
+                dt = `${engine.bias} ${aw} (${confirmReason})`;
+                col = engine.bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
+                bg = engine.bias === 'BULLISH' ? 'rgba(63, 185, 80, 0.15)' : 'rgba(248, 81, 73, 0.15)';
+            } else {
+                dt = `Drink Coffee First! ☕`;
+                col = 'var(--text-tertiary)';
+                bg = 'var(--bg-secondary)';
+                engine.strength = Math.max(0, engine.strength - 20);
+            }
+        } else if (engine.bias !== 'NEUTRAL') { dt = `WEAK ${engine.bias}`; col = 'var(--accent-gold)'; bg = 'rgba(227, 179, 65, 0.08)'; }
         else { dt = `WAITING`; col = 'var(--text-tertiary)'; bg = 'var(--bg-secondary)'; }
         
         UI.decision.textContent = dt; UI.decision.style.color = col; UI.probability.textContent = `${engine.strength}%`; UI.probability.style.color = col;
-        UI.signalBar.style.background = bg; UI.signalBar.style.borderColor = col;
+        UI.signalBar.style.background = bg; UI.signalBar.style.borderColor = isHighProb ? col : 'var(--border-subtle)';
         UI.arrow.innerHTML = engine.bias === 'BULLISH' ? '▲' : (engine.bias === 'BEARISH' ? '▼' : '—');
         UI.arrow.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-tertiary)');
         
-        const ch = `${currentPair}_${currentTF}_${engine.bias}_${engine.strength}_${st}`;
-        if (ch !== lastLogHash && engine.bias !== 'NEUTRAL') { consoleManager.addSignalLog(currentPair, currentTF, engine.bias, engine.strength, p, engine.levels.pivot.toFixed(prec), engine.levels.r1.toFixed(prec), engine.levels.s1.toFixed(prec), dt, st); lastLogHash = ch; }
+        const ch = `${currentPair}_${currentTF}_${engine.bias}_${engine.strength}_${st}_${confirmReason}`;
+        if (ch !== lastLogHash && engine.bias !== 'NEUTRAL') { 
+            consoleManager.addSignalLog(currentPair, currentTF, engine.bias, engine.strength, p, engine.levels.pivot.toFixed(prec), engine.levels.r1.toFixed(prec), engine.levels.s1.toFixed(prec), dt, st, confirmReason); 
+            lastLogHash = ch; 
+        }
+        
+        // Pastikan MTF UI diupdate setelah bias engine berubah
+        MTFManager.updateUI();
     }
     
     function updateUI(price) { const p = price || 0, prec = getPrecision(), f = p.toFixed(prec), parts = f.split('.'); UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`; UI.priceMain.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)'); if (prevPrice > 0) { const ch = p - prevPrice, pct = (ch / prevPrice) * 100; UI.priceChange.innerHTML = `${ch > 0 ? '+' : ''}${ch.toFixed(prec)} (${pct.toFixed(2)}%)`; UI.priceChange.style.color = ch > 0 ? 'var(--accent-green)' : 'var(--accent-red)'; } lastPrice = p; prevPrice = p; updateDecision(); }
@@ -747,7 +877,7 @@ MTFManager.updateMTFSummary();
     function initWebSocket() { cleanupWebSocket(); updateWSStatus('connecting'); try { wsConnection = new WebSocket(`wss://fstream.binance.com/ws/${currentPair.toLowerCase()}@kline_${currentTF}`); wsConnection.onopen = () => { reconnectDelay = 1000; lastWSMessageTime = lastPriceUpdateTime = Date.now(); isUsingFallback = false; isDataStale = false; updateWSStatus('live', `LIVE ${currentTF}`); consoleManager.addEventLog('WS_CONNECTED', `${currentPair} ${currentTF}`); }; wsConnection.onmessage = (e) => { try { const m = JSON.parse(e.data); if (m?.k) { const k = m.k, p = +k.c, h = +k.h, l = +k.l, o = +k.o, x = k.x, t = k.t; if (p > 0) { lastWSMessageTime = lastPriceUpdateTime = Date.now(); if (isUsingFallback) updateWSStatus('live'); if (isDataStale) updateWSStatus('live'); const arr = getCandleArray(); if (arr.length) { const lc = arr[arr.length-1]; if (x && lc.t !== t) { candleBuffer.push({ t, o, h, l, c: p, v: +k.v }); invalidateCandleCache(); } else if (!x && lc.t === t) { lc.c = p; lc.h = Math.max(lc.h, h); lc.l = Math.min(lc.l, l); invalidateCandleCache(); } } updateUI(p); } } } catch(err) {} }; wsConnection.onclose = () => { if (!isReloading && !isManualDisconnect) { updateWSStatus('reconnect'); if (reconnectTimer) clearTimeout(reconnectTimer); reconnectTimer = setTimeout(() => { if (!isReloading && !isManualDisconnect) { reconnectDelay = Math.min(reconnectDelay * 1.5, 30000); initWebSocket(); } }, reconnectDelay); } }; wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect', 'ERROR'); }; } catch(e) { updateWSStatus('fallback'); isUsingFallback = true; } }
     
     let hb, st, rf;
-    async function fullReload() { if (isReloading) return; isReloading = true; if (hb) clearInterval(hb); if (st) clearInterval(st); if (rf) clearInterval(rf); cleanupWebSocket(); lastLevelState = { pivot: { touched: false, broken: false, rejected: false }, r1: { touched: false, broken: false, rejected: false }, s1: { touched: false, broken: false, rejected: false } }; document.querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('active', b.getAttribute('data-pair') === currentPair)); document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-tf') === currentTF)); updateWSStatus('connecting', 'LOADING'); consoleManager.addEventLog('RELOAD', `${currentPair} ${currentTF}`); await fetchKlines(); initWebSocket(); hb = setInterval(() => { if (wsConnection?.readyState === WebSocket.OPEN) try { wsConnection.send(JSON.stringify({ method: "ping" })); } catch(e) {} }, 30000); st = setInterval(() => { const n = Date.now(); if (n - lastPriceUpdateTime > 10000 && lastPrice > 0 && !isDataStale) updateWSStatus('stale'); else if (isDataStale && n - lastPriceUpdateTime < 5000) updateWSStatus(isUsingFallback ? 'fallback' : 'live'); if (wsConnection?.readyState === WebSocket.OPEN && n - lastWSMessageTime > 10000 && !isUsingFallback && !isReloading) { updateWSStatus('fallback'); isUsingFallback = true; fetchPriceREST(); } if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect'); }, 5000); rf = setInterval(fetchPriceREST, 5000); isReloading = false; setTimeout(() => MTFManager.fetchAllMTF(currentPair), 2000); }
+    async function fullReload() { if (isReloading) return; isReloading = true; if (hb) clearInterval(hb); if (st) clearInterval(st); if (rf) clearInterval(rf); cleanupWebSocket(); lastLevelState = { pivot: { touched: false, broken: false, rejected: false }, r1: { touched: false, broken: false, rejected: false }, s1: { touched: false, broken: false, rejected: false } }; lastFVGLogHash = ''; document.querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('active', b.getAttribute('data-pair') === currentPair)); document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-tf') === currentTF)); updateWSStatus('connecting', 'LOADING'); consoleManager.addEventLog('RELOAD', `${currentPair} ${currentTF}`); await fetchKlines(); initWebSocket(); hb = setInterval(() => { if (wsConnection?.readyState === WebSocket.OPEN) try { wsConnection.send(JSON.stringify({ method: "ping" })); } catch(e) {} }, 30000); st = setInterval(() => { const n = Date.now(); if (n - lastPriceUpdateTime > 10000 && lastPrice > 0 && !isDataStale) updateWSStatus('stale'); else if (isDataStale && n - lastPriceUpdateTime < 5000) updateWSStatus(isUsingFallback ? 'fallback' : 'live'); if (wsConnection?.readyState === WebSocket.OPEN && n - lastWSMessageTime > 10000 && !isUsingFallback && !isReloading) { updateWSStatus('fallback'); isUsingFallback = true; fetchPriceREST(); } if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect'); }, 5000); rf = setInterval(fetchPriceREST, 5000); isReloading = false; setTimeout(() => MTFManager.fetchAllMTF(currentPair), 2000); }
     
     document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => { if (!isReloading) { currentPair = b.getAttribute('data-pair'); fullReload(); } });
     document.querySelectorAll('.tf-btn').forEach(b => b.onclick = () => { if (!isReloading) { currentTF = b.getAttribute('data-tf'); fullReload(); } });
@@ -755,7 +885,7 @@ MTFManager.updateMTFSummary();
     
     setInterval(() => { const n = new Date(); UI.clock.textContent = n.toLocaleTimeString('id-ID'); UI.date.textContent = `${n.getDate().toString().padStart(2,'0')}/${(n.getMonth()+1).toString().padStart(2,'0')}/${n.getFullYear()}`; const h = n.getHours(); UI.session.textContent = h >= 7 && h < 14 ? 'ASIA' : (h >= 14 && h < 20 ? 'LONDON' : 'NY'); }, 1000);
     
-    consoleManager.render(); consoleManager.addEventLog('INIT', 'URA v2.1 - MTF + Theme'); fullReload();
+    consoleManager.render(); consoleManager.addEventLog('INIT', 'URA v2.2 - TC LOGIC Active'); fullReload();
     setTimeout(() => MTFManager.fetchAllMTF(currentPair), 3000);
     setInterval(() => MTFManager.fetchAllMTF(currentPair), 120000);
 })();
