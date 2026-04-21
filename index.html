@@ -53,6 +53,12 @@
             overflow-x: hidden;
         }
         
+        /* PERUBAHAN 3: MATIKAN SCROLLBAR */
+        .app-container::-webkit-scrollbar { display: none; width: 0; height: 0; }
+        .console-f12::-webkit-scrollbar { display: none; width: 0; height: 0; }
+        * { scrollbar-width: none; -ms-overflow-style: none; }
+        ::-webkit-scrollbar { display: none; width: 0; height: 0; }
+        
         .header {
             display: flex;
             justify-content: space-between;
@@ -135,7 +141,24 @@
         }
         
         .price-section { display: flex; align-items: baseline; justify-content: space-between; padding: 2px 0; flex-shrink: 0; }
-        .price-main { font-size: 1.8rem; font-weight: 700; letter-spacing: -1.5px; line-height: 1; color: var(--text-primary); }
+        /* PERUBAHAN 1: HILANGKAN BLOK HIGHLIGHT PADA LIVE PRICE */
+        .price-main { 
+            font-size: 1.8rem; 
+            font-weight: 700; 
+            letter-spacing: -1.5px; 
+            line-height: 1; 
+            color: var(--text-primary);
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            background: transparent !important;
+        }
+        .price-main:active, .price-main:focus, .price-main:hover {
+            background: transparent !important;
+            outline: none !important;
+            -webkit-tap-highlight-color: transparent !important;
+        }
         .price-decimal { font-size: 1.3rem; opacity: 0.6; font-weight: 500; }
         .price-change { 
             font-size: 0.65rem; 
@@ -161,12 +184,6 @@
         .adx-warning { color: var(--warning) !important; }
         
         .rsi-bar-container { 
-           /* background: var(--bg-secondary); 
-            border: 1px solid var(--border-subtle); 
-            border-radius: 6px; 
-            padding: 6px 10px; 
-            flex-shrink: 0; 
-            cursor: pointer; */
             display: none !important;
         }
         .rsi-bar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
@@ -334,11 +351,31 @@
         .action-value.tp { color: var(--accent-blue); }
         .action-value.entry { color: var(--accent-gold); }
         
-        .rr-display {
-            font-size: 0.5rem;
-            color: var(--text-tertiary);
-            text-align: right;
-            margin-top: 2px;
+        /* PERUBAHAN 2: HAPUS .rr-display */
+        /* .rr-display DIHAPUS */
+        
+        /* PERUBAHAN 4: COPY SETUP BUTTON */
+        .copy-setup-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 8px 10px;
+            font-size: 0.55rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            letter-spacing: 0.3px;
+            margin: 4px 0;
+            flex-shrink: 0;
+        }
+        .copy-setup-btn:active {
+            background: rgba(227, 179, 65, 0.2);
+            border-color: var(--accent-gold);
         }
         
         .divider-silver { height: 1px; background: var(--silver-line); margin: 3px 0; flex-shrink: 0; }
@@ -394,10 +431,6 @@
         .text-gold { color: var(--accent-gold); }
         .text-blue { color: var(--accent-blue); }
         .text-cyan { color: var(--accent-cyan); }
-        
-        ::-webkit-scrollbar { width: 2px; height: 2px; }
-        ::-webkit-scrollbar-track { background: var(--bg-primary); }
-        ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 2px; }
     </style>
 </head>
 <body>
@@ -541,7 +574,10 @@
             </div>
         </div>
     </div>
-    <div class="rr-display" id="rr-display">R:R —</div>
+    <!-- PERUBAHAN 2: rr-display DIHAPUS DARI HTML -->
+    
+    <!-- PERUBAHAN 4: COPY TRADE SETUP BUTTON -->
+    <button class="copy-setup-btn" id="copySetupBtn">📋 COPY TRADE SETUP</button>
     
     <div class="divider-silver"></div>
     <div class="console-f12" id="console-f12"></div>
@@ -563,543 +599,123 @@
     'use strict';
     
     // ==================== KONFIGURASI TRADING CENTRAL ====================
-    const CONSOLE_MAX_ENTRIES = 100;  // FIFO 100 entries
-    const CONSOLE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+    const CONSOLE_MAX_ENTRIES = 100;
+    const CONSOLE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
     
-    // Parameter spesifik per pair (Trading Central Style)
     const PAIR_CONFIG = {
         XAUUSDT: { 
-            adxThreshold: 20,
-            rsiOverbought: 70, 
-            rsiOversold: 30, 
-            atrPeriod: 14,
-            maFast: 20,
-            maSlow: 50,
-            // TC Level Calculation Parameters
-            pivotLookback: 20,        // Period for pivot calculation
-            levelBufferPct: 0.0015,    // 0.15% buffer for level touches
-            breakoutConfirmPct: 0.002, // 0.2% for breakout confirmation
-            slBufferPct: 0.003,        // 0.3% SL buffer
-            tp1Ratio: 1.5,             // TP1 = 1.5x risk
-            tp2Ratio: 2.5              // TP2 = 2.5x risk
+            adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14,
+            maFast: 20, maSlow: 50, pivotLookback: 20,
+            levelBufferPct: 0.0015, breakoutConfirmPct: 0.002,
+            slBufferPct: 0.003, tp1Ratio: 1.5, tp2Ratio: 2.5
         },
         BTCUSDT: { 
-            adxThreshold: 18,
-            rsiOverbought: 70, 
-            rsiOversold: 30, 
-            atrPeriod: 14,
-            maFast: 20,
-            maSlow: 50,
-            pivotLookback: 20,
-            levelBufferPct: 0.002,     // 0.2% for BTC
-            breakoutConfirmPct: 0.0025,
-            slBufferPct: 0.004,
-            tp1Ratio: 1.5,
-            tp2Ratio: 2.5
+            adxThreshold: 18, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14,
+            maFast: 20, maSlow: 50, pivotLookback: 20,
+            levelBufferPct: 0.002, breakoutConfirmPct: 0.0025,
+            slBufferPct: 0.004, tp1Ratio: 1.5, tp2Ratio: 2.5
         }
     };
     
-    // ==================== CONSOLE MANAGER (FIFO 100) ====================
+    // ==================== CONSOLE MANAGER ====================
     class ConsoleManager {
-        constructor() {
-            this.logs = this.loadLogs();
-            this.cleanExpired();
-        }
-        loadLogs() {
-            try { 
-                const stored = localStorage.getItem('ura_v2_console_logs'); 
-                return stored ? JSON.parse(stored) : []; 
-            } catch(e) { return []; }
-        }
-        saveLogs() { 
-            try { 
-                localStorage.setItem('ura_v2_console_logs', JSON.stringify(this.logs)); 
-            } catch(e) {} 
-        }
-        cleanExpired() {
-            const now = Date.now();
-            this.logs = this.logs.filter(log => (now - log.timestamp) < CONSOLE_TTL_MS);
-            // FIFO: keep only last 100 entries
-            if (this.logs.length > CONSOLE_MAX_ENTRIES) {
-                this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES);
-            }
-            this.saveLogs();
-        }
-        addLog(entry) {
-            this.logs.push(entry);
-            this.cleanExpired();
-            this.saveLogs();
-            this.render();
-            return entry;
-        }
-        addSignalLog(pair, tf, bias, probability, price, pivot, r1, s1, action, levelStatus) {
-            const log = {
-                timestamp: Date.now(),
-                type: 'signal',
-                pair, tf, bias, probability, price, pivot, r1, s1, action, levelStatus
-            };
-            return this.addLog(log);
-        }
-        addEventLog(event, details = '') {
-            const log = {
-                timestamp: Date.now(),
-                type: 'event',
-                event, details
-            };
-            return this.addLog(log);
-        }
-        addLevelTouchLog(level, levelValue, price, result) {
-            const log = {
-                timestamp: Date.now(),
-                type: 'level_touch',
-                level, levelValue, price, result
-            };
-            return this.addLog(log);
-        }
+        constructor() { this.logs = this.loadLogs(); this.cleanExpired(); }
+        loadLogs() { try { const stored = localStorage.getItem('ura_v2_console_logs'); return stored ? JSON.parse(stored) : []; } catch(e) { return []; } }
+        saveLogs() { try { localStorage.setItem('ura_v2_console_logs', JSON.stringify(this.logs)); } catch(e) {} }
+        cleanExpired() { const now = Date.now(); this.logs = this.logs.filter(log => (now - log.timestamp) < CONSOLE_TTL_MS); if (this.logs.length > CONSOLE_MAX_ENTRIES) this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES); this.saveLogs(); }
+        addLog(entry) { this.logs.push(entry); this.cleanExpired(); this.saveLogs(); this.render(); return entry; }
+        addSignalLog(pair, tf, bias, probability, price, pivot, r1, s1, action, levelStatus) { return this.addLog({ timestamp: Date.now(), type: 'signal', pair, tf, bias, probability, price, pivot, r1, s1, action, levelStatus }); }
+        addEventLog(event, details = '') { return this.addLog({ timestamp: Date.now(), type: 'event', event, details }); }
+        addLevelTouchLog(level, levelValue, price, result) { return this.addLog({ timestamp: Date.now(), type: 'level_touch', level, levelValue, price, result }); }
         formatLogLine(log) {
             const time = new Date(log.timestamp).toLocaleTimeString('id-ID', { hour12: false });
-            if (log.type === 'event') {
-                return `<span class="console-output">[${time}] EVENT: ${log.event} ${log.details}</span>`;
-            } else if (log.type === 'signal') {
-                const biasClass = log.bias === 'BEARISH' ? 'bearish' : (log.bias === 'BULLISH' ? 'bullish' : 'neutral');
-                return `<span class="console-output ${biasClass}">[${time}] ${log.pair} ${log.tf} | ${log.bias} (${log.probability}%) | P:${log.pivot} | ${log.action} | ${log.levelStatus}</span>`;
-            } else if (log.type === 'level_touch') {
-                return `<span class="console-output">[${time}] LEVEL: ${log.level}=${log.levelValue} | Price:${log.price} | ${log.result}</span>`;
-            }
+            if (log.type === 'event') return `<span class="console-output">[${time}] EVENT: ${log.event} ${log.details}</span>`;
+            if (log.type === 'signal') { const biasClass = log.bias === 'BEARISH' ? 'bearish' : (log.bias === 'BULLISH' ? 'bullish' : 'neutral'); return `<span class="console-output ${biasClass}">[${time}] ${log.pair} ${log.tf} | ${log.bias} (${log.probability}%) | P:${log.pivot} | ${log.action} | ${log.levelStatus}</span>`; }
+            if (log.type === 'level_touch') return `<span class="console-output">[${time}] LEVEL: ${log.level}=${log.levelValue} | Price:${log.price} | ${log.result}</span>`;
             return '';
         }
         render() {
-            const container = document.getElementById('console-f12');
-            if (!container) return;
-            // Show last 8 entries (FIFO display)
-            const recentLogs = this.logs.slice(-8);
-            let html = '';
-            recentLogs.forEach(log => {
-                html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd">${log.type}</span> ${this.formatLogLine(log)}</div>`;
-            });
-            if (this.logs.length === 0) {
-                html += `<div class="console-line"><span class="console-prompt">></span> <span class="console-cmd">ready</span> <span class="console-output">Waiting for data...</span></div>`;
-            }
+            const container = document.getElementById('console-f12'); if (!container) return;
+            const recentLogs = this.logs.slice(-8); let html = '';
+            recentLogs.forEach(log => { html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd">${log.type}</span> ${this.formatLogLine(log)}</div>`; });
+            if (this.logs.length === 0) html += `<div class="console-line"><span class="console-prompt">></span> <span class="console-cmd">ready</span> <span class="console-output">Waiting for data...</span></div>`;
             html += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd" style="opacity:0.4;">_</span> <span style="opacity:0.4;">FIFO ${this.logs.length}/${CONSOLE_MAX_ENTRIES}</span></div>`;
             container.innerHTML = html;
         }
-        clear() {
-            this.logs = [];
-            this.saveLogs();
-            this.render();
-        }
     }
-    
     const consoleManager = new ConsoleManager();
+    
+    // PERUBAHAN 4: COPY TRADE SETUP FUNCTION
+    function copyTradeSetup() {
+        const txt = `=== URA TRADE SETUP ===
+Pair: ${currentPair} | TF: ${currentTF}
+Bias: ${UI.tcBias.textContent} | Price: ${UI.priceMain.textContent}
+Pivot: ${UI.pivotValue.textContent} | R1: ${UI.r1Value.textContent} | S1: ${UI.s1Value.textContent}
+Entry: ${UI.entryLow.textContent} - ${UI.entryHigh.textContent}
+SL: ${UI.slDisplay.textContent} | Risk: ${UI.riskDisplay.textContent}
+TP1: ${UI.tp1Display.textContent} | TP2: ${UI.tp2Display.textContent}`;
+        navigator.clipboard?.writeText(txt).catch(() => { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); });
+        consoleManager.addEventLog('COPY', 'Trade Setup');
+        const btn = document.getElementById('copySetupBtn');
+        btn.textContent = '✅ COPIED!'; btn.style.background = 'rgba(227,179,65,0.2)';
+        setTimeout(() => { btn.textContent = '📋 COPY TRADE SETUP'; btn.style.background = ''; }, 500);
+    }
     
     window.copyText = function(...args) {
         let text = '';
-        if (args.length === 1 && typeof args[0] === 'string') {
-            const el = document.getElementById(args[0]);
-            if (el) text = el.textContent.trim();
-        } else if (args.length >= 2) {
-            const el1 = document.getElementById(args[0]);
-            const el2 = args[1] ? document.getElementById(args[1]) : null;
-            const label = args[2] || '';
-            if (el1 && el2) text = `${label}: ${el1.textContent} / ${el2.textContent}`;
-            else if (el1) text = el1.textContent.trim();
-        }
-        if (text) {
-            navigator.clipboard?.writeText(text).catch(() => {
-                const ta = document.createElement('textarea'); 
-                ta.value = text; 
-                document.body.appendChild(ta); 
-                ta.select(); 
-                document.execCommand('copy'); 
-                document.body.removeChild(ta);
-            });
-            consoleManager.addEventLog('COPY', text.substring(0, 30));
-        }
+        if (args.length === 1 && typeof args[0] === 'string') { const el = document.getElementById(args[0]); if (el) text = el.textContent.trim(); }
+        else if (args.length >= 2) { const el1 = document.getElementById(args[0]), el2 = args[1] ? document.getElementById(args[1]) : null, label = args[2] || ''; if (el1 && el2) text = `${label}: ${el1.textContent} / ${el2.textContent}`; else if (el1) text = el1.textContent.trim(); }
+        if (text) { navigator.clipboard?.writeText(text).catch(() => { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }); consoleManager.addEventLog('COPY', text.substring(0, 30)); }
     };
     
-    window.copyConsoleLine = function(el) {
-        const text = el.textContent.trim();
-        navigator.clipboard?.writeText(text).catch(() => {
-            const ta = document.createElement('textarea'); 
-            ta.value = text; 
-            document.body.appendChild(ta); 
-            ta.select(); 
-            document.execCommand('copy'); 
-            document.body.removeChild(ta);
-        });
-    };
+    window.copyConsoleLine = function(el) { const text = el.textContent.trim(); navigator.clipboard?.writeText(text).catch(() => { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }); };
     
     // ==================== CIRCULAR BUFFER ====================
     class CircularBuffer {
-        constructor(maxSize) { 
-            this.maxSize = maxSize; 
-            this.data = []; 
-            this.start = 0; 
-            this.end = 0; 
-            this.length = 0; 
-            this.timestampMap = new Map(); 
-        }
-        push(item) {
-            if (this.timestampMap.has(item.t)) { 
-                this.data[this.timestampMap.get(item.t)] = item; 
-                return; 
-            }
-            if (this.length < this.maxSize) { 
-                this.data.push(item); 
-                this.timestampMap.set(item.t, this.length); 
-                this.length++; 
-                this.end = this.length; 
-            } else { 
-                const old = this.data[this.start]; 
-                if (old) this.timestampMap.delete(old.t); 
-                this.data[this.start] = item; 
-                this.timestampMap.set(item.t, this.start); 
-                this.start = (this.start + 1) % this.maxSize; 
-                this.end = (this.end + 1) % this.maxSize; 
-            }
-        }
-        getLatest() { 
-            if (this.length === 0) return null; 
-            return this.data[(this.end - 1 + this.maxSize) % this.maxSize]; 
-        }
-        toArray() { 
-            if (this.length === 0) return []; 
-            const r = []; 
-            for (let i = 0; i < this.length; i++) {
-                r.push(this.data[(this.start + i) % this.maxSize]); 
-            }
-            return r; 
-        }
-        clear() { 
-            this.data = []; 
-            this.start = 0; 
-            this.end = 0; 
-            this.length = 0; 
-            this.timestampMap.clear(); 
-        }
-        getLastN(n) {
-            const arr = this.toArray();
-            return arr.slice(-n);
-        }
+        constructor(maxSize) { this.maxSize = maxSize; this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap = new Map(); }
+        push(item) { if (this.timestampMap.has(item.t)) { this.data[this.timestampMap.get(item.t)] = item; return; } if (this.length < this.maxSize) { this.data.push(item); this.timestampMap.set(item.t, this.length); this.length++; this.end = this.length; } else { const old = this.data[this.start]; if (old) this.timestampMap.delete(old.t); this.data[this.start] = item; this.timestampMap.set(item.t, this.start); this.start = (this.start + 1) % this.maxSize; this.end = (this.end + 1) % this.maxSize; } }
+        getLatest() { if (this.length === 0) return null; return this.data[(this.end - 1 + this.maxSize) % this.maxSize]; }
+        toArray() { if (this.length === 0) return []; const r = []; for (let i = 0; i < this.length; i++) r.push(this.data[(this.start + i) % this.maxSize]); return r; }
+        clear() { this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap.clear(); }
     }
     
     // ==================== UI REFERENCES ====================
     const UI = {
-        dot: document.getElementById('status-dot'), 
-        text: document.getElementById('status-text'),
-        signalBar: document.getElementById('signal-bar'), 
-        priceMain: document.getElementById('live-price'),
-        priceChange: document.getElementById('price-change'), 
-        decision: document.getElementById('decision-status'),
-        probability: document.getElementById('probability-badge'),
-        arrow: document.getElementById('direction-arrow'),
-        tcBias: document.getElementById('tc-bias'),
-        r2Value: document.getElementById('r2-value'),
-        r1Value: document.getElementById('r1-value'),
-        pivotValue: document.getElementById('pivot-value'),
-        lastValue: document.getElementById('last-value'),
-        s1Value: document.getElementById('s1-value'),
-        s2Value: document.getElementById('s2-value'),
-        levelStatus: document.getElementById('level-status'),
-        levelAction: document.getElementById('level-action'),
-        ma20Value: document.getElementById('ma20-value'), 
-        ma50Value: document.getElementById('ma50-value'),
-        maTrend: document.getElementById('ma-trend'),
-        adxValue: document.getElementById('adx-value'), 
-        diValues: document.getElementById('di-values'),
-        adxTrend: document.getElementById('adx-trend'), 
-        rsiValue: document.getElementById('rsi-bar-value'),
-        rsiFill: document.getElementById('rsi-fill'), 
-        divergenceInd: document.getElementById('divergence-indicator'),
-        entryLow: document.getElementById('entry-low'),
-        entryHigh: document.getElementById('entry-high'),
-        slDisplay: document.getElementById('sl-display'),
-        riskDisplay: document.getElementById('risk-display'),
-        tp1Display: document.getElementById('tp1-display'),
-        tp2Display: document.getElementById('tp2-display'),
-        rrDisplay: document.getElementById('rr-display'),
-        clock: document.getElementById('clock-display'), 
-        date: document.getElementById('date-display'),
+        dot: document.getElementById('status-dot'), text: document.getElementById('status-text'),
+        signalBar: document.getElementById('signal-bar'), priceMain: document.getElementById('live-price'),
+        priceChange: document.getElementById('price-change'), decision: document.getElementById('decision-status'),
+        probability: document.getElementById('probability-badge'), arrow: document.getElementById('direction-arrow'),
+        tcBias: document.getElementById('tc-bias'), r2Value: document.getElementById('r2-value'),
+        r1Value: document.getElementById('r1-value'), pivotValue: document.getElementById('pivot-value'),
+        lastValue: document.getElementById('last-value'), s1Value: document.getElementById('s1-value'),
+        s2Value: document.getElementById('s2-value'), levelStatus: document.getElementById('level-status'),
+        levelAction: document.getElementById('level-action'), ma20Value: document.getElementById('ma20-value'),
+        ma50Value: document.getElementById('ma50-value'), maTrend: document.getElementById('ma-trend'),
+        adxValue: document.getElementById('adx-value'), diValues: document.getElementById('di-values'),
+        adxTrend: document.getElementById('adx-trend'), rsiValue: document.getElementById('rsi-bar-value'),
+        rsiFill: document.getElementById('rsi-fill'), divergenceInd: document.getElementById('divergence-indicator'),
+        entryLow: document.getElementById('entry-low'), entryHigh: document.getElementById('entry-high'),
+        slDisplay: document.getElementById('sl-display'), riskDisplay: document.getElementById('risk-display'),
+        tp1Display: document.getElementById('tp1-display'), tp2Display: document.getElementById('tp2-display'),
+        // PERUBAHAN 2: rrDisplay DIHAPUS DARI UI OBJECT
+        clock: document.getElementById('clock-display'), date: document.getElementById('date-display'),
         session: document.getElementById('session-tag')
     };
     
     // ==================== FUNGSI TEKNIKAL ====================
-    function calculateMA(data, period) { 
-        if (!data || data.length < period) return 0;
-        const closes = data.slice(-period).map(c => c.c);
-        return closes.reduce((a,b) => a + b, 0) / period;
-    }
+    function calculateMA(data, period) { if (!data || data.length < period) return 0; const closes = data.slice(-period).map(c => c.c); return closes.reduce((a,b) => a + b, 0) / period; }
+    function calculateATR(data, period = 14) { if (!data || data.length < period + 1) return 0; let tr = []; for (let i = 1; i < data.length; i++) { const h = data[i].h, l = data[i].l, pc = data[i-1].c; tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); } if (tr.length < period) return 0; return tr.slice(-period).reduce((a,b) => a + b, 0) / period; }
+    function calculateADX(data) { if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 }; const period = 14; let tr = [], plusDM = [], minusDM = []; for (let i = 1; i < data.length; i++) { const h = data[i].h, l = data[i].l, ph = data[i-1].h, pl = data[i-1].l, pc = data[i-1].c; tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); const upMove = h - ph, downMove = pl - l; if (upMove > downMove && upMove > 0) { plusDM.push(upMove); minusDM.push(0); } else if (downMove > upMove && downMove > 0) { plusDM.push(0); minusDM.push(downMove); } else { plusDM.push(0); minusDM.push(0); } } let atr = tr.slice(0, period).reduce((a,b) => a + b, 0); let pDM = plusDM.slice(0, period).reduce((a,b) => a + b, 0); let mDM = minusDM.slice(0, period).reduce((a,b) => a + b, 0); let dxValues = [], lastPDI = 0, lastMDI = 0; for (let i = period; i < tr.length; i++) { atr = (atr * (period - 1) + tr[i]) / period; pDM = (pDM * (period - 1) + plusDM[i]) / period; mDM = (mDM * (period - 1) + minusDM[i]) / period; lastPDI = atr > 0 ? (pDM / atr) * 100 : 0; lastMDI = atr > 0 ? (mDM / atr) * 100 : 0; const dx = (lastPDI + lastMDI) > 0 ? (Math.abs(lastPDI - lastMDI) / (lastPDI + lastMDI)) * 100 : 0; dxValues.push(dx); } let adxValue = 15; if (dxValues.length >= period) { let smoothedADX = dxValues.slice(0, period).reduce((a,b) => a + b, 0) / period; for (let i = period; i < dxValues.length; i++) { smoothedADX = (smoothedADX * (period - 1) + dxValues[i]) / period; } adxValue = smoothedADX; } return { adx: Math.max(5, Math.min(100, adxValue)), plusDI: lastPDI, minusDI: lastMDI }; }
+    function computeRSI(data) { if (data.length < 15) return 50; const closes = data.map(c => c.c); let gains = [], losses = []; for (let i = 1; i < closes.length; i++) { const diff = closes[i] - closes[i-1]; gains.push(diff > 0 ? diff : 0); losses.push(diff < 0 ? -diff : 0); } let avgG = gains.slice(0, 14).reduce((a,b) => a + b, 0) / 14; let avgL = losses.slice(0, 14).reduce((a,b) => a + b, 0) / 14; for (let i = 14; i < gains.length; i++) { avgG = (avgG * 13 + gains[i]) / 14; avgL = (avgL * 13 + losses[i]) / 14; } return avgL === 0 ? 100 : 100 - (100 / (1 + avgG / avgL)); }
+    function calculateTCLevels(data, config) { if (!data || data.length < config.pivotLookback) return { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }; const recentData = data.slice(-config.pivotLookback); const highs = recentData.map(c => c.h); const lows = recentData.map(c => c.l); const closes = recentData.map(c => c.c); const high = Math.max(...highs); const low = Math.min(...lows); const close = closes[closes.length - 1]; const pivot = (high + low + close) / 3; const r1 = 2 * pivot - low; const r2 = pivot + (high - low); const s1 = 2 * pivot - high; const s2 = pivot - (high - low); return { pivot, r1, r2, s1, s2, high, low }; }
     
-    function calculateATR(data, period = 14) { 
-        if (!data || data.length < period + 1) return 0;
-        let tr = [];
-        for (let i = 1; i < data.length; i++) {
-            const h = data[i].h, l = data[i].l, pc = data[i-1].c;
-            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
-        }
-        if (tr.length < period) return 0;
-        return tr.slice(-period).reduce((a,b) => a + b, 0) / period;
-    }
+    let lastLevelState = { pivot: { touched: false, broken: false, rejected: false }, r1: { touched: false, broken: false, rejected: false }, s1: { touched: false, broken: false, rejected: false }, lastTouch: null };
+    function detectLevelInteraction(price, levels, config) { const buffer = price * config.levelBufferPct; const confirmBuffer = price * config.breakoutConfirmPct; const interactions = { pivot: { status: 'none', action: '' }, r1: { status: 'none', action: '' }, s1: { status: 'none', action: '' } }; if (Math.abs(price - levels.pivot) <= buffer) { interactions.pivot.status = 'testing'; interactions.pivot.action = 'TOUCHED'; if (!lastLevelState.pivot.touched) { consoleManager.addLevelTouchLog('PIVOT', levels.pivot.toFixed(getPrecision()), price, 'TOUCHED'); lastLevelState.pivot.touched = true; } } else if (price > levels.pivot + confirmBuffer && lastLevelState.pivot.touched) { interactions.pivot.status = 'breakout'; interactions.pivot.action = 'BROKEN UP ▲'; if (!lastLevelState.pivot.broken) { consoleManager.addLevelTouchLog('PIVOT', levels.pivot.toFixed(getPrecision()), price, 'BREAKOUT UP'); lastLevelState.pivot.broken = true; } } else if (price < levels.pivot - confirmBuffer && lastLevelState.pivot.touched) { interactions.pivot.status = 'breakout'; interactions.pivot.action = 'BROKEN DOWN ▼'; if (!lastLevelState.pivot.broken) { consoleManager.addLevelTouchLog('PIVOT', levels.pivot.toFixed(getPrecision()), price, 'BREAKOUT DOWN'); lastLevelState.pivot.broken = true; } } if (Math.abs(price - levels.r1) <= buffer) { interactions.r1.status = 'testing'; interactions.r1.action = 'TOUCHED'; if (!lastLevelState.r1.touched) { consoleManager.addLevelTouchLog('R1', levels.r1.toFixed(getPrecision()), price, 'TOUCHED'); lastLevelState.r1.touched = true; } } else if (price > levels.r1 + confirmBuffer && lastLevelState.r1.touched) { interactions.r1.status = 'breakout'; interactions.r1.action = 'BROKEN ▲'; if (!lastLevelState.r1.broken) { consoleManager.addLevelTouchLog('R1', levels.r1.toFixed(getPrecision()), price, 'BREAKOUT'); lastLevelState.r1.broken = true; } } else if (price < levels.r1 - buffer && lastLevelState.r1.touched) { interactions.r1.status = 'rejection'; interactions.r1.action = 'REJECTED ▼'; if (!lastLevelState.r1.rejected) { consoleManager.addLevelTouchLog('R1', levels.r1.toFixed(getPrecision()), price, 'REJECTED'); lastLevelState.r1.rejected = true; } } if (Math.abs(price - levels.s1) <= buffer) { interactions.s1.status = 'testing'; interactions.s1.action = 'TOUCHED'; if (!lastLevelState.s1.touched) { consoleManager.addLevelTouchLog('S1', levels.s1.toFixed(getPrecision()), price, 'TOUCHED'); lastLevelState.s1.touched = true; } } else if (price < levels.s1 - confirmBuffer && lastLevelState.s1.touched) { interactions.s1.status = 'breakout'; interactions.s1.action = 'BROKEN ▼'; if (!lastLevelState.s1.broken) { consoleManager.addLevelTouchLog('S1', levels.s1.toFixed(getPrecision()), price, 'BREAKDOWN'); lastLevelState.s1.broken = true; } } else if (price > levels.s1 + buffer && lastLevelState.s1.touched) { interactions.s1.status = 'rejection'; interactions.s1.action = 'REJECTED ▲'; if (!lastLevelState.s1.rejected) { consoleManager.addLevelTouchLog('S1', levels.s1.toFixed(getPrecision()), price, 'REJECTED (BOUNCE)'); lastLevelState.s1.rejected = true; } } if (Math.abs(price - levels.pivot) > buffer * 3) lastLevelState.pivot = { touched: false, broken: false, rejected: false }; if (Math.abs(price - levels.r1) > buffer * 3) lastLevelState.r1 = { touched: false, broken: false, rejected: false }; if (Math.abs(price - levels.s1) > buffer * 3) lastLevelState.s1 = { touched: false, broken: false, rejected: false }; return interactions; }
+    function determineTCBias(price, levels, adxResult, rsi) { const config = getConfig(); let bias = 'NEUTRAL'; let strength = 0; if (price > levels.pivot) { bias = 'BULLISH'; strength += 30; if (price > levels.r1) strength += 20; } else if (price < levels.pivot) { bias = 'BEARISH'; strength += 30; if (price < levels.s1) strength += 20; } if (adxResult.adx >= config.adxThreshold) { strength += 25; if (adxResult.plusDI > adxResult.minusDI && bias === 'BULLISH') strength += 15; else if (adxResult.minusDI > adxResult.plusDI && bias === 'BEARISH') strength += 15; } if (bias === 'BULLISH' && rsi > 40 && rsi < 70) strength += 15; else if (bias === 'BEARISH' && rsi > 30 && rsi < 60) strength += 15; else if ((bias === 'BULLISH' && rsi > 70) || (bias === 'BEARISH' && rsi < 30)) strength -= 10; return { bias, strength: Math.min(100, strength) }; }
+    function calculateSLTP(price, bias, levels, atr, config) { let sl, tp1, tp2, entryLow, entryHigh; const slBuffer = price * config.slBufferPct; if (bias === 'BULLISH') { entryLow = levels.pivot; entryHigh = levels.r1; sl = levels.s1 - slBuffer; const risk = entryLow - sl; tp1 = entryLow + (risk * config.tp1Ratio); tp2 = entryLow + (risk * config.tp2Ratio); } else if (bias === 'BEARISH') { entryHigh = levels.pivot; entryLow = levels.s1; sl = levels.r1 + slBuffer; const risk = sl - entryHigh; tp1 = entryHigh - (risk * config.tp1Ratio); tp2 = entryHigh - (risk * config.tp2Ratio); } else { entryLow = entryHigh = price; sl = tp1 = tp2 = price; } return { sl, tp1, tp2, entryLow, entryHigh }; }
     
-    function calculateADX(data) {
-        if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 };
-        const period = 14;
-        let tr = [], plusDM = [], minusDM = [];
-        for (let i = 1; i < data.length; i++) {
-            const h = data[i].h, l = data[i].l, ph = data[i-1].h, pl = data[i-1].l, pc = data[i-1].c;
-            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc)));
-            const upMove = h - ph, downMove = pl - l;
-            if (upMove > downMove && upMove > 0) { plusDM.push(upMove); minusDM.push(0); }
-            else if (downMove > upMove && downMove > 0) { plusDM.push(0); minusDM.push(downMove); }
-            else { plusDM.push(0); minusDM.push(0); }
-        }
-        let atr = tr.slice(0, period).reduce((a,b) => a + b, 0);
-        let pDM = plusDM.slice(0, period).reduce((a,b) => a + b, 0);
-        let mDM = minusDM.slice(0, period).reduce((a,b) => a + b, 0);
-        let dxValues = [], lastPDI = 0, lastMDI = 0;
-        for (let i = period; i < tr.length; i++) {
-            atr = (atr * (period - 1) + tr[i]) / period;
-            pDM = (pDM * (period - 1) + plusDM[i]) / period;
-            mDM = (mDM * (period - 1) + minusDM[i]) / period;
-            lastPDI = atr > 0 ? (pDM / atr) * 100 : 0;
-            lastMDI = atr > 0 ? (mDM / atr) * 100 : 0;
-            const dx = (lastPDI + lastMDI) > 0 ? (Math.abs(lastPDI - lastMDI) / (lastPDI + lastMDI)) * 100 : 0;
-            dxValues.push(dx);
-        }
-        let adxValue = 15;
-        if (dxValues.length >= period) {
-            let smoothedADX = dxValues.slice(0, period).reduce((a,b) => a + b, 0) / period;
-            for (let i = period; i < dxValues.length; i++) {
-                smoothedADX = (smoothedADX * (period - 1) + dxValues[i]) / period;
-            }
-            adxValue = smoothedADX;
-        }
-        return { adx: Math.max(5, Math.min(100, adxValue)), plusDI: lastPDI, minusDI: lastMDI };
-    }
-    
-    function computeRSI(data) {
-        if (data.length < 15) return 50;
-        const closes = data.map(c => c.c);
-        let gains = [], losses = [];
-        for (let i = 1; i < closes.length; i++) {
-            const diff = closes[i] - closes[i-1];
-            gains.push(diff > 0 ? diff : 0);
-            losses.push(diff < 0 ? -diff : 0);
-        }
-        let avgG = gains.slice(0, 14).reduce((a,b) => a + b, 0) / 14;
-        let avgL = losses.slice(0, 14).reduce((a,b) => a + b, 0) / 14;
-        for (let i = 14; i < gains.length; i++) {
-            avgG = (avgG * 13 + gains[i]) / 14;
-            avgL = (avgL * 13 + losses[i]) / 14;
-        }
-        return avgL === 0 ? 100 : 100 - (100 / (1 + avgG / avgL));
-    }
-    
-    // ==================== TRADING CENTRAL LEVEL CALCULATION ====================
-    function calculateTCLevels(data, config) {
-        if (!data || data.length < config.pivotLookback) {
-            return { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 };
-        }
-        
-        const recentData = data.slice(-config.pivotLookback);
-        const highs = recentData.map(c => c.h);
-        const lows = recentData.map(c => c.l);
-        const closes = recentData.map(c => c.c);
-        
-        // Classic Pivot Point Formula
-        const high = Math.max(...highs);
-        const low = Math.min(...lows);
-        const close = closes[closes.length - 1];
-        
-        const pivot = (high + low + close) / 3;
-        const r1 = 2 * pivot - low;
-        const r2 = pivot + (high - low);
-        const s1 = 2 * pivot - high;
-        const s2 = pivot - (high - low);
-        
-        return { pivot, r1, r2, s1, s2, high, low };
-    }
-    
-    // ==================== LEVEL TOUCH DETECTION ====================
-    let lastLevelState = {
-        pivot: { touched: false, broken: false, rejected: false },
-        r1: { touched: false, broken: false, rejected: false },
-        s1: { touched: false, broken: false, rejected: false },
-        lastTouch: null
-    };
-    
-    function detectLevelInteraction(price, levels, config) {
-        const buffer = price * config.levelBufferPct;
-        const confirmBuffer = price * config.breakoutConfirmPct;
-        
-        const interactions = {
-            pivot: { status: 'none', action: '' },
-            r1: { status: 'none', action: '' },
-            s1: { status: 'none', action: '' }
-        };
-        
-        // Check Pivot
-        if (Math.abs(price - levels.pivot) <= buffer) {
-            interactions.pivot.status = 'testing';
-            interactions.pivot.action = 'TOUCHED';
-            if (!lastLevelState.pivot.touched) {
-                consoleManager.addLevelTouchLog('PIVOT', levels.pivot.toFixed(getPrecision()), price, 'TOUCHED');
-                lastLevelState.pivot.touched = true;
-            }
-        } else if (price > levels.pivot + confirmBuffer && lastLevelState.pivot.touched) {
-            interactions.pivot.status = 'breakout';
-            interactions.pivot.action = 'BROKEN UP ▲';
-            if (!lastLevelState.pivot.broken) {
-                consoleManager.addLevelTouchLog('PIVOT', levels.pivot.toFixed(getPrecision()), price, 'BREAKOUT UP');
-                lastLevelState.pivot.broken = true;
-            }
-        } else if (price < levels.pivot - confirmBuffer && lastLevelState.pivot.touched) {
-            interactions.pivot.status = 'breakout';
-            interactions.pivot.action = 'BROKEN DOWN ▼';
-            if (!lastLevelState.pivot.broken) {
-                consoleManager.addLevelTouchLog('PIVOT', levels.pivot.toFixed(getPrecision()), price, 'BREAKOUT DOWN');
-                lastLevelState.pivot.broken = true;
-            }
-        }
-        
-        // Check R1
-        if (Math.abs(price - levels.r1) <= buffer) {
-            interactions.r1.status = 'testing';
-            interactions.r1.action = 'TOUCHED';
-            if (!lastLevelState.r1.touched) {
-                consoleManager.addLevelTouchLog('R1', levels.r1.toFixed(getPrecision()), price, 'TOUCHED');
-                lastLevelState.r1.touched = true;
-            }
-        } else if (price > levels.r1 + confirmBuffer && lastLevelState.r1.touched) {
-            interactions.r1.status = 'breakout';
-            interactions.r1.action = 'BROKEN ▲';
-            if (!lastLevelState.r1.broken) {
-                consoleManager.addLevelTouchLog('R1', levels.r1.toFixed(getPrecision()), price, 'BREAKOUT');
-                lastLevelState.r1.broken = true;
-            }
-        } else if (price < levels.r1 - buffer && lastLevelState.r1.touched) {
-            interactions.r1.status = 'rejection';
-            interactions.r1.action = 'REJECTED ▼';
-            if (!lastLevelState.r1.rejected) {
-                consoleManager.addLevelTouchLog('R1', levels.r1.toFixed(getPrecision()), price, 'REJECTED');
-                lastLevelState.r1.rejected = true;
-            }
-        }
-        
-        // Check S1
-        if (Math.abs(price - levels.s1) <= buffer) {
-            interactions.s1.status = 'testing';
-            interactions.s1.action = 'TOUCHED';
-            if (!lastLevelState.s1.touched) {
-                consoleManager.addLevelTouchLog('S1', levels.s1.toFixed(getPrecision()), price, 'TOUCHED');
-                lastLevelState.s1.touched = true;
-            }
-        } else if (price < levels.s1 - confirmBuffer && lastLevelState.s1.touched) {
-            interactions.s1.status = 'breakout';
-            interactions.s1.action = 'BROKEN ▼';
-            if (!lastLevelState.s1.broken) {
-                consoleManager.addLevelTouchLog('S1', levels.s1.toFixed(getPrecision()), price, 'BREAKDOWN');
-                lastLevelState.s1.broken = true;
-            }
-        } else if (price > levels.s1 + buffer && lastLevelState.s1.touched) {
-            interactions.s1.status = 'rejection';
-            interactions.s1.action = 'REJECTED ▲';
-            if (!lastLevelState.s1.rejected) {
-                consoleManager.addLevelTouchLog('S1', levels.s1.toFixed(getPrecision()), price, 'REJECTED (BOUNCE)');
-                lastLevelState.s1.rejected = true;
-            }
-        }
-        
-        // Reset states when price moves away significantly
-        if (Math.abs(price - levels.pivot) > buffer * 3) {
-            lastLevelState.pivot = { touched: false, broken: false, rejected: false };
-        }
-        if (Math.abs(price - levels.r1) > buffer * 3) {
-            lastLevelState.r1 = { touched: false, broken: false, rejected: false };
-        }
-        if (Math.abs(price - levels.s1) > buffer * 3) {
-            lastLevelState.s1 = { touched: false, broken: false, rejected: false };
-        }
-        
-        return interactions;
-    }
-    
-    // ==================== DETERMINE TC BIAS ====================
-    function determineTCBias(price, levels, adxResult, rsi) {
-        const config = getConfig();
-        
-        // Primary bias based on price vs pivot
-        let bias = 'NEUTRAL';
-        let strength = 0;
-        
-        if (price > levels.pivot) {
-            bias = 'BULLISH';
-            strength += 30;
-            if (price > levels.r1) strength += 20;
-        } else if (price < levels.pivot) {
-            bias = 'BEARISH';
-            strength += 30;
-            if (price < levels.s1) strength += 20;
-        }
-        
-        // ADX confirmation
-        if (adxResult.adx >= config.adxThreshold) {
-            strength += 25;
-            if (adxResult.plusDI > adxResult.minusDI && bias === 'BULLISH') strength += 15;
-            else if (adxResult.minusDI > adxResult.plusDI && bias === 'BEARISH') strength += 15;
-        }
-        
-        // RSI confirmation
-        if (bias === 'BULLISH' && rsi > 40 && rsi < 70) strength += 15;
-        else if (bias === 'BEARISH' && rsi > 30 && rsi < 60) strength += 15;
-        else if ((bias === 'BULLISH' && rsi > 70) || (bias === 'BEARISH' && rsi < 30)) {
-            strength -= 10; // Overbought/Oversold warning
-        }
-        
-        return { bias, strength: Math.min(100, strength) };
-    }
-    
-    // ==================== CALCULATE SL/TP ====================
-    function calculateSLTP(price, bias, levels, atr, config) {
-        let sl, tp1, tp2, entryLow, entryHigh;
-        const prec = getPrecision();
-        const slBuffer = price * config.slBufferPct;
-        
-        if (bias === 'BULLISH') {
-            entryLow = levels.pivot;
-            entryHigh = levels.r1;
-            sl = levels.s1 - slBuffer;
-            const risk = entryLow - sl;
-            tp1 = entryLow + (risk * config.tp1Ratio);
-            tp2 = entryLow + (risk * config.tp2Ratio);
-        } else if (bias === 'BEARISH') {
-            entryHigh = levels.pivot;
-            entryLow = levels.s1;
-            sl = levels.r1 + slBuffer;
-            const risk = sl - entryHigh;
-            tp1 = entryHigh - (risk * config.tp1Ratio);
-            tp2 = entryHigh - (risk * config.tp2Ratio);
-        } else {
-            entryLow = entryHigh = price;
-            sl = tp1 = tp2 = price;
-        }
-        
-        return { sl, tp1, tp2, entryLow, entryHigh };
-    }
-    
-    // ==================== STATE MANAGEMENT ====================
-    let engine = {
-        ma20: 0, ma50: 0, adx: 0, plusDI: 0, minusDI: 0, atr: 0, rsi: 50,
-        levels: { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 },
-        bias: 'NEUTRAL', strength: 0,
-        interactions: null,
-        sl: 0, tp1: 0, tp2: 0, entryLow: 0, entryHigh: 0
-    };
-    
-    let currentPair = 'XAUUSDT';
-    let currentTF = '30m';
-    let currentMode = 'tc'; // Trading Central mode (no conservative/sniper)
-    
+    let engine = { ma20: 0, ma50: 0, adx: 0, plusDI: 0, minusDI: 0, atr: 0, rsi: 50, levels: { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }, bias: 'NEUTRAL', strength: 0, interactions: null, sl: 0, tp1: 0, tp2: 0, entryLow: 0, entryHigh: 0 };
+    let currentPair = 'XAUUSDT', currentTF = '30m';
     let wsConnection = null, candleBuffer = new CircularBuffer(200);
     let isReloading = false, reloadQueue = false;
     let lastPriceUpdateTime = 0, lastWSMessageTime = 0;
@@ -1111,502 +727,85 @@
     
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     function getConfig() { return PAIR_CONFIG[currentPair]; }
-    function getCandleArray() { 
-        const now = Date.now(); 
-        if (!cachedCandleArray || (now - lastCacheTime) > 500) { 
-            cachedCandleArray = candleBuffer.toArray(); 
-            lastCacheTime = now; 
-        } 
-        return cachedCandleArray; 
-    }
+    function getCandleArray() { const now = Date.now(); if (!cachedCandleArray || (now - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = now; } return cachedCandleArray; }
     function invalidateCandleCache() { cachedCandleArray = null; }
     
-    // ==================== UPDATE DECISION ====================
     function updateDecision() {
-        if (isDataStale) {
-            UI.decision.textContent = 'DATA STALE';
-            UI.decision.style.color = 'var(--warning)';
-            UI.signalBar.style.background = 'rgba(248, 81, 73, 0.1)';
-            return;
-        }
-        
-        const candleArray = getCandleArray();
-        if (candleArray.length < 30) return;
-        
-        const p = lastPrice;
-        const config = getConfig();
-        const prec = getPrecision();
-        
-        // Calculate indicators
-        engine.ma20 = calculateMA(candleArray, config.maFast);
-        engine.ma50 = calculateMA(candleArray, config.maSlow);
-        
-        const adxResult = calculateADX(candleArray);
-        engine.adx = adxResult.adx;
-        engine.plusDI = adxResult.plusDI;
-        engine.minusDI = adxResult.minusDI;
-        
-        engine.atr = calculateATR(candleArray, config.atrPeriod);
-        engine.rsi = computeRSI(candleArray);
-        
-        // Calculate TC Levels
-        engine.levels = calculateTCLevels(candleArray, config);
-        
-        // Detect level interactions
-        engine.interactions = detectLevelInteraction(p, engine.levels, config);
-        
-        // Determine TC Bias
-        const tcResult = determineTCBias(p, engine.levels, adxResult, engine.rsi);
-        engine.bias = tcResult.bias;
-        engine.strength = tcResult.strength;
-        
-        // Calculate SL/TP
+        if (isDataStale) { UI.decision.textContent = 'DATA STALE'; UI.decision.style.color = 'var(--warning)'; UI.signalBar.style.background = 'rgba(248, 81, 73, 0.1)'; return; }
+        const candleArray = getCandleArray(); if (candleArray.length < 30) return;
+        const p = lastPrice, config = getConfig(), prec = getPrecision();
+        engine.ma20 = calculateMA(candleArray, config.maFast); engine.ma50 = calculateMA(candleArray, config.maSlow);
+        const adxResult = calculateADX(candleArray); engine.adx = adxResult.adx; engine.plusDI = adxResult.plusDI; engine.minusDI = adxResult.minusDI;
+        engine.atr = calculateATR(candleArray, config.atrPeriod); engine.rsi = computeRSI(candleArray);
+        engine.levels = calculateTCLevels(candleArray, config); engine.interactions = detectLevelInteraction(p, engine.levels, config);
+        const tcResult = determineTCBias(p, engine.levels, adxResult, engine.rsi); engine.bias = tcResult.bias; engine.strength = tcResult.strength;
         const sltp = calculateSLTP(p, engine.bias, engine.levels, engine.atr, config);
-        engine.sl = sltp.sl;
-        engine.tp1 = sltp.tp1;
-        engine.tp2 = sltp.tp2;
-        engine.entryLow = sltp.entryLow;
-        engine.entryHigh = sltp.entryHigh;
+        engine.sl = sltp.sl; engine.tp1 = sltp.tp1; engine.tp2 = sltp.tp2; engine.entryLow = sltp.entryLow; engine.entryHigh = sltp.entryHigh;
         
-        // Update UI - TC Levels
-        UI.r2Value.textContent = engine.levels.r2.toFixed(prec);
-        UI.r1Value.textContent = engine.levels.r1.toFixed(prec);
-        UI.pivotValue.textContent = engine.levels.pivot.toFixed(prec);
-        UI.lastValue.textContent = p.toFixed(prec);
-        UI.s1Value.textContent = engine.levels.s1.toFixed(prec);
-        UI.s2Value.textContent = engine.levels.s2.toFixed(prec);
+        UI.r2Value.textContent = engine.levels.r2.toFixed(prec); UI.r1Value.textContent = engine.levels.r1.toFixed(prec);
+        UI.pivotValue.textContent = engine.levels.pivot.toFixed(prec); UI.lastValue.textContent = p.toFixed(prec);
+        UI.s1Value.textContent = engine.levels.s1.toFixed(prec); UI.s2Value.textContent = engine.levels.s2.toFixed(prec);
+        UI.tcBias.textContent = engine.bias; UI.tcBias.className = `tc-intraday-bias ${engine.bias.toLowerCase()}`;
         
-        // Update TC Bias display
-        UI.tcBias.textContent = engine.bias;
-        UI.tcBias.className = `tc-intraday-bias ${engine.bias.toLowerCase()}`;
+        let statusText = 'MONITORING', actionText = '';
+        if (engine.interactions.pivot.status === 'testing') { statusText = 'TESTING PIVOT'; actionText = '⚡ KEY LEVEL'; }
+        else if (engine.interactions.pivot.status === 'breakout') { statusText = 'PIVOT BREAKOUT'; actionText = engine.bias === 'BULLISH' ? '▲ BULLISH CONFIRM' : '▼ BEARISH CONFIRM'; }
+        else if (engine.interactions.r1.status === 'testing') { statusText = 'TESTING R1'; actionText = 'RESISTANCE'; }
+        else if (engine.interactions.r1.status === 'rejection') { statusText = 'R1 REJECTED'; actionText = '▼ POTENTIAL REVERSAL'; }
+        else if (engine.interactions.s1.status === 'testing') { statusText = 'TESTING S1'; actionText = 'SUPPORT'; }
+        else if (engine.interactions.s1.status === 'rejection') { statusText = 'S1 REJECTED'; actionText = '▲ BOUNCE SIGNAL'; }
+        UI.levelStatus.textContent = statusText; UI.levelAction.textContent = actionText;
+        UI.levelAction.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-secondary)');
         
-        // Update Level Status
-        let statusText = 'MONITORING';
-        let actionText = '';
-        
-        if (engine.interactions.pivot.status === 'testing') {
-            statusText = 'TESTING PIVOT';
-            actionText = '⚡ KEY LEVEL';
-        } else if (engine.interactions.pivot.status === 'breakout') {
-            statusText = 'PIVOT BREAKOUT';
-            actionText = engine.bias === 'BULLISH' ? '▲ BULLISH CONFIRM' : '▼ BEARISH CONFIRM';
-        } else if (engine.interactions.r1.status === 'testing') {
-            statusText = 'TESTING R1';
-            actionText = 'RESISTANCE';
-        } else if (engine.interactions.r1.status === 'rejection') {
-            statusText = 'R1 REJECTED';
-            actionText = '▼ POTENTIAL REVERSAL';
-        } else if (engine.interactions.s1.status === 'testing') {
-            statusText = 'TESTING S1';
-            actionText = 'SUPPORT';
-        } else if (engine.interactions.s1.status === 'rejection') {
-            statusText = 'S1 REJECTED';
-            actionText = '▲ BOUNCE SIGNAL';
-        }
-        
-        UI.levelStatus.textContent = statusText;
-        UI.levelAction.textContent = actionText;
-        UI.levelAction.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : 
-                                      (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-secondary)');
-        
-        // Update Metrics
-        UI.ma20Value.textContent = engine.ma20.toFixed(prec);
-        UI.ma50Value.textContent = `MA50: ${engine.ma50.toFixed(prec)}`;
-        UI.maTrend.textContent = p > engine.ma20 ? '▲' : '▼';
-        UI.maTrend.style.color = p > engine.ma20 ? 'var(--accent-green)' : 'var(--accent-red)';
-        
-        UI.adxValue.textContent = Math.round(engine.adx);
-        if (engine.adx < config.adxThreshold) UI.adxValue.classList.add('adx-warning');
-        else UI.adxValue.classList.remove('adx-warning');
-        
+        UI.ma20Value.textContent = engine.ma20.toFixed(prec); UI.ma50Value.textContent = `MA50: ${engine.ma50.toFixed(prec)}`;
+        UI.maTrend.textContent = p > engine.ma20 ? '▲' : '▼'; UI.maTrend.style.color = p > engine.ma20 ? 'var(--accent-green)' : 'var(--accent-red)';
+        UI.adxValue.textContent = Math.round(engine.adx); if (engine.adx < config.adxThreshold) UI.adxValue.classList.add('adx-warning'); else UI.adxValue.classList.remove('adx-warning');
         UI.diValues.textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
-        UI.adxTrend.textContent = engine.plusDI > engine.minusDI ? '▲' : '▼';
-        UI.adxTrend.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
+        UI.adxTrend.textContent = engine.plusDI > engine.minusDI ? '▲' : '▼'; UI.adxTrend.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
         
-        // RSI
-        UI.rsiValue.textContent = engine.rsi.toFixed(1);
-        UI.rsiFill.style.width = Math.min(100, Math.max(0, engine.rsi)) + '%';
-        UI.rsiFill.className = 'rsi-fill ' + (engine.rsi < config.rsiOversold ? 'oversold' : 
-                                             engine.rsi > config.rsiOverbought ? 'overbought' : 'neutral');
-        UI.divergenceInd.textContent = engine.rsi < 30 ? 'OVERSOLD' : (engine.rsi > 70 ? 'OVERBOUGHT' : '—');
+        UI.entryLow.textContent = engine.entryLow.toFixed(prec); UI.entryHigh.textContent = engine.entryHigh.toFixed(prec);
+        UI.slDisplay.textContent = engine.sl.toFixed(prec); UI.tp1Display.textContent = engine.tp1.toFixed(prec); UI.tp2Display.textContent = engine.tp2.toFixed(prec);
         
-        // Entry/SL/TP
-        UI.entryLow.textContent = engine.entryLow.toFixed(prec);
-        UI.entryHigh.textContent = engine.entryHigh.toFixed(prec);
-        UI.slDisplay.textContent = engine.sl.toFixed(prec);
-        UI.tp1Display.textContent = engine.tp1.toFixed(prec);
-        UI.tp2Display.textContent = engine.tp2.toFixed(prec);
-        
-        // Risk & R:R
+        // PERUBAHAN 2: RISK SAJA, TANPA R:R
         if (engine.bias !== 'NEUTRAL' && engine.sl > 0) {
-            const risk = engine.bias === 'BULLISH' ? 
-                Math.abs(engine.entryLow - engine.sl) : 
-                Math.abs(engine.sl - engine.entryHigh);
-            const reward1 = Math.abs(engine.tp1 - (engine.bias === 'BULLISH' ? engine.entryLow : engine.entryHigh));
-            const rr = (reward1 / risk).toFixed(2);
+            const risk = engine.bias === 'BULLISH' ? Math.abs(engine.entryLow - engine.sl) : Math.abs(engine.sl - engine.entryHigh);
             UI.riskDisplay.textContent = risk.toFixed(prec);
-            UI.rrDisplay.textContent = `R:R 1:${rr} (TP1) | 1:${((Math.abs(engine.tp2 - (engine.bias === 'BULLISH' ? engine.entryLow : engine.entryHigh)) / risk)).toFixed(2)} (TP2)`;
-        } else {
-            UI.riskDisplay.textContent = '—';
-            UI.rrDisplay.textContent = 'R:R —';
-        }
+        } else { UI.riskDisplay.textContent = '—'; }
         
-                // Decision Signal
         let displayText = '', color = '', bgColor = '';
+        if (engine.adx < 15) { displayText = `SIDEWAYS`; color = 'var(--warning)'; bgColor = 'rgba(227, 179, 65, 0.1)'; }
+        else if (engine.bias !== 'NEUTRAL' && engine.strength >= 50) { const actionWord = engine.interactions?.pivot.status === 'breakout' ? 'BREAKOUT' : (engine.interactions?.r1.status === 'rejection' ? 'REVERSAL' : (engine.interactions?.s1.status === 'rejection' ? 'BOUNCE' : 'TREND')); displayText = `${engine.bias} ${actionWord}`; color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)'; bgColor = engine.bias === 'BULLISH' ? 'rgba(63, 185, 80, 0.08)' : 'rgba(248, 81, 73, 0.08)'; }
+        else if (engine.bias !== 'NEUTRAL') { displayText = `WEAK ${engine.bias}`; color = 'var(--accent-gold)'; bgColor = 'rgba(227, 179, 65, 0.08)'; }
+        else { displayText = `WAITING`; color = 'var(--text-tertiary)'; bgColor = 'var(--bg-secondary)'; }
         
-        if (engine.adx < 15) {
-            displayText = `SIDEWAYS`;
-            color = 'var(--warning)';
-            bgColor = 'rgba(227, 179, 65, 0.1)';
-        } else if (engine.bias !== 'NEUTRAL' && engine.strength >= 50) {
-            const actionWord = engine.interactions?.pivot.status === 'breakout' ? 'BREAKOUT' : 
-                              (engine.interactions?.r1.status === 'rejection' ? 'REVERSAL' :
-                               engine.interactions?.s1.status === 'rejection' ? 'BOUNCE' : 'TREND');
-            displayText = `${engine.bias} ${actionWord}`;
-            color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
-            bgColor = engine.bias === 'BULLISH' ? 'rgba(63, 185, 80, 0.08)' : 'rgba(248, 81, 73, 0.08)';
-        } else if (engine.bias !== 'NEUTRAL') {
-            displayText = `WEAK ${engine.bias}`;
-            color = 'var(--accent-gold)';
-            bgColor = 'rgba(227, 179, 65, 0.08)';
-        } else {
-            displayText = `WAITING`;
-            color = 'var(--text-tertiary)';
-            bgColor = 'var(--bg-secondary)';
-        }
-        
-        UI.decision.textContent = displayText;
-        UI.decision.style.color = color;
-        UI.probability.textContent = `${engine.strength}%`;
-        UI.probability.style.color = color;
-        UI.signalBar.style.background = bgColor;
-        UI.signalBar.style.borderColor = color;
-        
+        UI.decision.textContent = displayText; UI.decision.style.color = color; UI.probability.textContent = `${engine.strength}%`; UI.probability.style.color = color;
+        UI.signalBar.style.background = bgColor; UI.signalBar.style.borderColor = color;
         UI.arrow.innerHTML = engine.bias === 'BULLISH' ? '▲' : (engine.bias === 'BEARISH' ? '▼' : '—');
-        UI.arrow.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : 
-                               (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-tertiary)');
+        UI.arrow.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-tertiary)');
         
-        // Log signal if significant
         const currentHash = `${currentPair}_${currentTF}_${engine.bias}_${engine.strength}_${statusText}`;
-        if (currentHash !== lastLogHash && (engine.bias !== 'NEUTRAL' || statusText !== 'MONITORING')) {
-            consoleManager.addSignalLog(
-                currentPair, currentTF, engine.bias, engine.strength, p,
-                engine.levels.pivot.toFixed(prec), engine.levels.r1.toFixed(prec), 
-                engine.levels.s1.toFixed(prec), displayText, statusText
-            );
-            lastLogHash = currentHash;
-        }
+        if (currentHash !== lastLogHash && (engine.bias !== 'NEUTRAL' || statusText !== 'MONITORING')) { consoleManager.addSignalLog(currentPair, currentTF, engine.bias, engine.strength, p, engine.levels.pivot.toFixed(prec), engine.levels.r1.toFixed(prec), engine.levels.s1.toFixed(prec), displayText, statusText); lastLogHash = currentHash; }
     }
     
-    // ==================== UI UPDATE ====================
-    function updateUI(price) {
-        const p = price || 0;
-        const prec = getPrecision();
-        const fixed = p.toFixed(prec);
-        const parts = fixed.split('.');
-        
-        UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`;
-        UI.priceMain.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
-        
-        if (prevPrice > 0) {
-            const change = p - prevPrice;
-            const pct = (change / prevPrice) * 100;
-            UI.priceChange.innerHTML = `${change > 0 ? '+' : ''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`;
-            UI.priceChange.style.color = change > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-        }
-        
-        lastPrice = p;
-        prevPrice = p;
-        
-        updateDecision();
-    }
+    function updateUI(price) { const p = price || 0; const prec = getPrecision(); const fixed = p.toFixed(prec); const parts = fixed.split('.'); UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`; UI.priceMain.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)'); if (prevPrice > 0) { const change = p - prevPrice; const pct = (change / prevPrice) * 100; UI.priceChange.innerHTML = `${change > 0 ? '+' : ''}${change.toFixed(prec)} (${pct.toFixed(2)}%)`; UI.priceChange.style.color = change > 0 ? 'var(--accent-green)' : 'var(--accent-red)'; } lastPrice = p; prevPrice = p; updateDecision(); }
     
-    // ==================== WEBSOCKET ====================
-    function updateWSStatus(status, message) {
-        if (!UI.dot || !UI.text) return;
-        UI.dot.className = 'status-dot';
-        if (status === 'live') {
-            UI.dot.classList.add('live');
-            UI.text.innerText = message || 'LIVE';
-            reconnectDelay = 1000;
-            isUsingFallback = false;
-            isDataStale = false;
-        } else if (status === 'connecting') {
-            UI.dot.classList.add('connecting');
-            UI.text.innerText = message || 'CONNECTING';
-        } else if (status === 'reconnect') {
-            UI.dot.classList.add('reconnect');
-            UI.text.innerText = message || 'RECONNECT';
-        } else if (status === 'fallback') {
-            UI.dot.classList.add('fallback');
-            UI.text.innerText = message || 'FALLBACK';
-            isUsingFallback = true;
-        } else if (status === 'stale') {
-            UI.dot.classList.add('stale');
-            UI.text.innerText = message || 'DATA STALE';
-            isDataStale = true;
-        }
-    }
+    function updateWSStatus(status, message) { if (!UI.dot || !UI.text) return; UI.dot.className = 'status-dot'; if (status === 'live') { UI.dot.classList.add('live'); UI.text.innerText = message || 'LIVE'; reconnectDelay = 1000; isUsingFallback = false; isDataStale = false; } else if (status === 'connecting') { UI.dot.classList.add('connecting'); UI.text.innerText = message || 'CONNECTING'; } else if (status === 'reconnect') { UI.dot.classList.add('reconnect'); UI.text.innerText = message || 'RECONNECT'; } else if (status === 'fallback') { UI.dot.classList.add('fallback'); UI.text.innerText = message || 'FALLBACK'; isUsingFallback = true; } else if (status === 'stale') { UI.dot.classList.add('stale'); UI.text.innerText = message || 'DATA STALE'; isDataStale = true; } }
+    function cleanupWebSocket() { if (wsConnection) { isManualDisconnect = true; try { wsConnection.onopen = wsConnection.onmessage = wsConnection.onclose = wsConnection.onerror = null; if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) wsConnection.close(); } catch(e) {} wsConnection = null; } setTimeout(() => { isManualDisconnect = false; }, 100); }
+    async function fetchKlines() { try { const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=200`); const data = await resp.json(); if (Array.isArray(data)) { candleBuffer.clear(); data.forEach(d => { candleBuffer.push({ t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) }); }); invalidateCandleCache(); if (candleBuffer.length > 0) { const latest = candleBuffer.getLatest(); lastPrice = prevPrice = latest.c; updateUI(lastPrice); } consoleManager.addEventLog('KLINES_LOADED', `${currentPair} ${currentTF} (${candleBuffer.length} candles)`); return true; } } catch(e) { consoleManager.addEventLog('KLINES_ERROR', e.message); } return false; }
+    async function fetchPriceREST() { try { const resp = await fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentPair}`); const data = await resp.json(); if (data?.price) { const price = parseFloat(data.price); if (price > 0 && (Date.now() - lastWSMessageTime > 3000 || isUsingFallback)) { lastPriceUpdateTime = Date.now(); updateUI(price); } } } catch(e) {} }
+    function initWebSocket() { cleanupWebSocket(); updateWSStatus('connecting', 'CONNECTING'); const streamName = `${currentPair.toLowerCase()}@kline_${currentTF}`; try { wsConnection = new WebSocket(`wss://fstream.binance.com/ws/${streamName}`); wsConnection.onopen = () => { reconnectDelay = 1000; lastWSMessageTime = lastPriceUpdateTime = Date.now(); isUsingFallback = false; isDataStale = false; updateWSStatus('live', `LIVE ${currentTF}`); consoleManager.addEventLog('WS_CONNECTED', `${currentPair} ${currentTF}`); }; wsConnection.onmessage = (event) => { try { const msg = JSON.parse(event.data); if (msg?.k) { const k = msg.k; const price = parseFloat(k.c); const high = parseFloat(k.h); const low = parseFloat(k.l); const open = parseFloat(k.o); const isClosed = k.x; const candleTime = k.t; if (price > 0) { lastWSMessageTime = lastPriceUpdateTime = Date.now(); if (isUsingFallback) updateWSStatus('live', `LIVE ${currentTF}`); if (isDataStale) updateWSStatus('live', `LIVE ${currentTF}`); const candleArray = getCandleArray(); if (candleArray.length > 0) { const lastCandle = candleArray[candleArray.length - 1]; if (isClosed && lastCandle.t !== candleTime) { candleBuffer.push({ t: candleTime, o: open, h: high, l: low, c: price, v: parseFloat(k.v) }); invalidateCandleCache(); } else if (!isClosed && lastCandle.t === candleTime) { lastCandle.c = price; lastCandle.h = Math.max(lastCandle.h, high); lastCandle.l = Math.min(lastCandle.l, low); invalidateCandleCache(); } } updateUI(price); } } } catch(err) {} }; wsConnection.onclose = () => { if (!isReloading && !isManualDisconnect) { updateWSStatus('reconnect', 'RECONNECT'); consoleManager.addEventLog('WS_CLOSED', 'Reconnecting...'); if (reconnectTimer) clearTimeout(reconnectTimer); reconnectTimer = setTimeout(() => { if (!isReloading && !isManualDisconnect) { reconnectDelay = Math.min(reconnectDelay * 1.5, 30000); initWebSocket(); } }, reconnectDelay); } }; wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) { updateWSStatus('reconnect', 'ERROR'); consoleManager.addEventLog('WS_ERROR', 'Connection error'); } }; } catch(e) { updateWSStatus('fallback', 'FALLBACK'); isUsingFallback = true; consoleManager.addEventLog('WS_FALLBACK', 'Using REST API'); } }
     
-    function cleanupWebSocket() {
-        if (wsConnection) {
-            isManualDisconnect = true;
-            try {
-                wsConnection.onopen = wsConnection.onmessage = wsConnection.onclose = wsConnection.onerror = null;
-                if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) {
-                    wsConnection.close();
-                }
-            } catch(e) {}
-            wsConnection = null;
-        }
-        setTimeout(() => { isManualDisconnect = false; }, 100);
-    }
-    
-    async function fetchKlines() {
-        try {
-            const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=200`);
-            const data = await resp.json();
-            if (Array.isArray(data)) {
-                candleBuffer.clear();
-                data.forEach(d => {
-                    candleBuffer.push({
-                        t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]),
-                        l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5])
-                    });
-                });
-                invalidateCandleCache();
-                if (candleBuffer.length > 0) {
-                    const latest = candleBuffer.getLatest();
-                    lastPrice = prevPrice = latest.c;
-                    updateUI(lastPrice);
-                }
-                consoleManager.addEventLog('KLINES_LOADED', `${currentPair} ${currentTF} (${candleBuffer.length} candles)`);
-                return true;
-            }
-        } catch(e) {
-            consoleManager.addEventLog('KLINES_ERROR', e.message);
-        }
-        return false;
-    }
-    
-    async function fetchPriceREST() {
-        try {
-            const resp = await fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentPair}`);
-            const data = await resp.json();
-            if (data?.price) {
-                const price = parseFloat(data.price);
-                if (price > 0 && (Date.now() - lastWSMessageTime > 3000 || isUsingFallback)) {
-                    lastPriceUpdateTime = Date.now();
-                    updateUI(price);
-                }
-            }
-        } catch(e) {}
-    }
-    
-    function initWebSocket() {
-        cleanupWebSocket();
-        updateWSStatus('connecting', 'CONNECTING');
-        
-        const streamName = `${currentPair.toLowerCase()}@kline_${currentTF}`;
-        try {
-            wsConnection = new WebSocket(`wss://fstream.binance.com/ws/${streamName}`);
-            
-            wsConnection.onopen = () => {
-                reconnectDelay = 1000;
-                lastWSMessageTime = lastPriceUpdateTime = Date.now();
-                isUsingFallback = false;
-                isDataStale = false;
-                updateWSStatus('live', `LIVE ${currentTF}`);
-                consoleManager.addEventLog('WS_CONNECTED', `${currentPair} ${currentTF}`);
-            };
-            
-            wsConnection.onmessage = (event) => {
-                try {
-                    const msg = JSON.parse(event.data);
-                    if (msg?.k) {
-                        const k = msg.k;
-                        const price = parseFloat(k.c);
-                        const high = parseFloat(k.h);
-                        const low = parseFloat(k.l);
-                        const open = parseFloat(k.o);
-                        const isClosed = k.x;
-                        const candleTime = k.t;
-                        
-                        if (price > 0) {
-                            lastWSMessageTime = lastPriceUpdateTime = Date.now();
-                            
-                            if (isUsingFallback) updateWSStatus('live', `LIVE ${currentTF}`);
-                            if (isDataStale) updateWSStatus('live', `LIVE ${currentTF}`);
-                            
-                            const candleArray = getCandleArray();
-                            if (candleArray.length > 0) {
-                                const lastCandle = candleArray[candleArray.length - 1];
-                                if (isClosed && lastCandle.t !== candleTime) {
-                                    candleBuffer.push({
-                                        t: candleTime, o: open, h: high,
-                                        l: low, c: price, v: parseFloat(k.v)
-                                    });
-                                    invalidateCandleCache();
-                                } else if (!isClosed && lastCandle.t === candleTime) {
-                                    lastCandle.c = price;
-                                    lastCandle.h = Math.max(lastCandle.h, high);
-                                    lastCandle.l = Math.min(lastCandle.l, low);
-                                    invalidateCandleCache();
-                                }
-                            }
-                            
-                            updateUI(price);
-                        }
-                    }
-                } catch(err) {}
-            };
-            
-            wsConnection.onclose = () => {
-                if (!isReloading && !isManualDisconnect) {
-                    updateWSStatus('reconnect', 'RECONNECT');
-                    consoleManager.addEventLog('WS_CLOSED', 'Reconnecting...');
-                    if (reconnectTimer) clearTimeout(reconnectTimer);
-                    reconnectTimer = setTimeout(() => {
-                        if (!isReloading && !isManualDisconnect) {
-                            reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
-                            initWebSocket();
-                        }
-                    }, reconnectDelay);
-                }
-            };
-            
-            wsConnection.onerror = () => {
-                if (!isReloading && !isManualDisconnect) {
-                    updateWSStatus('reconnect', 'ERROR');
-                    consoleManager.addEventLog('WS_ERROR', 'Connection error');
-                }
-            };
-        } catch(e) {
-            updateWSStatus('fallback', 'FALLBACK');
-            isUsingFallback = true;
-            consoleManager.addEventLog('WS_FALLBACK', 'Using REST API');
-        }
-    }
-    
-    // ==================== FULL RELOAD ====================
     let heartbeatInterval, stuckCheckInterval, restFallbackInterval;
+    async function fullReload() { if (isReloading) { reloadQueue = true; return; } isReloading = true; reloadQueue = false; if (heartbeatInterval) clearInterval(heartbeatInterval); if (stuckCheckInterval) clearInterval(stuckCheckInterval); if (restFallbackInterval) clearInterval(restFallbackInterval); cleanupWebSocket(); lastLevelState = { pivot: { touched: false, broken: false, rejected: false }, r1: { touched: false, broken: false, rejected: false }, s1: { touched: false, broken: false, rejected: false }, lastTouch: null }; document.querySelectorAll('[data-pair]').forEach(btn => { if (btn.getAttribute('data-pair') === currentPair) btn.classList.add('active'); else btn.classList.remove('active'); }); document.querySelectorAll('.tf-btn').forEach(btn => { const tf = btn.getAttribute('data-tf'); if (tf === currentTF) btn.classList.add('active'); else btn.classList.remove('active'); }); updateWSStatus('connecting', 'LOADING'); consoleManager.addEventLog('RELOAD', `${currentPair} ${currentTF}`); await fetchKlines(); initWebSocket(); heartbeatInterval = setInterval(() => { if (wsConnection?.readyState === WebSocket.OPEN) { try { wsConnection.send(JSON.stringify({ method: "ping" })); } catch(e) {} } }, 30000); stuckCheckInterval = setInterval(() => { const now = Date.now(); const timeSinceLastPrice = now - lastPriceUpdateTime; if (timeSinceLastPrice > 10000 && lastPrice > 0 && !isDataStale) updateWSStatus('stale'); else if (isDataStale && timeSinceLastPrice < 5000) updateWSStatus(isUsingFallback ? 'fallback' : 'live'); const timeSinceLastMsg = now - lastWSMessageTime; if (wsConnection?.readyState === WebSocket.OPEN && timeSinceLastMsg > 10000 && !isUsingFallback && !isReloading) { updateWSStatus('fallback'); isUsingFallback = true; fetchPriceREST(); } if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect'); }, 5000); restFallbackInterval = setInterval(fetchPriceREST, 5000); isReloading = false; if (reloadQueue) setTimeout(() => fullReload(), 100); }
     
-    async function fullReload() {
-        if (isReloading) {
-            reloadQueue = true;
-            return;
-        }
-        
-        isReloading = true;
-        reloadQueue = false;
-        
-        if (heartbeatInterval) clearInterval(heartbeatInterval);
-        if (stuckCheckInterval) clearInterval(stuckCheckInterval);
-        if (restFallbackInterval) clearInterval(restFallbackInterval);
-        
-        cleanupWebSocket();
-        
-        // Reset level states
-        lastLevelState = {
-            pivot: { touched: false, broken: false, rejected: false },
-            r1: { touched: false, broken: false, rejected: false },
-            s1: { touched: false, broken: false, rejected: false },
-            lastTouch: null
-        };
-        
-        document.querySelectorAll('[data-pair]').forEach(btn => {
-            if (btn.getAttribute('data-pair') === currentPair) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-        
-        document.querySelectorAll('.tf-btn').forEach(btn => {
-            const tf = btn.getAttribute('data-tf');
-            if (tf === currentTF) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-        
-        updateWSStatus('connecting', 'LOADING');
-        consoleManager.addEventLog('RELOAD', `${currentPair} ${currentTF}`);
-        
-        await fetchKlines();
-        
-        initWebSocket();
-        
-        heartbeatInterval = setInterval(() => {
-            if (wsConnection?.readyState === WebSocket.OPEN) {
-                try {
-                    wsConnection.send(JSON.stringify({ method: "ping" }));
-                } catch(e) {}
-            }
-        }, 30000);
-        
-        stuckCheckInterval = setInterval(() => {
-            const now = Date.now();
-            const timeSinceLastPrice = now - lastPriceUpdateTime;
-            
-            if (timeSinceLastPrice > 10000 && lastPrice > 0 && !isDataStale) {
-                updateWSStatus('stale');
-            } else if (isDataStale && timeSinceLastPrice < 5000) {
-                updateWSStatus(isUsingFallback ? 'fallback' : 'live');
-            }
-            
-            const timeSinceLastMsg = now - lastWSMessageTime;
-            if (wsConnection?.readyState === WebSocket.OPEN && timeSinceLastMsg > 10000 && !isUsingFallback && !isReloading) {
-                updateWSStatus('fallback');
-                isUsingFallback = true;
-                fetchPriceREST();
-            }
-            
-            if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) {
-                updateWSStatus('reconnect');
-            }
-        }, 5000);
-        
-        restFallbackInterval = setInterval(fetchPriceREST, 5000);
-        
-        isReloading = false;
-        
-        if (reloadQueue) {
-            setTimeout(() => fullReload(), 100);
-        }
-    }
+    document.querySelectorAll('[data-pair]').forEach(btn => { btn.onclick = () => { if (!isReloading) { currentPair = btn.getAttribute('data-pair'); fullReload(); } }; });
+    document.querySelectorAll('.tf-btn').forEach(btn => { btn.onclick = () => { if (!isReloading) { currentTF = btn.getAttribute('data-tf'); fullReload(); } }; });
+    // PERUBAHAN 4: EVENT LISTENER UNTUK COPY SETUP
+    document.getElementById('copySetupBtn').onclick = copyTradeSetup;
     
-    // ==================== EVENT LISTENERS ====================
-    document.querySelectorAll('[data-pair]').forEach(btn => {
-        btn.onclick = () => {
-            if (!isReloading) {
-                currentPair = btn.getAttribute('data-pair');
-                fullReload();
-            }
-        };
-    });
+    setInterval(() => { const now = new Date(); UI.clock.textContent = now.toLocaleTimeString('id-ID'); UI.date.textContent = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`; const hour = now.getHours(); if (hour >= 7 && hour < 14) UI.session.textContent = 'ASIA'; else if (hour >= 14 && hour < 20) UI.session.textContent = 'LONDON'; else UI.session.textContent = 'NY'; }, 1000);
     
-    document.querySelectorAll('.tf-btn').forEach(btn => {
-        btn.onclick = () => {
-            if (!isReloading) {
-                currentTF = btn.getAttribute('data-tf');
-                fullReload();
-            }
-        };
-    });
-    
-    // ==================== CLOCK ====================
-    setInterval(() => {
-        const now = new Date();
-        UI.clock.textContent = now.toLocaleTimeString('id-ID');
-        UI.date.textContent = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
-        
-        const hour = now.getHours();
-        if (hour >= 7 && hour < 14) UI.session.textContent = 'ASIA';
-        else if (hour >= 14 && hour < 20) UI.session.textContent = 'LONDON';
-        else UI.session.textContent = 'NY';
-    }, 1000);
-    
-    // ==================== INIT ====================
-    consoleManager.render();
-    consoleManager.addEventLog('INIT', 'URA v2.0 - Trading Central Logic');
-    fullReload();
-    
+    consoleManager.render(); consoleManager.addEventLog('INIT', 'URA v2.0 - Trading Central Logic'); fullReload();
 })();
 </script>
 </body>
