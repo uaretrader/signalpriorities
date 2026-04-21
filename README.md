@@ -1,2 +1,1 @@
-# signalpriorities
-Triple Mode On
+# uratclogic
