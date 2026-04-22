@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v2.2 – UR ADVISOR</title>
+    <title>URA v3.4 – BUG FIX</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -20,10 +20,10 @@
             --accent-green: #3FB950;
             --accent-red: #F85149;
             --accent-blue: #58A6FF;
-            --accent-purple: #A371F7;
-            --accent-orange: #F0883E;
             --accent-gold: #E3B341;
             --accent-cyan: #56D4DD;
+            --accent-purple: #A371F7;
+            --accent-orange: #F0883E;
             --success: #3FB950;
             --warning: #E3B341;
             --danger: #F85149;
@@ -48,12 +48,13 @@
             flex-direction: column;
             height: 100vh;
             width: 100%;
-            padding: 10px 14px;
-            gap: 6px;
+            padding: 8px 12px;
+            gap: 3px;
             overflow-y: auto;
             overflow-x: hidden;
         }
         
+        /* ========== HEADER ========== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -62,265 +63,238 @@
             border-bottom: 1px solid var(--border-subtle);
             flex-shrink: 0;
         }
-        
-        .logo-section { display: flex; align-items: baseline; gap: 8px; }
-        .logo { font-weight: 700; font-size: 0.9rem; letter-spacing: -0.3px; color: var(--text-primary); }
-        .logo-accent { color: var(--accent-cyan); font-weight: 800; }
-        .version-tag { 
-            font-size: 0.5rem; 
-            font-weight: 600; 
-            color: var(--text-secondary); 
-            background: var(--bg-tertiary); 
-            padding: 2px 6px; 
-            border-radius: 100px; 
-            border: 1px solid var(--border-subtle); 
-        }
-        .connection-badge { display: flex; align-items: center; gap: 6px; font-size: 0.6rem; font-weight: 500; color: var(--text-secondary); }
-        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary); transition: all 0.2s ease; }
-        .status-dot.live { background: var(--success); box-shadow: 0 0 6px rgba(63, 185, 80, 0.5); animation: pulse 2s infinite; }
-        .status-dot.connecting { background: var(--warning); animation: pulse 1.5s infinite; }
+        .logo-section { display: flex; align-items: baseline; gap: 6px; }
+        .logo { font-weight: 700; font-size: 0.85rem; color: var(--text-primary); letter-spacing: -0.3px; }
+        .version-tag { font-size: 0.45rem; color: var(--text-secondary); background: var(--bg-tertiary); padding: 2px 6px; border-radius: 100px; font-weight: 600; }
+        .connection-badge { display: flex; align-items: center; gap: 5px; font-size: 0.55rem; color: var(--text-secondary); }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary); }
+        .status-dot.live { background: var(--success); animation: pulse 2s infinite; }
+        .status-dot.connecting { background: var(--warning); animation: pulse 1s infinite; }
         .status-dot.reconnect { background: var(--accent-orange); animation: pulse 1s infinite; }
         .status-dot.fallback { background: var(--accent-blue); animation: pulse 1.5s infinite; }
-        .status-dot.stale { background: var(--danger); animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .status-dot.stale { background: var(--danger); }
+        @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
         
-        /* THEME SWITCHER */
-        .theme-switcher { position: relative; margin-left: 8px; }
         .theme-toggle-btn {
-            display: flex; align-items: center; gap: 4px; background: var(--bg-tertiary);
-            border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 3px 8px;
-            font-size: 0.5rem; font-weight: 600; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+            background: var(--bg-tertiary); border: 1px solid var(--border-subtle);
+            color: var(--text-primary); padding: 3px 8px; font-size: 0.5rem;
+            border-radius: 4px; cursor: pointer; font-weight: 600;
+            transition: all 0.2s;
         }
         .theme-toggle-btn:hover { background: var(--bg-secondary); border-color: var(--accent-gold); }
-        .theme-menu {
-            position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--bg-secondary);
-            border: 1px solid var(--border-subtle); border-radius: 6px; min-width: 140px; z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); overflow: hidden; display: none;
-        }
-        .theme-option {
-            display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-size: 0.5rem;
-            color: var(--text-primary); cursor: pointer; transition: background 0.15s;
-        }
-        .theme-option:hover { background: var(--bg-tertiary); }
-        .theme-option.active { background: rgba(227, 179, 65, 0.1); color: var(--accent-gold); }
-        .theme-icon { font-size: 0.7rem; }
-        .theme-name { flex: 1; }
-        .theme-check { color: var(--accent-green); font-weight: bold; }
         
-        .nav-bar { 
-            display: flex; 
-            flex-direction: column;
-            flex-wrap: nowrap; 
-            justify-content: center; 
-            align-items: center; 
-            flex-shrink: 0; 
-            gap: 4px;
-            width: 100%;
-        }
-
-        .nav-row {
+        /* ========== PRICE + PAIR ROW ========== */
+        .price-pair-row {
             display: flex;
-            flex-direction: row;
-            flex-wrap: nowrap;
-            width: 100%;
-        }
-
-        .nav-row:first-child {
             justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 2px 0;
         }
-
-        .nav-row:last-child {
-            justify-content: center;
+        .price-left { display: flex; align-items: baseline; gap: 8px; }
+        .price-main { 
+            font-size: 1.8rem; font-weight: 700; color: var(--text-primary); line-height: 1; 
+            -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important; user-select: none !important; background: transparent !important;
         }
-
-        .tab-group { 
-            display: flex; 
-            gap: 2px; 
-            background: var(--bg-secondary); 
-            padding: 2px; 
-            border-radius: 4px; 
-            border: 1px solid var(--border-subtle); 
-            flex-wrap: nowrap;
+        .price-main:active, .price-main:focus, .price-main:hover { background: transparent !important; outline: none !important; }
+        .price-decimal { font-size: 1.2rem; opacity: 0.6; font-weight: 500; }
+        .price-change { font-size: 0.6rem; font-weight: 600; padding: 2px 6px; border-radius: 100px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); }
+        .pair-group { display: flex; gap: 4px; background: var(--bg-secondary); padding: 2px; border-radius: 4px; border: 1px solid var(--border-subtle); }
+        .pair-btn {
+            background: transparent; border: none; color: var(--text-tertiary);
+            padding: 5px 12px; font-size: 0.55rem; font-weight: 600; cursor: pointer;
+            border-radius: 3px; transition: all 0.15s;
         }
-
-        .tab-btn { 
-            background: transparent; 
-            border: none; 
-            color: var(--text-tertiary); 
-            padding: 6px 16px; 
-            font-size: 0.6rem; 
-            font-weight: 600; 
-            cursor: help; 
-            border-radius: 4px; 
-            transition: all 0.15s ease; 
-            white-space: nowrap; 
-            display: inline-flex; 
-            align-items: baseline; 
-            gap: 4px; 
-            position: relative; 
-        }
-        .tab-btn.active { color: var(--text-primary); background: var(--bg-tertiary); }
-        .tf-label { transition: color 0.15s ease; }
-        .tab-btn.active .tf-label { color: var(--text-primary); }
-        .tab-btn:not(.active) .tf-label { color: var(--text-tertiary); }
+        .pair-btn.active { color: var(--text-primary); background: var(--bg-tertiary); }
         
-        /* MTF BIAS SYMBOL */
-        .tf-bias-symbol { font-weight: 600; font-size: 0.65rem; margin-left: 2px; transition: all 0.2s; }
-        .tf-bias-symbol.bullish { color: var(--accent-green); text-shadow: 0 0 3px rgba(63, 185, 80, 0.3); }
-        .tf-bias-symbol.bearish { color: var(--accent-red); text-shadow: 0 0 3px rgba(248, 81, 73, 0.3); }
+        /* ========== SIGNAL BAR ========== */
+        .signal-bar { 
+            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            border-radius: 6px; padding: 6px 12px; display: flex; 
+            align-items: center; justify-content: space-between; cursor: pointer;
+            flex-shrink: 0;
+        }
+        .signal-content { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+        .signal-badge { font-size: 0.55rem; font-weight: 800; color: var(--accent-gold); letter-spacing: 0.3px; }
+        .signal-text { font-size: 0.75rem; font-weight: 700; }
+        .probability-badge { font-size: 0.5rem; font-weight: 600; padding: 2px 6px; border-radius: 100px; background: var(--bg-tertiary); }
+        .confidence-badge { font-size: 0.45rem; font-weight: 700; padding: 2px 6px; border-radius: 100px; margin-left: 4px; }
+        .confidence-badge.high { background: rgba(63,185,80,0.15); color: var(--accent-green); }
+        .confidence-badge.medium { background: rgba(227,179,65,0.15); color: var(--accent-gold); }
+        .confidence-badge.low { background: rgba(248,81,73,0.15); color: var(--accent-red); }
+        .signal-arrow { font-size: 1.1rem; font-weight: 300; }
+        
+        /* ========== METRICS TRIO ========== */
+        .metrics-trio { display: flex; gap: 4px; flex-shrink: 0; }
+        .metric-card { 
+            flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            border-radius: 5px; padding: 4px 6px;
+        }
+        .metric-header { display: flex; justify-content: space-between; margin-bottom: 1px; }
+        .metric-label { font-size: 0.45rem; color: var(--text-tertiary); text-transform: uppercase; font-weight: 600; }
+        .metric-value { font-size: 0.8rem; font-weight: 700; }
+        .metric-sub { font-size: 0.42rem; color: var(--text-secondary); }
+        
+        /* ========== TIMEFRAME ROW ========== */
+        .tf-row { display: flex; justify-content: center; width: 100%; flex-shrink: 0; }
+        .tf-group {
+            display: flex; gap: 2px; background: var(--bg-secondary);
+            padding: 2px; border-radius: 4px; border: 1px solid var(--border-subtle);
+            width: 100%; justify-content: space-around;
+        }
+        .tf-btn {
+            background: transparent; border: none; color: var(--text-tertiary);
+            padding: 5px 0; font-size: 0.55rem; font-weight: 600; cursor: help;
+            border-radius: 3px; flex: 1; display: flex; align-items: center; justify-content: center;
+            gap: 3px; position: relative; transition: all 0.15s;
+        }
+        .tf-btn.active { color: var(--text-primary); background: var(--bg-tertiary); }
+        .tf-label { transition: color 0.15s; }
+        .tf-bias-symbol { font-size: 0.6rem; font-weight: 600; }
+        .tf-bias-symbol.bullish { color: var(--accent-green); }
+        .tf-bias-symbol.bearish { color: var(--accent-red); }
         .tf-bias-symbol.neutral { color: var(--text-tertiary); opacity: 0.5; }
         .tf-bias-symbol.strong { animation: mtfPulse 1.5s infinite; }
-        @keyframes mtfPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes mtfPulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
         
-        .tab-btn:hover::after {
+        .tf-btn.aligned::before, .tf-btn.conflict::before {
+            content: ''; position: absolute; top: 2px; right: 2px; width: 4px; height: 4px;
+            border-radius: 50%;
+        }
+        .tf-btn.aligned::before { background: var(--accent-green); box-shadow: 0 0 4px var(--accent-green); }
+        .tf-btn.conflict::before { background: var(--accent-red); box-shadow: 0 0 4px var(--accent-red); }
+        
+        .tf-btn:hover::after {
             content: attr(data-mtf-info); position: absolute; bottom: 100%; left: 50%;
             transform: translateX(-50%); background: var(--bg-tertiary); color: var(--text-primary);
             padding: 4px 8px; border-radius: 4px; font-size: 0.4rem; white-space: nowrap;
             border: 1px solid var(--border-subtle); z-index: 1000; margin-bottom: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         
-        /* DOT INDIKATOR MTF - PERBAIKAN */
-        .tf-btn.aligned::before {
-            content: ''; position: absolute; top: 2px; right: 2px; width: 4px; height: 4px;
-            border-radius: 50%; background: var(--accent-green); box-shadow: 0 0 4px var(--accent-green);
-        }
-        .tf-btn.conflict::before {
-            content: ''; position: absolute; top: 2px; right: 2px; width: 4px; height: 4px;
-            border-radius: 50%; background: var(--accent-red); box-shadow: 0 0 4px var(--accent-red);
-        }
-        
-        .signal-bar { 
-            background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 6px; 
-            padding: 8px 14px; display: flex; align-items: center; justify-content: space-between; 
-            flex-shrink: 0; cursor: pointer; transition: all 0.2s; 
-        }
-        .signal-content { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-        .signal-badge { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--accent-gold); letter-spacing: 0.5px; }
-        .signal-text { font-size: 0.75rem; font-weight: 700; letter-spacing: -0.3px; }
-        .signal-arrow { font-size: 1.1rem; font-weight: 300; line-height: 1; }
-        .probability-badge {
-            font-size: 0.55rem; font-weight: 600; padding: 2px 6px; border-radius: 100px;
-            background: var(--bg-tertiary); margin-left: 6px;
-        }
-        
-        .price-section { display: flex; align-items: baseline; justify-content: space-between; padding: 2px 0; flex-shrink: 0; }
-        .price-main { 
-            font-size: 1.8rem; font-weight: 700; letter-spacing: -1.5px; line-height: 1; color: var(--text-primary);
-            -webkit-tap-highlight-color: transparent !important; -webkit-touch-callout: none !important;
-            -webkit-user-select: none !important; user-select: none !important; background: transparent !important;
-        }
-        .price-main:active, .price-main:focus, .price-main:hover {
-            background: transparent !important; outline: none !important; -webkit-tap-highlight-color: transparent !important;
-        }
-        .price-decimal { font-size: 1.3rem; opacity: 0.6; font-weight: 500; }
-        .price-change { 
-            font-size: 0.65rem; font-weight: 600; padding: 2px 6px; border-radius: 100px;
-            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
-        }
-        
-        .metrics-duo { display: flex; gap: 5px; flex-shrink: 0; }
-        .metric-card { 
-            flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-subtle);
-            border-radius: 6px; padding: 6px 8px; 
-        }
-        .metric-header { display: flex; justify-content: space-between; margin-bottom: 2px; }
-        .metric-label { font-size: 0.5rem; font-weight: 600; text-transform: uppercase; color: var(--text-tertiary); }
-        .metric-value { font-size: 0.9rem; font-weight: 700; letter-spacing: -0.3px; color: var(--text-primary); }
-        .metric-sub { font-size: 0.5rem; color: var(--text-secondary); }
-        .adx-warning { color: var(--warning) !important; }
-        
+        /* ========== TC LEVELS ========== */
         .tc-levels-container {
             background: var(--bg-secondary); border: 1px solid var(--border-subtle);
-            border-radius: 6px; padding: 6px 10px; flex-shrink: 0;
+            border-radius: 5px; padding: 5px 8px; flex-shrink: 0;
         }
-        .tc-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid var(--border-subtle);
-        }
-        .tc-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-cyan); }
-        .tc-intraday-bias { font-size: 0.55rem; font-weight: 600; padding: 2px 8px; border-radius: 100px; }
-        .tc-intraday-bias.bullish { background: rgba(63, 185, 80, 0.15); color: var(--accent-green); }
-        .tc-intraday-bias.bearish { background: rgba(248, 81, 73, 0.15); color: var(--accent-red); }
+        .tc-header { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .tc-title { font-size: 0.5rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.3px; }
+        .tc-intraday-bias { font-size: 0.45rem; font-weight: 600; padding: 2px 6px; border-radius: 100px; }
+        .tc-intraday-bias.bullish { background: rgba(63,185,80,0.15); color: var(--accent-green); }
+        .tc-intraday-bias.bearish { background: rgba(248,81,73,0.15); color: var(--accent-red); }
         .tc-intraday-bias.neutral { background: var(--bg-tertiary); color: var(--text-secondary); }
-        
         .tc-level-row {
-            display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0;
-            cursor: pointer; user-select: none; -webkit-user-select: none; border-bottom: 1px dotted var(--border-subtle);
+            display: flex; justify-content: space-between; align-items: baseline;
+            padding: 2px 0; cursor: pointer; border-bottom: 1px dotted var(--border-subtle);
+            transition: background 0.15s;
         }
+        .tc-level-row:hover { background: rgba(227,179,65,0.05); }
         .tc-level-row:last-child { border-bottom: none; }
-        .tc-level-row.key-level { background: rgba(227, 179, 65, 0.08); border-radius: 3px; padding: 4px 6px; margin: 2px 0; transition: all 0.2s ease; }
-        .tc-level-row.key-level.fvg-active { background: rgba(155, 89, 182, 0.15); border-left: 2px solid var(--fvg-active); }
-        .tc-level-label { font-size: 0.6rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+        .tc-level-row.key-level { background: rgba(227,179,65,0.06); border-radius: 3px; padding: 3px 5px; }
+        .tc-level-row.key-level.fvg-active { background: rgba(155,89,182,0.15); border-left: 2px solid var(--fvg-active); }
+        .tc-level-label { font-size: 0.5rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
         .tc-level-label.key { color: var(--accent-gold); }
         .tc-level-label.key.fvg-active-label { color: var(--fvg-active); }
-        .tc-level-value { font-size: 0.6rem; font-weight: 700; color: var(--text-primary); font-family: 'Inter', monospace; }
+        .tc-level-value { font-size: 0.55rem; font-weight: 700; color: var(--text-primary); font-family: 'Inter', monospace; }
         .tc-level-value.resistance { color: var(--accent-red); }
         .tc-level-value.support { color: var(--accent-green); }
         .tc-level-value.pivot { color: var(--accent-gold); }
         .tc-level-value.pivot.fvg-active-value { color: var(--fvg-active); font-weight: 800; }
         
-        .action-section { display: flex; gap: 5px; flex-shrink: 0; }
-        .action-card {
-            flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-subtle);
-            border-radius: 6px; padding: 6px 8px;
+        /* ========== SMC STATUS ROW ========== */
+        .smc-status-row {
+            display: flex; gap: 6px; flex-shrink: 0; font-size: 0.42rem; padding: 2px 0;
+            align-items: center; color: var(--text-secondary);
         }
-        .action-header { font-size: 0.5rem; font-weight: 600; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 3px; }
-        .action-values { display: flex; justify-content: space-between; align-items: baseline; }
-        .action-label { font-size: 0.55rem; color: var(--text-secondary); }
-        .action-value { font-size: 0.65rem; font-weight: 700; color: var(--text-primary); }
-        .action-value.sl { color: var(--accent-red); }
-        .action-value.tp { color: var(--accent-blue); }
-        .action-value.entry { color: var(--accent-gold); }
-        
-        .copy-setup-btn {
-            background: var(--bg-secondary); border: 1px solid var(--border-subtle); color: var(--text-secondary);
-            padding: 8px 10px; font-size: 0.55rem; font-weight: 600; cursor: pointer; border-radius: 4px;
-            transition: all 0.2s ease; display: flex; align-items: center; justify-content: center;
-            gap: 4px; letter-spacing: 0.3px; margin: 4px 0; flex-shrink: 0;
+        .smc-badge {
+            padding: 1px 5px; background: var(--bg-tertiary); border-radius: 100px;
+            font-weight: 600;
         }
-        .copy-setup-btn:active { background: rgba(227, 179, 65, 0.2); border-color: var(--accent-gold); }
+        .smc-badge.fvg { color: var(--fvg-active); }
+        .smc-badge.ob { color: var(--accent-cyan); }
         
+        /* ========== STATUS ROW ========== */
+        .status-row {
+            display: flex; gap: 6px; flex-shrink: 0; font-size: 0.42rem; padding: 2px 0;
+            align-items: center;
+        }
+        .level-status { color: var(--text-secondary); }
+        .regime-badge {
+            padding: 1px 5px; background: var(--bg-tertiary); border-radius: 100px;
+            font-weight: 600;
+        }
+        .regime-badge.trending { color: var(--accent-green); }
+        .regime-badge.ranging { color: var(--warning); }
         .mtf-summary-badge {
-            display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 1px 6px;
-            background: var(--bg-tertiary); border-radius: 100px; font-size: 0.4rem;
+            padding: 1px 5px; background: var(--bg-tertiary); border-radius: 100px;
+            margin-left: auto; font-weight: 600;
         }
         .mtf-summary-badge.aligned { color: var(--accent-green); }
         .mtf-summary-badge.conflict { color: var(--accent-red); }
         
-        .divider-silver { height: 1px; background: var(--silver-line); margin: 3px 0; flex-shrink: 0; }
-        
-        .console-f12 {
-            font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 0.45rem; color: var(--text-tertiary);
-            padding: 3px 0; line-height: 1.4; flex-shrink: 0; max-height: 70px; overflow-y: auto;
-            user-select: text; -webkit-user-select: text; background: var(--bg-secondary);
-            border-radius: 4px; padding: 4px 6px;
+        /* ========== ACTION SECTION ========== */
+        .action-section { display: flex; gap: 4px; flex-shrink: 0; }
+        .action-card {
+            flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            border-radius: 5px; padding: 4px 6px;
         }
-        .console-line { display: flex; gap: 4px; cursor: pointer; padding: 1px 0; user-select: text; -webkit-user-select: text; }
-        .console-line:active { background: var(--bg-tertiary); }
+        .action-header { font-size: 0.42rem; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; margin-bottom: 2px; }
+        .action-values { display: flex; justify-content: space-between; }
+        .action-label { font-size: 0.45rem; color: var(--text-secondary); }
+        .action-value { font-size: 0.55rem; font-weight: 700; color: var(--text-primary); }
+        .action-value.sl { color: var(--accent-red); }
+        .action-value.tp { color: var(--accent-blue); }
+        .action-value.entry { color: var(--accent-gold); }
+        
+        /* ========== EXIT ROW ========== */
+        .exit-row { font-size: 0.42rem; padding: 2px 0; color: var(--text-secondary); flex-shrink: 0; }
+        .exit-signal { color: var(--accent-orange); font-weight: 600; }
+        
+        /* ========== COPY BUTTON ========== */
+        .copy-setup-btn {
+            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); padding: 6px 10px; font-size: 0.5rem;
+            font-weight: 600; cursor: pointer; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 2px 0; flex-shrink: 0; transition: all 0.2s;
+        }
+        .copy-setup-btn:active { background: rgba(227,179,65,0.15); border-color: var(--accent-gold); }
+        
+        /* ========== CONSOLE ========== */
+        .console-wrapper { flex-shrink: 0; margin-top: 2px; }
+        .console-header {
+            display: flex; justify-content: space-between; padding: 2px 4px;
+            cursor: pointer; font-size: 0.4rem; color: var(--text-tertiary);
+            background: var(--bg-secondary); border-radius: 3px 3px 0 0;
+        }
+        .console-f12 {
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace; font-size: 0.4rem;
+            color: var(--text-tertiary); background: var(--bg-secondary);
+            border-radius: 0 0 3px 3px; padding: 4px 6px;
+            overflow-y: auto; max-height: 72px; min-height: 72px;
+            border-top: 1px solid var(--border-subtle);
+        }
+        .console-line { display: flex; gap: 5px; cursor: pointer; padding: 1px 0; line-height: 1.3; }
+        .console-line:hover { background: var(--bg-tertiary); }
         .console-prompt { color: var(--accent-green); flex-shrink: 0; }
-        .console-cmd { color: var(--text-tertiary); flex-shrink: 0; }
         .console-output { color: var(--text-secondary); word-break: break-all; }
         .console-output.bullish { color: var(--accent-green); }
         .console-output.bearish { color: var(--accent-red); }
         .console-output.neutral { color: var(--accent-gold); }
         .console-output.fvg { color: var(--fvg-active); }
+        .console-output.ob { color: var(--accent-cyan); }
         
-        .footer-bar { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding-top: 3px; flex-shrink: 0; gap: 6px; flex-wrap: wrap; 
+        /* ========== FOOTER ========== */
+        .footer-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 4px 0 2px; flex-shrink: 0; font-size: 0.45rem;
+            color: var(--text-secondary); font-weight: 500;
+            border-top: 1px solid var(--border-subtle); margin-top: 2px;
         }
-        .footer-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .session-info { display: flex; gap: 8px; font-size: 0.5rem; }
-        .session-label { color: var(--text-tertiary); margin-right: 3px; }
-        .session-value { font-weight: 600; color: var(--text-secondary); }
-        .clock { font-size: 0.6rem; font-weight: 700; color: var(--text-tertiary); }
         
         .text-green { color: var(--accent-green); }
         .text-red { color: var(--accent-red); }
         .text-gold { color: var(--accent-gold); }
-        .text-blue { color: var(--accent-blue); }
-        .text-cyan { color: var(--accent-cyan); }
         .text-fvg { color: var(--fvg-active); }
         
         * { transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease; }
@@ -330,90 +304,90 @@
 <div class="app-container">
     <header class="header">
         <div class="logo-section">
-            <span class="logo">URA · TC LOGIC</span>
-            <span class="version-tag">v2.2</span>
+            <span class="logo">URA · TC v3.4</span>
+            <span class="version-tag">BUG FIX</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <div class="connection-badge">
                 <span class="status-dot" id="status-dot"></span>
                 <span id="status-text">CONNECTING</span>
             </div>
-            <div class="theme-switcher" id="themeSwitcher">
-                <button class="theme-toggle-btn" id="themeToggleBtn">
-                    <span id="currentThemeIcon">🌙</span>
-                    <span id="currentThemeName">Dark</span>
-                    <span>▼</span>
-                </button>
-                <div class="theme-menu" id="themeMenu"></div>
-            </div>
+            <button class="theme-toggle-btn" id="themeToggleBtn">🌙 DARK</button>
         </div>
     </header>
 
-    <nav class="nav-bar">
-        <div class="nav-row">
-            <div class="tab-group">
-                <button class="tab-btn active" data-pair="XAUUSDT">XAUUSD</button>
-            </div>
-            <div class="tab-group">
-                <button class="tab-btn" data-pair="BTCUSDT">BTCUSD</button>
-            </div>
+    <div class="price-pair-row">
+        <div class="price-left">
+            <div class="price-main" id="live-price">0.00</div>
+            <div class="price-change" id="price-change">0.00 (0.00%)</div>
         </div>
-        
-        <div class="nav-row">
-            <div class="tab-group" id="tf-group">
-                <button class="tab-btn tf-btn" data-tf="4h"><span class="tf-label">H4</span><span class="tf-bias-symbol"></span></button>
-                <button class="tab-btn tf-btn" data-tf="1h"><span class="tf-label">H1</span><span class="tf-bias-symbol"></span></button>
-                <button class="tab-btn tf-btn active" data-tf="30m"><span class="tf-label">M30</span><span class="tf-bias-symbol"></span></button>
-                <button class="tab-btn tf-btn" data-tf="15m"><span class="tf-label">M15</span><span class="tf-bias-symbol"></span></button>
-                <button class="tab-btn tf-btn" data-tf="5m"><span class="tf-label">M5</span><span class="tf-bias-symbol"></span></button>
-            </div>
+        <div class="pair-group">
+            <button class="pair-btn active" data-pair="XAUUSDT">XAUUSD</button>
+            <button class="pair-btn" data-pair="BTCUSDT">BTCUSD</button>
         </div>
-    </nav>
+    </div>
 
-    <div class="signal-bar" id="signal-bar" onclick="copyText('decision-status')">
+    <div class="signal-bar" id="signal-bar">
         <div class="signal-content">
             <span class="signal-badge">SIGNAL</span>
             <span class="signal-text" id="decision-status">ANALYZING</span>
             <span class="probability-badge" id="probability-badge">--%</span>
+            <span class="confidence-badge" id="confidence-badge">--</span>
         </div>
         <div class="signal-arrow" id="direction-arrow">—</div>
     </div>
 
-    <div class="price-section">
-        <div class="price-main" id="live-price">0.00</div>
-        <div class="price-change" id="price-change"></div>
-    </div>
-
-    <div class="tc-levels-container">
-        <div class="tc-header">
-            <span class="tc-title">📊 TRADING CENTRAL INTRADAY</span>
-            <span class="tc-intraday-bias" id="tc-bias">NEUTRAL</span>
-        </div>
-        <div class="tc-level-row" onclick="copyText('r2-value', null, 'R2')"><span class="tc-level-label">R2</span><span class="tc-level-value resistance" id="r2-value">—</span></div>
-        <div class="tc-level-row" onclick="copyText('r1-value', null, 'R1')"><span class="tc-level-label">R1</span><span class="tc-level-value resistance" id="r1-value">—</span></div>
-        <div class="tc-level-row key-level" id="pivot-row" onclick="copyText('pivot-value', null, 'PIVOT')"><span class="tc-level-label key" id="pivot-label">⚡ PIVOT (KEY)</span><span class="tc-level-value pivot" id="pivot-value">—</span></div>
-        <div class="tc-level-row" onclick="copyText('last-value', null, 'LAST')"><span class="tc-level-label">LAST</span><span class="tc-level-value" id="last-value">—</span></div>
-        <div class="tc-level-row" onclick="copyText('s1-value', null, 'S1')"><span class="tc-level-label">S1</span><span class="tc-level-value support" id="s1-value">—</span></div>
-        <div class="tc-level-row" onclick="copyText('s2-value', null, 'S2')"><span class="tc-level-label">S2</span><span class="tc-level-value support" id="s2-value">—</span></div>
-    </div>
-
-    <div style="display: flex; gap: 4px; flex-shrink: 0; font-size: 0.45rem; padding: 2px 0;">
-        <span>Level Status:</span>
-        <span id="level-status">MONITORING</span>
-        <span id="level-action" style="margin-left: auto;"></span>
-    </div>
-
-    <div class="metrics-duo">
+    <div class="metrics-trio">
         <div class="metric-card">
-            <div class="metric-header"><span class="metric-label">MA20 / MA50</span><span id="ma-trend">—</span></div>
+            <div class="metric-header"><span class="metric-label">MA20/50</span><span id="ma-trend">—</span></div>
             <div class="metric-value" id="ma20-value">—</div>
             <div class="metric-sub" id="ma50-value">MA50: —</div>
         </div>
         <div class="metric-card">
-            <div class="metric-header"><span class="metric-label">ADX / DI</span><span id="adx-trend">—</span></div>
+            <div class="metric-header"><span class="metric-label">ADX/DI</span><span id="adx-trend">—</span></div>
             <div class="metric-value" id="adx-value">—</div>
             <div class="metric-sub" id="di-values">—</div>
         </div>
+        <div class="metric-card">
+            <div class="metric-header"><span class="metric-label">RSI</span><span id="rsi-trend">—</span></div>
+            <div class="metric-value" id="rsi-value">—</div>
+            <div class="metric-sub" id="atr-value">ATR: —</div>
+        </div>
+    </div>
+
+    <div class="tf-row">
+        <div class="tf-group">
+            <button class="tf-btn" data-tf="4h"><span class="tf-label">H4</span><span class="tf-bias-symbol"></span></button>
+            <button class="tf-btn" data-tf="1h"><span class="tf-label">H1</span><span class="tf-bias-symbol"></span></button>
+            <button class="tf-btn active" data-tf="30m"><span class="tf-label">M30</span><span class="tf-bias-symbol"></span></button>
+            <button class="tf-btn" data-tf="15m"><span class="tf-label">M15</span><span class="tf-bias-symbol"></span></button>
+            <button class="tf-btn" data-tf="5m"><span class="tf-label">M5</span><span class="tf-bias-symbol"></span></button>
+        </div>
+    </div>
+
+    <div class="tc-levels-container">
+        <div class="tc-header">
+            <span class="tc-title">📊 TC INTRADAY</span>
+            <span class="tc-intraday-bias" id="tc-bias">NEUTRAL</span>
+        </div>
+        <div class="tc-level-row" onclick="copyValue('r2-value')"><span class="tc-level-label">R2</span><span class="tc-level-value resistance" id="r2-value">—</span></div>
+        <div class="tc-level-row" onclick="copyValue('r1-value')"><span class="tc-level-label">R1</span><span class="tc-level-value resistance" id="r1-value">—</span></div>
+        <div class="tc-level-row key-level" id="pivot-row" onclick="copyValue('pivot-value')"><span class="tc-level-label key" id="pivot-label">⚡ PIVOT</span><span class="tc-level-value pivot" id="pivot-value">—</span></div>
+        <div class="tc-level-row" onclick="copyValue('last-value')"><span class="tc-level-label">LAST</span><span class="tc-level-value" id="last-value">—</span></div>
+        <div class="tc-level-row" onclick="copyValue('s1-value')"><span class="tc-level-label">S1</span><span class="tc-level-value support" id="s1-value">—</span></div>
+        <div class="tc-level-row" onclick="copyValue('s2-value')"><span class="tc-level-label">S2</span><span class="tc-level-value support" id="s2-value">—</span></div>
+    </div>
+
+    <div class="smc-status-row">
+        <span>SMC:</span>
+        <span class="smc-badge fvg" id="fvg-status">FVG: NONE</span>
+        <span class="smc-badge ob" id="ob-status">OB: NONE</span>
+    </div>
+
+    <div class="status-row">
+        <span class="level-status">Status: <span id="level-status">MONITORING</span></span>
+        <span class="regime-badge" id="regime-badge">TRENDING</span>
+        <span class="mtf-summary-badge" id="mtf-summary">MTF: —</span>
     </div>
 
     <div class="action-section">
@@ -433,21 +407,25 @@
             <div class="action-values"><span class="action-label">TP2</span><span class="action-value tp" id="tp2-display">—</span></div>
         </div>
     </div>
+
+    <div class="exit-row">
+        <span>🚪 Exit Signal:</span>
+        <span class="exit-signal" id="exit-signal">—</span>
+    </div>
     
     <button class="copy-setup-btn" id="copySetupBtn">📋 COPY TRADE SETUP</button>
     
-    <div class="divider-silver"></div>
-    <div class="console-f12" id="console-f12"></div>
-    <div class="divider-silver"></div>
+    <div class="console-wrapper">
+        <div class="console-header">
+            <span>📟 CONSOLE (click line to copy)</span>
+            <span id="console-count">0</span>
+        </div>
+        <div class="console-f12" id="console-f12"></div>
+    </div>
     
     <footer class="footer-bar">
-        <div class="footer-left">
-            <div class="session-info">
-                <div><span class="session-label">SESSION</span><span class="session-value" id="session-tag">NY</span></div>
-                <div><span class="session-label">DATE</span><span class="session-value" id="date-display">—</span></div>
-            </div>
-            <div class="clock" id="clock-display">00:00:00</div>
-        </div>
+        <span><span id="session-tag">NY</span> · <span id="date-display">—</span></span>
+        <span id="clock-display">00:00:00</span>
     </footer>
 </div>
 
@@ -455,439 +433,967 @@
 (function() {
     'use strict';
     
-    const CONSOLE_MAX_ENTRIES = 100;
-    const CONSOLE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-    
+    // ==================== CONFIGURATION ====================
     const PAIR_CONFIG = {
         XAUUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, maFast: 20, maSlow: 50, pivotLookback: 20, levelBufferPct: 0.0015, breakoutConfirmPct: 0.002, slBufferPct: 0.003, tp1Ratio: 1.5, tp2Ratio: 2.5 },
         BTCUSDT: { adxThreshold: 18, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, maFast: 20, maSlow: 50, pivotLookback: 20, levelBufferPct: 0.002, breakoutConfirmPct: 0.0025, slBufferPct: 0.004, tp1Ratio: 1.5, tp2Ratio: 2.5 }
     };
     
-    // ==================== THEME MANAGER ====================
     const THEMES = {
-        dark: { name: 'Dark', icon: '🌙', variables: { '--bg-primary': '#0D1117', '--bg-secondary': '#161B22', '--bg-tertiary': '#21262D', '--border-subtle': '#30363D', '--text-primary': '#E6EDF3', '--text-secondary': '#8B949E', '--text-tertiary': '#6E7681', '--accent-green': '#3FB950', '--accent-red': '#F85149', '--accent-blue': '#58A6FF', '--accent-gold': '#E3B341', '--accent-cyan': '#56D4DD', '--success': '#3FB950', '--warning': '#E3B341', '--danger': '#F85149', '--silver-line': '#30363D', '--fvg-active': '#9B59B6' } },
-        light: { name: 'Light', icon: '☀️', variables: { '--bg-primary': '#FFFFFF', '--bg-secondary': '#F6F8FA', '--bg-tertiary': '#EBECF0', '--border-subtle': '#D0D7DE', '--text-primary': '#1F2328', '--text-secondary': '#656D76', '--text-tertiary': '#8B949E', '--accent-green': '#1A7F37', '--accent-red': '#CF222E', '--accent-blue': '#0969DA', '--accent-gold': '#9A6700', '--accent-cyan': '#1B7C83', '--success': '#1A7F37', '--warning': '#9A6700', '--danger': '#CF222E', '--silver-line': '#D0D7DE', '--fvg-active': '#8E44AD' } },
-        cyberpunk: { name: 'Cyber', icon: '🤖', variables: { '--bg-primary': '#0A0B1A', '--bg-secondary': '#131538', '--bg-tertiary': '#1C1F4A', '--border-subtle': '#FF00FF', '--text-primary': '#00FFFF', '--text-secondary': '#FF00FF', '--text-tertiary': '#7B68EE', '--accent-green': '#00FF00', '--accent-red': '#FF0040', '--accent-blue': '#00BFFF', '--accent-gold': '#FFD700', '--accent-cyan': '#00FFFF', '--success': '#00FF00', '--warning': '#FFD700', '--danger': '#FF0040', '--silver-line': '#FF00FF', '--fvg-active': '#BF40BF' } },
-        goldrush: { name: 'Gold', icon: '👑', variables: { '--bg-primary': '#1A1514', '--bg-secondary': '#2C201B', '--bg-tertiary': '#3D2B24', '--border-subtle': '#B8860B', '--text-primary': '#FFD700', '--text-secondary': '#DAA520', '--text-tertiary': '#B8860B', '--accent-green': '#32CD32', '--accent-red': '#DC143C', '--accent-blue': '#4169E1', '--accent-gold': '#FFD700', '--accent-cyan': '#00CED1', '--success': '#32CD32', '--warning': '#FFD700', '--danger': '#DC143C', '--silver-line': '#B8860B', '--fvg-active': '#9370DB' } }
+        dark: { name: 'DARK', icon: '🌙', variables: { '--bg-primary': '#0D1117', '--bg-secondary': '#161B22', '--bg-tertiary': '#21262D', '--border-subtle': '#30363D', '--text-primary': '#E6EDF3', '--text-secondary': '#8B949E', '--text-tertiary': '#6E7681', '--accent-green': '#3FB950', '--accent-red': '#F85149', '--accent-blue': '#58A6FF', '--accent-gold': '#E3B341', '--accent-cyan': '#56D4DD', '--accent-purple': '#A371F7', '--accent-orange': '#F0883E', '--success': '#3FB950', '--warning': '#E3B341', '--danger': '#F85149', '--silver-line': '#30363D', '--fvg-active': '#9B59B6' } },
+        light: { name: 'LIGHT', icon: '☀️', variables: { '--bg-primary': '#FFFFFF', '--bg-secondary': '#F6F8FA', '--bg-tertiary': '#EBECF0', '--border-subtle': '#D0D7DE', '--text-primary': '#1F2328', '--text-secondary': '#656D76', '--text-tertiary': '#8B949E', '--accent-green': '#1A7F37', '--accent-red': '#CF222E', '--accent-blue': '#0969DA', '--accent-gold': '#9A6700', '--accent-cyan': '#1B7C83', '--accent-purple': '#8E44AD', '--accent-orange': '#D2691E', '--success': '#1A7F37', '--warning': '#9A6700', '--danger': '#CF222E', '--silver-line': '#D0D7DE', '--fvg-active': '#8E44AD' } }
     };
     
-    class ThemeManager {
+    // ==================== GLOBAL STATE ====================
+    let currentTheme = 'dark';
+    let currentPair = 'XAUUSDT';
+    let currentTF = '30m';
+    let candleBuffer = [];
+    const MAX_CANDLES = 200;
+    let lastPrice = 0, prevPrice = 0;
+    let engine = { bias: 'NEUTRAL', strength: 0 };
+    let isReloading = false;
+    
+    // MTF Cache
+    const mtfCache = { h4: { bias: 'NEUTRAL', strength: 0 }, h1: { bias: 'NEUTRAL', strength: 0 }, m30: { bias: 'NEUTRAL', strength: 0 }, m15: { bias: 'NEUTRAL', strength: 0 }, m5: { bias: 'NEUTRAL', strength: 0 } };
+    const MTF_SYMBOLS = { 'BULLISH': '▲', 'BEARISH': '▼', 'NEUTRAL': '●' };
+    
+    // Console logs
+    let consoleLogs = [];
+    const MAX_LOGS = 50;
+    
+    // ==================== SMC ENGINE (FVG + OB) ====================
+    class SMCEngine {
         constructor() {
-            this.currentTheme = localStorage.getItem('ura_theme') || 'dark';
-            this.applyTheme(this.currentTheme);
-            this.renderMenu();
-            this.attachEvents();
+            this.fvgs = [];
+            this.orderBlocks = [];
+            this.maxFvgAge = 20;
+            this.maxObAge = 30;
         }
-        applyTheme(themeName) {
-            const theme = THEMES[themeName]; if (!theme) return;
-            const root = document.documentElement;
-            Object.entries(theme.variables).forEach(([k, v]) => root.style.setProperty(k, v));
-            this.currentTheme = themeName;
-            localStorage.setItem('ura_theme', themeName);
-            document.getElementById('currentThemeIcon').textContent = theme.icon;
-            document.getElementById('currentThemeName').textContent = theme.name;
-            this.updateActiveState();
-            consoleManager.addEventLog('THEME', `Changed to ${theme.name}`);
-        }
-        renderMenu() {
-            document.getElementById('themeMenu').innerHTML = Object.entries(THEMES).map(([id, t]) => `<div class="theme-option" data-theme="${id}"><span class="theme-icon">${t.icon}</span><span class="theme-name">${t.name}</span><span class="theme-check">${id === this.currentTheme ? '✓' : ''}</span></div>`).join('');
-        }
-        updateActiveState() {
-            document.querySelectorAll('.theme-option').forEach(opt => {
-                const isActive = opt.dataset.theme === this.currentTheme;
-                opt.classList.toggle('active', isActive);
-                opt.querySelector('.theme-check').textContent = isActive ? '✓' : '';
-            });
-        }
-        attachEvents() {
-            const toggleBtn = document.getElementById('themeToggleBtn'), menu = document.getElementById('themeMenu');
-            toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); menu.style.display = menu.style.display === 'none' ? 'block' : 'none'; });
-            document.addEventListener('click', () => menu.style.display = 'none');
-            document.querySelectorAll('.theme-option').forEach(opt => {
-                opt.addEventListener('click', (e) => { e.stopPropagation(); this.applyTheme(opt.dataset.theme); menu.style.display = 'none'; });
-                opt.addEventListener('mouseenter', () => { Object.entries(THEMES[opt.dataset.theme].variables).forEach(([k, v]) => document.documentElement.style.setProperty(k, v)); });
-                opt.addEventListener('mouseleave', () => this.applyTheme(this.currentTheme));
-            });
-        }
-    }
-    
-    // ==================== CONSOLE MANAGER ====================
-    class ConsoleManager {
-        constructor() { this.logs = this.loadLogs(); this.cleanExpired(); }
-        loadLogs() { try { return JSON.parse(localStorage.getItem('ura_v2_console_logs') || '[]'); } catch(e) { return []; } }
-        saveLogs() { try { localStorage.setItem('ura_v2_console_logs', JSON.stringify(this.logs)); } catch(e) {} }
-        cleanExpired() { const now = Date.now(); this.logs = this.logs.filter(l => (now - l.timestamp) < CONSOLE_TTL_MS); if (this.logs.length > CONSOLE_MAX_ENTRIES) this.logs = this.logs.slice(-CONSOLE_MAX_ENTRIES); this.saveLogs(); }
-        addLog(entry) { this.logs.push(entry); this.cleanExpired(); this.saveLogs(); this.render(); return entry; }
-        addSignalLog(pair, tf, bias, prob, price, pivot, r1, s1, action, lvl, smcConfirm = '') { 
-            return this.addLog({ timestamp: Date.now(), type: 'signal', pair, tf, bias, prob, price, pivot, r1, s1, action, lvl, smcConfirm }); 
-        }
-        addEventLog(event, details = '') { return this.addLog({ timestamp: Date.now(), type: 'event', event, details }); }
-        addLevelTouchLog(level, val, price, result) { return this.addLog({ timestamp: Date.now(), type: 'level_touch', level, val, price, result }); }
-        addSMCLog(type, details) { return this.addLog({ timestamp: Date.now(), type: 'smc', smcType: type, details }); }
-        formatLogLine(log) {
-            const time = new Date(log.timestamp).toLocaleTimeString('id-ID', { hour12: false });
-            if (log.type === 'event') return `<span class="console-output">[${time}] EVENT: ${log.event} ${log.details}</span>`;
-            if (log.type === 'signal') { 
-                const c = log.bias === 'BEARISH' ? 'bearish' : (log.bias === 'BULLISH' ? 'bullish' : 'neutral'); 
-                const smcText = log.smcConfirm ? ` [${log.smcConfirm}]` : '';
-                return `<span class="console-output ${c}">[${time}] ${log.pair} ${log.tf} | ${log.bias} (${log.prob}%)${smcText} | P:${log.pivot} | ${log.action} | ${log.lvl}</span>`; 
+        
+        detectFVG(candles) {
+            if (candles.length < 3) return [];
+            const newFvgs = [];
+            
+            for (let i = candles.length - 1; i >= Math.max(0, candles.length - 6); i--) {
+                const c1 = candles[i];
+                const c2 = candles[i-1];
+                const c3 = candles[i-2];
+                if (!c1 || !c2 || !c3) continue;
+                
+                let type = 'NONE', top = 0, bottom = 0, strength = 'WEAK';
+                
+                if (c1.l > c3.h) {
+                    type = 'BULLISH';
+                    top = c1.l;
+                    bottom = c3.h;
+                    const gapSize = (top - bottom) / bottom;
+                    strength = gapSize > 0.001 ? 'STRONG' : 'WEAK';
+                } else if (c1.h < c3.l) {
+                    type = 'BEARISH';
+                    top = c3.l;
+                    bottom = c1.h;
+                    const gapSize = (top - bottom) / bottom;
+                    strength = gapSize > 0.001 ? 'STRONG' : 'WEAK';
+                }
+                
+                if (type !== 'NONE') {
+                    const existingFvg = this.fvgs.find(f => 
+                        f.type === type && 
+                        Math.abs(f.top - top) / top < 0.001 && 
+                        Math.abs(f.bottom - bottom) / bottom < 0.001
+                    );
+                    if (!existingFvg) {
+                        newFvgs.push({ type, top, bottom, strength, createdAt: Date.now(), mitigated: false });
+                    }
+                }
             }
-            if (log.type === 'level_touch') return `<span class="console-output">[${time}] LEVEL: ${log.level}=${log.val} | Price:${log.price} | ${log.result}</span>`;
-            if (log.type === 'smc') return `<span class="console-output fvg">[${time}] SMC: ${log.smcType} | ${log.details}</span>`;
-            return '';
+            
+            this.fvgs = [...this.fvgs, ...newFvgs];
+            this.cleanupFVG();
+            return this.fvgs.filter(f => !f.mitigated);
         }
-        render() {
-            const c = document.getElementById('console-f12'); if (!c) return;
-            let h = ''; this.logs.slice(-8).forEach(l => { h += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span> <span class="console-cmd">${l.type}</span> ${this.formatLogLine(l)}</div>`; });
-            if (!this.logs.length) h += `<div class="console-line"><span class="console-prompt">></span> <span class="console-cmd">ready</span> <span class="console-output">Waiting for data...</span></div>`;
-            h += `<div class="console-line"><span class="console-prompt">></span> <span class="console-cmd" style="opacity:0.4;">_</span> <span style="opacity:0.4;">FIFO ${this.logs.length}/${CONSOLE_MAX_ENTRIES}</span></div>`;
-            c.innerHTML = h;
+        
+        checkMitigation(price) {
+            this.fvgs.forEach(f => {
+                if (!f.mitigated) {
+                    if (f.type === 'BULLISH' && price <= f.bottom) {
+                        f.mitigated = true;
+                        addConsoleLog('smc', `FVG Bullish MITIGATED at ${price.toFixed(2)}`);
+                    }
+                    if (f.type === 'BEARISH' && price >= f.top) {
+                        f.mitigated = true;
+                        addConsoleLog('smc', `FVG Bearish MITIGATED at ${price.toFixed(2)}`);
+                    }
+                }
+            });
+        }
+        
+        cleanupFVG() {
+            const now = Date.now();
+            this.fvgs = this.fvgs.filter(f => 
+                !f.mitigated && (now - f.createdAt) < this.maxFvgAge * 60000
+            );
+        }
+        
+        detectOrderBlocks(candles, pivot, price) {
+            if (candles.length < 10) return [];
+            const newOBs = [];
+            
+            for (let i = candles.length - 1; i > 5; i--) {
+                const curr = candles[i];
+                const prev = candles[i-1];
+                if (!curr || !prev) continue;
+                
+                if (curr.c > pivot && prev.c < pivot) {
+                    for (let j = i-1; j > 0; j--) {
+                        if (candles[j].c < candles[j].o) {
+                            const ob = { 
+                                type: 'BULLISH_OB', 
+                                top: candles[j].h, 
+                                bottom: candles[j].l, 
+                                createdAt: Date.now() 
+                            };
+                            const existingOb = this.orderBlocks.find(o => 
+                                o.type === 'BULLISH_OB' && 
+                                Math.abs(o.top - ob.top) / ob.top < 0.001
+                            );
+                            if (!existingOb) {
+                                newOBs.push(ob);
+                                addConsoleLog('smc', `Bullish OB detected [${ob.bottom.toFixed(2)} - ${ob.top.toFixed(2)}]`);
+                            }
+                            break;
+                        }
+                    }
+                } else if (curr.c < pivot && prev.c > pivot) {
+                    for (let j = i-1; j > 0; j--) {
+                        if (candles[j].c > candles[j].o) {
+                            const ob = { 
+                                type: 'BEARISH_OB', 
+                                top: candles[j].h, 
+                                bottom: candles[j].l, 
+                                createdAt: Date.now() 
+                            };
+                            const existingOb = this.orderBlocks.find(o => 
+                                o.type === 'BEARISH_OB' && 
+                                Math.abs(o.top - ob.top) / ob.top < 0.001
+                            );
+                            if (!existingOb) {
+                                newOBs.push(ob);
+                                addConsoleLog('smc', `Bearish OB detected [${ob.bottom.toFixed(2)} - ${ob.top.toFixed(2)}]`);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            this.orderBlocks = [...this.orderBlocks, ...newOBs];
+            this.cleanupOB();
+            return this.orderBlocks;
+        }
+        
+        cleanupOB() {
+            const now = Date.now();
+            this.orderBlocks = this.orderBlocks.filter(ob => 
+                (now - ob.createdAt) < this.maxObAge * 60000
+            );
+        }
+        
+        isInHighProbZone(bias, price) {
+            const activeFvgs = this.fvgs.filter(f => !f.mitigated);
+            const activeObs = this.orderBlocks;
+            
+            if (bias === 'BULLISH') {
+                const inFvg = activeFvgs.some(f => f.type === 'BULLISH' && price <= f.top && price >= f.bottom);
+                const inOb = activeObs.some(ob => ob.type === 'BULLISH_OB' && price <= ob.top && price >= ob.bottom);
+                return { 
+                    isHighProb: inFvg || inOb, 
+                    reason: inFvg ? 'FVG RETEST' : (inOb ? 'OB RETEST' : ''),
+                    fvgActive: activeFvgs.filter(f => f.type === 'BULLISH').length > 0,
+                    obActive: activeObs.filter(ob => ob.type === 'BULLISH_OB').length > 0
+                };
+            } else if (bias === 'BEARISH') {
+                const inFvg = activeFvgs.some(f => f.type === 'BEARISH' && price <= f.top && price >= f.bottom);
+                const inOb = activeObs.some(ob => ob.type === 'BEARISH_OB' && price <= ob.top && price >= ob.bottom);
+                return { 
+                    isHighProb: inFvg || inOb, 
+                    reason: inFvg ? 'FVG RETEST' : (inOb ? 'OB RETEST' : ''),
+                    fvgActive: activeFvgs.filter(f => f.type === 'BEARISH').length > 0,
+                    obActive: activeObs.filter(ob => ob.type === 'BEARISH_OB').length > 0
+                };
+            }
+            return { isHighProb: false, reason: '', fvgActive: false, obActive: false };
+        }
+        
+        getStatusText() {
+            const activeFvgs = this.fvgs.filter(f => !f.mitigated);
+            const activeObs = this.orderBlocks;
+            const fvgText = activeFvgs.length > 0 ? `FVG: ${activeFvgs[0].type} (${activeFvgs[0].strength})` : 'FVG: NONE';
+            const obText = activeObs.length > 0 ? `OB: ${activeObs[0].type.replace('_OB','')}` : 'OB: NONE';
+            return { fvgText, obText };
         }
     }
-    const consoleManager = new ConsoleManager();
-    const themeManager = new ThemeManager();
     
-    // ==================== MTF MANAGER ====================
-    const MTFManager = {
-        biasCache: { h4: { bias: 'NEUTRAL', strength: 0 }, h1: { bias: 'NEUTRAL', strength: 0 }, m30: { bias: 'NEUTRAL', strength: 0 }, m15: { bias: 'NEUTRAL', strength: 0 }, m5: { bias: 'NEUTRAL', strength: 0 } },
-        weights: { h4: 35, h1: 25, m30: 20, m15: 12, m5: 8 },
-        symbols: { 'BULLISH': '▲', 'BEARISH': '▼', 'NEUTRAL': '●' },
-        async fetchAllMTF(pair) {
-            const tfs = [{ api: '4h', key: 'h4' }, { api: '1h', key: 'h1' }, { api: '30m', key: 'm30' }, { api: '15m', key: 'm15' }, { api: '5m', key: 'm5' }];
-            for (const tf of tfs) {
+    const smcEngine = new SMCEngine();
+    
+    // ==================== WEBSOCKET MANAGER ====================
+    let wsManager = null;
+    
+    class WebSocketManager {
+        constructor(options) {
+            this.pair = options.pair;
+            this.timeframe = options.timeframe;
+            this.onPrice = options.onPrice;
+            this.onStatus = options.onStatus;
+            this.onError = options.onError;
+            
+            this.ws = null;
+            this.isManualDisconnect = false;
+            this.isUsingFallback = false;
+            this.lastPriceUpdateTime = 0;
+            this.lastWSMessageTime = 0;
+            this.reconnectDelay = 1000;
+            this.reconnectTimer = null;
+            this.heartbeatTimer = null;
+            this.fallbackTimer = null;
+            this.reconnectAttempts = 0;
+            this.maxReconnectAttempts = 10;
+        }
+        
+        connect() {
+            this.cleanup();
+            this.updateStatus('connecting', 'CONNECTING');
+            addConsoleLog('event', `WebSocket connecting to ${this.pair} ${this.timeframe}...`);
+            
+            try {
+                const url = `wss://fstream.binance.com/ws/${this.pair.toLowerCase()}@kline_${this.timeframe}`;
+                this.ws = new WebSocket(url);
+                
+                this.ws.onopen = () => {
+                    this.reconnectDelay = 1000;
+                    this.reconnectAttempts = 0;
+                    this.lastWSMessageTime = Date.now();
+                    this.lastPriceUpdateTime = Date.now();
+                    this.isUsingFallback = false;
+                    this.updateStatus('live', `LIVE ${this.timeframe}`);
+                    addConsoleLog('event', `WebSocket connected`);
+                    this.startHeartbeat();
+                    this.stopFallback();
+                };
+                
+                this.ws.onmessage = (event) => {
+                    try {
+                        const msg = JSON.parse(event.data);
+                        if (msg?.k) {
+                            const k = msg.k;
+                            const price = +k.c;
+                            if (price > 0) {
+                                this.lastWSMessageTime = Date.now();
+                                this.lastPriceUpdateTime = Date.now();
+                                this.onPrice(price, k);
+                            }
+                        }
+                    } catch (e) {}
+                };
+                
+                this.ws.onclose = () => {
+                    this.stopHeartbeat();
+                    if (!isReloading && !this.isManualDisconnect) {
+                        this.reconnectAttempts++;
+                        if (this.reconnectAttempts > this.maxReconnectAttempts) {
+                            this.updateStatus('fallback', 'FALLBACK');
+                            this.isUsingFallback = true;
+                            addConsoleLog('error', `Max reconnect attempts reached, using fallback`);
+                            this.startFallback();
+                        } else {
+                            this.updateStatus('reconnect', 'RECONNECTING');
+                            addConsoleLog('event', `WebSocket closed, reconnecting (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+                            this.scheduleReconnect();
+                        }
+                    }
+                };
+                
+                this.ws.onerror = () => {
+                    if (!isReloading && !this.isManualDisconnect) {
+                        this.updateStatus('reconnect', 'ERROR');
+                    }
+                };
+                
+            } catch (e) {
+                this.updateStatus('fallback', 'FALLBACK');
+                this.isUsingFallback = true;
+                addConsoleLog('error', `WebSocket init failed, using fallback`);
+                this.startFallback();
+            }
+        }
+        
+        cleanup() {
+            this.stopHeartbeat();
+            this.stopFallback();
+            if (this.reconnectTimer) {
+                clearTimeout(this.reconnectTimer);
+                this.reconnectTimer = null;
+            }
+            if (this.ws) {
                 try {
-                    const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=${tf.api}&limit=150`);
-                    const data = await resp.json();
-                    if (Array.isArray(data) && data.length >= 50) {
-                        const formatted = data.map(d => ({ t: d[0], o: +d[1], h: +d[2], l: +d[3], c: +d[4], v: +d[5] }));
-                        this.biasCache[tf.key] = { bias: this.calculateBias(formatted, pair), strength: this.calculateStrength(formatted) };
+                    this.ws.onopen = this.ws.onmessage = this.ws.onclose = this.ws.onerror = null;
+                    if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+                        this.ws.close();
                     }
                 } catch (e) {}
-            }
-            this.updateUI();
-        },
-        calculateBias(data, pair) {
-            if (!data || data.length < 50) return 'NEUTRAL';
-            const config = PAIR_CONFIG[pair], price = data[data.length - 1].c;
-            const ma20 = data.slice(-20).reduce((a, b) => a + b.c, 0) / 20;
-            const ma50 = data.slice(-50).reduce((a, b) => a + b.c, 0) / 50;
-            const adx = calculateADX(data);
-            if (adx.adx < config.adxThreshold) return 'NEUTRAL';
-            if (price > ma20 && price > ma50 && adx.plusDI > adx.minusDI) return 'BULLISH';
-            if (price < ma20 && price < ma50 && adx.minusDI > adx.plusDI) return 'BEARISH';
-            return 'NEUTRAL';
-        },
-        calculateStrength(data) { const adx = calculateADX(data); return Math.min(100, adx.adx); },
-        updateUI() {
-            const tfMap = { '4h': 'h4', '1h': 'h1', '30m': 'm30', '15m': 'm15', '5m': 'm5' };
-            document.querySelectorAll('.tf-btn').forEach(btn => {
-                const tf = btn.getAttribute('data-tf'), cacheKey = tfMap[tf] || tf, cached = this.biasCache[cacheKey];
-                if (!cached) return;
-                const symbolSpan = btn.querySelector('.tf-bias-symbol');
-                if (symbolSpan) { symbolSpan.textContent = this.symbols[cached.bias] || '●'; symbolSpan.className = `tf-bias-symbol ${cached.bias.toLowerCase()}`; if (cached.strength > 60) symbolSpan.classList.add('strong'); }
-                btn.setAttribute('data-mtf-info', `${tf}: ${cached.bias} (${Math.round(cached.strength)}%)`);
-                btn.classList.remove('aligned', 'conflict');
-                if (engine.bias !== 'NEUTRAL' && cached.bias === engine.bias) btn.classList.add('aligned');
-                else if (engine.bias !== 'NEUTRAL' && cached.bias !== 'NEUTRAL' && cached.bias !== engine.bias) btn.classList.add('conflict');
-            });
-            this.updateMTFSummary();
-        },
-        updateMTFSummary() {
-            const biases = Object.values(this.biasCache).map(c => c.bias), aligned = biases.filter(b => b === engine.bias).length, conflict = biases.filter(b => b !== 'NEUTRAL' && b !== engine.bias).length;
-            const levelAction = document.getElementById('level-action');
-            if (levelAction) { levelAction.innerHTML = `<span class="mtf-summary-badge ${conflict > 0 ? 'conflict' : 'aligned'}">MTF: ${aligned}/5</span>`; }
-        },
-        getConfirmationAdjustment(signalBias) {
-            const biases = Object.values(this.biasCache), aligned = biases.filter(b => b.bias === signalBias).length, conflict = biases.filter(b => b.bias !== 'NEUTRAL' && b.bias !== signalBias).length;
-            if (aligned >= 4) return { level: 'STRONG', adjustment: 15 };
-            if (aligned >= 3 && conflict <= 1) return { level: 'MODERATE', adjustment: 10 };
-            if (aligned >= 2 && conflict <= 1) return { level: 'WEAK', adjustment: 5 };
-            if (conflict >= 3) return { level: 'DIVERGENT', adjustment: -25 };
-            if (conflict >= 2) return { level: 'CONFLICT', adjustment: -15 };
-            return { level: 'NEUTRAL', adjustment: -5 };
-        }
-    };
-    
-    // ==================== COPY FUNCTIONS ====================
-    function copyTradeSetup() {
-        const txt = `=== URA TRADE SETUP ===\nPair: ${currentPair} | TF: ${currentTF}\nBias: ${UI.tcBias.textContent} | Price: ${UI.priceMain.textContent}\nPivot: ${UI.pivotValue.textContent} | R1: ${UI.r1Value.textContent} | S1: ${UI.s1Value.textContent}\nEntry: ${UI.entryLow.textContent} - ${UI.entryHigh.textContent}\nSL: ${UI.slDisplay.textContent} | Risk: ${UI.riskDisplay.textContent}\nTP1: ${UI.tp1Display.textContent} | TP2: ${UI.tp2Display.textContent}${engine.smcConfirm ? `\nSMC: ${engine.smcConfirm}` : ''}`;
-        navigator.clipboard?.writeText(txt).catch(() => { const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); });
-        consoleManager.addEventLog('COPY', 'Trade Setup');
-        const btn = document.getElementById('copySetupBtn');
-        btn.textContent = '✅ COPIED!'; btn.style.background = 'rgba(227,179,65,0.2)';
-        setTimeout(() => { btn.textContent = '📋 COPY TRADE SETUP'; btn.style.background = ''; }, 500);
-    }
-    
-    window.copyText = function(...args) {
-        let text = '';
-        if (args.length === 1 && typeof args[0] === 'string') { const el = document.getElementById(args[0]); if (el) text = el.textContent.trim(); }
-        else if (args.length >= 2) { const el1 = document.getElementById(args[0]), el2 = args[1] ? document.getElementById(args[1]) : null, label = args[2] || ''; if (el1 && el2) text = `${label}: ${el1.textContent} / ${el2.textContent}`; else if (el1) text = el1.textContent.trim(); }
-        if (text) { navigator.clipboard?.writeText(text).catch(() => { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }); consoleManager.addEventLog('COPY', text.substring(0, 30)); }
-    };
-    
-    window.copyConsoleLine = function(el) { const text = el.textContent.trim(); navigator.clipboard?.writeText(text).catch(() => { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }); };
-    
-    // ==================== CIRCULAR BUFFER ====================
-    class CircularBuffer {
-        constructor(max) { this.max = max; this.data = []; this.start = 0; this.end = 0; this.length = 0; this.map = new Map(); }
-        push(item) { if (this.map.has(item.t)) { this.data[this.map.get(item.t)] = item; return; } if (this.length < this.max) { this.data.push(item); this.map.set(item.t, this.length); this.length++; this.end = this.length; } else { const old = this.data[this.start]; if (old) this.map.delete(old.t); this.data[this.start] = item; this.map.set(item.t, this.start); this.start = (this.start + 1) % this.max; this.end = (this.end + 1) % this.max; } }
-        getLatest() { return this.length ? this.data[(this.end - 1 + this.max) % this.max] : null; }
-        toArray() { if (!this.length) return []; const r = []; for (let i = 0; i < this.length; i++) r.push(this.data[(this.start + i) % this.max]); return r; }
-        clear() { this.data = []; this.start = 0; this.end = 0; this.length = 0; this.map.clear(); }
-    }
-    
-    // ==================== SMC DETECTION FUNCTIONS ====================
-    function detectFVG(candles) {
-        if (candles.length < 3) return { type: 'NONE', top: 0, bottom: 0 };
-        const c1 = candles[candles.length - 1];
-        const c2 = candles[candles.length - 2];
-        const c3 = candles[candles.length - 3];
-        
-        if (c1.l > c3.h) {
-            return { type: 'BULLISH', top: c1.l, bottom: c3.h };
-        } else if (c1.h < c3.l) {
-            return { type: 'BEARISH', top: c3.l, bottom: c1.h };
-        }
-        return { type: 'NONE', top: 0, bottom: 0 };
-    }
-    
-    function detectOrderBlock(candles, pivot, price) {
-        if (candles.length < 10) return { type: 'NONE', top: 0, bottom: 0 };
-        
-        for (let i = candles.length - 1; i > 5; i--) {
-            const curr = candles[i];
-            const prev = candles[i-1];
-            
-            if (curr.c > pivot && prev.c < pivot) {
-                for (let j = i-1; j > 0; j--) {
-                    if (candles[j].c < candles[j].o) {
-                        if (price <= candles[j].h && price >= candles[j].l) {
-                            return { type: 'BULLISH_OB', top: candles[j].h, bottom: candles[j].l };
-                        }
-                    }
-                }
-            } else if (curr.c < pivot && prev.c > pivot) {
-                for (let j = i-1; j > 0; j--) {
-                    if (candles[j].c > candles[j].o) {
-                        if (price >= candles[j].l && price <= candles[j].h) {
-                            return { type: 'BEARISH_OB', top: candles[j].h, bottom: candles[j].l };
-                        }
-                    }
-                }
+                this.ws = null;
             }
         }
-        return { type: 'NONE', top: 0, bottom: 0 };
+        
+        disconnect() {
+            this.isManualDisconnect = true;
+            this.cleanup();
+            setTimeout(() => { this.isManualDisconnect = false; }, 100);
+        }
+        
+        scheduleReconnect() {
+            if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = setTimeout(() => {
+                if (!isReloading && !this.isManualDisconnect) {
+                    this.reconnectDelay = Math.min(this.reconnectDelay * 1.5, 30000);
+                    this.connect();
+                }
+            }, this.reconnectDelay);
+        }
+        
+        startHeartbeat() {
+            this.stopHeartbeat();
+            this.heartbeatTimer = setInterval(() => {
+                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                    try { this.ws.send(JSON.stringify({ method: 'ping' })); } catch (e) {}
+                }
+            }, 30000);
+        }
+        
+        stopHeartbeat() {
+            if (this.heartbeatTimer) {
+                clearInterval(this.heartbeatTimer);
+                this.heartbeatTimer = null;
+            }
+        }
+        
+        async fetchPriceREST() {
+            try {
+                const url = `https://fapi.binance.com/fapi/v1/ticker/price?symbol=${this.pair}`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (data?.price) {
+                    const price = +data.price;
+                    if (price > 0 && (Date.now() - this.lastWSMessageTime > 3000 || this.isUsingFallback)) {
+                        this.lastPriceUpdateTime = Date.now();
+                        this.onPrice(price, null);
+                    }
+                }
+            } catch (e) {}
+        }
+        
+        startFallback() {
+            this.stopFallback();
+            this.fallbackTimer = setInterval(() => this.fetchPriceREST(), 5000);
+        }
+        
+        stopFallback() {
+            if (this.fallbackTimer) {
+                clearInterval(this.fallbackTimer);
+                this.fallbackTimer = null;
+            }
+        }
+        
+        updateStatus(status, message) {
+            this.onStatus(status, message);
+            if (status === 'live') this.stopFallback();
+            else if (status === 'fallback') this.startFallback();
+        }
     }
     
-    // ==================== UI REFERENCES ====================
-    const UI = {
-        dot: document.getElementById('status-dot'), text: document.getElementById('status-text'),
-        signalBar: document.getElementById('signal-bar'), priceMain: document.getElementById('live-price'),
-        priceChange: document.getElementById('price-change'), decision: document.getElementById('decision-status'),
-        probability: document.getElementById('probability-badge'), arrow: document.getElementById('direction-arrow'),
-        tcBias: document.getElementById('tc-bias'), r2Value: document.getElementById('r2-value'),
-        r1Value: document.getElementById('r1-value'), pivotValue: document.getElementById('pivot-value'),
-        lastValue: document.getElementById('last-value'), s1Value: document.getElementById('s1-value'),
-        s2Value: document.getElementById('s2-value'), levelStatus: document.getElementById('level-status'),
-        levelAction: document.getElementById('level-action'), ma20Value: document.getElementById('ma20-value'),
-        ma50Value: document.getElementById('ma50-value'), maTrend: document.getElementById('ma-trend'),
-        adxValue: document.getElementById('adx-value'), diValues: document.getElementById('di-values'),
-        adxTrend: document.getElementById('adx-trend'), entryLow: document.getElementById('entry-low'),
-        entryHigh: document.getElementById('entry-high'), slDisplay: document.getElementById('sl-display'),
-        riskDisplay: document.getElementById('risk-display'), tp1Display: document.getElementById('tp1-display'),
-        tp2Display: document.getElementById('tp2-display'), clock: document.getElementById('clock-display'),
-        date: document.getElementById('date-display'), session: document.getElementById('session-tag'),
-        pivotRow: document.getElementById('pivot-row'), pivotLabel: document.getElementById('pivot-label')
-    };
-    
-    // ==================== FUNGSI TEKNIKAL ====================
-    function calculateMA(data, period) { if (!data || data.length < period) return 0; return data.slice(-period).reduce((a,b) => a + b.c, 0) / period; }
-    function calculateATR(data, period = 14) { if (!data || data.length < period + 1) return 0; let tr = []; for (let i = 1; i < data.length; i++) { const h = data[i].h, l = data[i].l, pc = data[i-1].c; tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); } if (tr.length < period) return 0; return tr.slice(-period).reduce((a,b) => a + b, 0) / period; }
-    function calculateADX(data) { if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 }; const period = 14; let tr = [], plusDM = [], minusDM = []; for (let i = 1; i < data.length; i++) { const h = data[i].h, l = data[i].l, ph = data[i-1].h, pl = data[i-1].l, pc = data[i-1].c; tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); const up = h - ph, down = pl - l; if (up > down && up > 0) { plusDM.push(up); minusDM.push(0); } else if (down > up && down > 0) { plusDM.push(0); minusDM.push(down); } else { plusDM.push(0); minusDM.push(0); } } let atr = tr.slice(0, period).reduce((a,b) => a + b, 0); let pDM = plusDM.slice(0, period).reduce((a,b) => a + b, 0); let mDM = minusDM.slice(0, period).reduce((a,b) => a + b, 0); let dx = [], lp = 0, lm = 0; for (let i = period; i < tr.length; i++) { atr = (atr * (period - 1) + tr[i]) / period; pDM = (pDM * (period - 1) + plusDM[i]) / period; mDM = (mDM * (period - 1) + minusDM[i]) / period; lp = atr ? (pDM / atr) * 100 : 0; lm = atr ? (mDM / atr) * 100 : 0; dx.push((lp + lm) ? (Math.abs(lp - lm) / (lp + lm)) * 100 : 0); } let adx = 15; if (dx.length >= period) { let s = dx.slice(0, period).reduce((a,b) => a + b, 0) / period; for (let i = period; i < dx.length; i++) s = (s * (period - 1) + dx[i]) / period; adx = s; } return { adx: Math.max(5, Math.min(100, adx)), plusDI: lp, minusDI: lm }; }
-    function computeRSI(data) { if (data.length < 15) return 50; const c = data.map(x => x.c); let g = [], l = []; for (let i = 1; i < c.length; i++) { const d = c[i] - c[i-1]; g.push(d > 0 ? d : 0); l.push(d < 0 ? -d : 0); } let ag = g.slice(0, 14).reduce((a,b) => a + b, 0) / 14, al = l.slice(0, 14).reduce((a,b) => a + b, 0) / 14; for (let i = 14; i < g.length; i++) { ag = (ag * 13 + g[i]) / 14; al = (al * 13 + l[i]) / 14; } return al === 0 ? 100 : 100 - (100 / (1 + ag / al)); }
-    function calculateTCLevels(data, cfg) { if (!data || data.length < cfg.pivotLookback) return { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }; const rd = data.slice(-cfg.pivotLookback), h = Math.max(...rd.map(c => c.h)), l = Math.min(...rd.map(c => c.l)), c = rd[rd.length-1].c; const pv = (h + l + c) / 3; return { pivot: pv, r1: 2 * pv - l, r2: pv + (h - l), s1: 2 * pv - h, s2: pv - (h - l) }; }
-    
-    let lastLevelState = { pivot: { touched: false, broken: false, rejected: false }, r1: { touched: false, broken: false, rejected: false }, s1: { touched: false, broken: false, rejected: false } };
-    function detectLevelInteraction(price, lvls, cfg) { const buf = price * cfg.levelBufferPct, cbuf = price * cfg.breakoutConfirmPct; const int = { pivot: { status: 'none' }, r1: { status: 'none' }, s1: { status: 'none' } }; if (Math.abs(price - lvls.pivot) <= buf) { int.pivot.status = 'testing'; if (!lastLevelState.pivot.touched) { consoleManager.addLevelTouchLog('PIVOT', lvls.pivot.toFixed(getPrecision()), price, 'TOUCHED'); lastLevelState.pivot.touched = true; } } else if (price > lvls.pivot + cbuf && lastLevelState.pivot.touched) { int.pivot.status = 'breakout'; if (!lastLevelState.pivot.broken) { consoleManager.addLevelTouchLog('PIVOT', lvls.pivot.toFixed(getPrecision()), price, 'BREAKOUT UP'); lastLevelState.pivot.broken = true; } } else if (price < lvls.pivot - cbuf && lastLevelState.pivot.touched) { int.pivot.status = 'breakout'; if (!lastLevelState.pivot.broken) { consoleManager.addLevelTouchLog('PIVOT', lvls.pivot.toFixed(getPrecision()), price, 'BREAKOUT DOWN'); lastLevelState.pivot.broken = true; } } if (Math.abs(price - lvls.r1) <= buf) { int.r1.status = 'testing'; if (!lastLevelState.r1.touched) { consoleManager.addLevelTouchLog('R1', lvls.r1.toFixed(getPrecision()), price, 'TOUCHED'); lastLevelState.r1.touched = true; } } else if (price > lvls.r1 + cbuf && lastLevelState.r1.touched) { int.r1.status = 'breakout'; if (!lastLevelState.r1.broken) { consoleManager.addLevelTouchLog('R1', lvls.r1.toFixed(getPrecision()), price, 'BREAKOUT'); lastLevelState.r1.broken = true; } } else if (price < lvls.r1 - buf && lastLevelState.r1.touched) { int.r1.status = 'rejection'; if (!lastLevelState.r1.rejected) { consoleManager.addLevelTouchLog('R1', lvls.r1.toFixed(getPrecision()), price, 'REJECTED'); lastLevelState.r1.rejected = true; } } if (Math.abs(price - lvls.s1) <= buf) { int.s1.status = 'testing'; if (!lastLevelState.s1.touched) { consoleManager.addLevelTouchLog('S1', lvls.s1.toFixed(getPrecision()), price, 'TOUCHED'); lastLevelState.s1.touched = true; } } else if (price < lvls.s1 - cbuf && lastLevelState.s1.touched) { int.s1.status = 'breakout'; if (!lastLevelState.s1.broken) { consoleManager.addLevelTouchLog('S1', lvls.s1.toFixed(getPrecision()), price, 'BREAKDOWN'); lastLevelState.s1.broken = true; } } else if (price > lvls.s1 + buf && lastLevelState.s1.touched) { int.s1.status = 'rejection'; if (!lastLevelState.s1.rejected) { consoleManager.addLevelTouchLog('S1', lvls.s1.toFixed(getPrecision()), price, 'REJECTED (BOUNCE)'); lastLevelState.s1.rejected = true; } } if (Math.abs(price - lvls.pivot) > buf * 3) lastLevelState.pivot = { touched: false, broken: false, rejected: false }; if (Math.abs(price - lvls.r1) > buf * 3) lastLevelState.r1 = { touched: false, broken: false, rejected: false }; if (Math.abs(price - lvls.s1) > buf * 3) lastLevelState.s1 = { touched: false, broken: false, rejected: false }; return int; }
-    function determineTCBias(price, lvls, adx, rsi) { const cfg = getConfig(); let bias = 'NEUTRAL', str = 0; if (price > lvls.pivot) { bias = 'BULLISH'; str += 30; if (price > lvls.r1) str += 20; } else if (price < lvls.pivot) { bias = 'BEARISH'; str += 30; if (price < lvls.s1) str += 20; } if (adx.adx >= cfg.adxThreshold) { str += 25; if (adx.plusDI > adx.minusDI && bias === 'BULLISH') str += 15; else if (adx.minusDI > adx.plusDI && bias === 'BEARISH') str += 15; } if (bias === 'BULLISH' && rsi > 40 && rsi < 70) str += 15; else if (bias === 'BEARISH' && rsi > 30 && rsi < 60) str += 15; else if ((bias === 'BULLISH' && rsi > 70) || (bias === 'BEARISH' && rsi < 30)) str -= 10; return { bias, strength: Math.min(100, str) }; }
-    function calculateSLTP(price, bias, lvls, atr, cfg) { let sl, tp1, tp2, eL, eH; const sb = price * cfg.slBufferPct; if (bias === 'BULLISH') { eL = lvls.pivot; eH = lvls.r1; sl = lvls.s1 - sb; const r = eL - sl; tp1 = eL + (r * cfg.tp1Ratio); tp2 = eL + (r * cfg.tp2Ratio); } else if (bias === 'BEARISH') { eH = lvls.pivot; eL = lvls.s1; sl = lvls.r1 + sb; const r = sl - eH; tp1 = eH - (r * cfg.tp1Ratio); tp2 = eH - (r * cfg.tp2Ratio); } else { eL = eH = price; sl = tp1 = tp2 = price; } return { sl, tp1, tp2, entryLow: eL, entryHigh: eH }; }
-    
-    let engine = { 
-        ma20: 0, ma50: 0, adx: 0, plusDI: 0, minusDI: 0, atr: 0, rsi: 50, 
-        levels: { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }, 
-        bias: 'NEUTRAL', strength: 0, interactions: null, 
-        sl: 0, tp1: 0, tp2: 0, entryLow: 0, entryHigh: 0, mtfLevel: 'NEUTRAL',
-        fvgType: 'NONE', fvgZone: { top: 0, bottom: 0 },
-        obType: 'NONE', obZone: { top: 0, bottom: 0 },
-        isInHighProbZone: false, smcConfirm: ''
-    };
-    
-    let currentPair = 'XAUUSDT', currentTF = '30m';
-    let wsConnection = null, candleBuffer = new CircularBuffer(200);
-    let isReloading = false, lastPriceUpdateTime = 0, lastWSMessageTime = 0, isDataStale = false, isUsingFallback = false, isManualDisconnect = false;
-    let reconnectDelay = 1000, reconnectTimer = null, lastPrice = 0, prevPrice = 0;
-    let cachedCandleArray = null, lastCacheTime = 0, lastLogHash = '';
-    let lastFVGLogHash = '';
-    
+    // ==================== UTILITY FUNCTIONS ====================
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     function getConfig() { return PAIR_CONFIG[currentPair]; }
-    function getCandleArray() { const n = Date.now(); if (!cachedCandleArray || (n - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = n; } return cachedCandleArray; }
-    function invalidateCandleCache() { cachedCandleArray = null; }
     
-    function updatePivotFVGStyle(fvgType) {
-        if (!UI.pivotRow || !UI.pivotLabel || !UI.pivotValue) return;
-        if (fvgType === 'BULLISH' || fvgType === 'BEARISH') {
-            UI.pivotRow.classList.add('fvg-active');
-            UI.pivotLabel.classList.add('fvg-active-label');
-            UI.pivotValue.classList.add('fvg-active-value');
-        } else {
-            UI.pivotRow.classList.remove('fvg-active');
-            UI.pivotLabel.classList.remove('fvg-active-label');
-            UI.pivotValue.classList.remove('fvg-active-value');
+    function applyTheme(themeName) {
+        const theme = THEMES[themeName] || THEMES.dark;
+        const root = document.documentElement;
+        Object.entries(theme.variables).forEach(([k, v]) => root.style.setProperty(k, v));
+        currentTheme = themeName;
+        document.getElementById('themeToggleBtn').innerHTML = `${theme.icon} ${theme.name}`;
+        localStorage.setItem('ura_theme', themeName);
+    }
+    
+    function addConsoleLog(type, message) {
+        const time = new Date().toLocaleTimeString('id-ID', { hour12: false });
+        consoleLogs.push({ time, type, message });
+        if (consoleLogs.length > MAX_LOGS) consoleLogs.shift();
+        renderConsole();
+    }
+    
+    function renderConsole() {
+        const c = document.getElementById('console-f12');
+        let h = '';
+        consoleLogs.slice(-6).forEach(l => {
+            let cls = '';
+            if (l.message.includes('BULLISH')) cls = 'bullish';
+            else if (l.message.includes('BEARISH')) cls = 'bearish';
+            else if (l.type === 'smc' && l.message.includes('FVG')) cls = 'fvg';
+            else if (l.type === 'smc' && l.message.includes('OB')) cls = 'ob';
+            h += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span><span class="console-output ${cls}">[${l.time}] ${l.message}</span></div>`;
+        });
+        c.innerHTML = h || '<div class="console-line"><span class="console-prompt">></span><span class="console-output">Waiting for data...</span></div>';
+        document.getElementById('console-count').textContent = consoleLogs.length;
+    }
+    
+    window.copyConsoleLine = function(el) {
+        const text = el.textContent.replace('>', '').trim();
+        navigator.clipboard?.writeText(text);
+        addConsoleLog('copy', `Console line copied`);
+    };
+    
+    window.copyValue = function(id) {
+        const el = document.getElementById(id);
+        if (el) {
+            const val = el.textContent.trim();
+            navigator.clipboard?.writeText(val);
+            addConsoleLog('copy', `Copied: ${val}`);
         }
+    };
+    
+    // ==================== TECHNICAL INDICATORS ====================
+    function calculateMA(data, period) { 
+        if (data.length < period) return 0; 
+        return data.slice(-period).reduce((a,b) => a + b.c, 0) / period; 
+    }
+    
+    function calculateATR(data, period = 14) { 
+        if (data.length < period + 1) return 0; 
+        let tr = []; 
+        for (let i = 1; i < data.length; i++) { 
+            const h = data[i].h, l = data[i].l, pc = data[i-1].c; 
+            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); 
+        } 
+        return tr.slice(-period).reduce((a,b) => a + b, 0) / period; 
+    }
+    
+    function calculateADX(data) { 
+        if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 }; 
+        const period = 14; let tr = [], plusDM = [], minusDM = []; 
+        for (let i = 1; i < data.length; i++) { 
+            const h = data[i].h, l = data[i].l, ph = data[i-1].h, pl = data[i-1].l, pc = data[i-1].c; 
+            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); 
+            const up = h - ph, down = pl - l; 
+            if (up > down && up > 0) { plusDM.push(up); minusDM.push(0); } 
+            else if (down > up && down > 0) { plusDM.push(0); minusDM.push(down); } 
+            else { plusDM.push(0); minusDM.push(0); } 
+        } 
+        let atr = tr.slice(0, period).reduce((a,b) => a + b, 0); 
+        let pDM = plusDM.slice(0, period).reduce((a,b) => a + b, 0); 
+        let mDM = minusDM.slice(0, period).reduce((a,b) => a + b, 0); 
+        let dx = [], lp = 0, lm = 0; 
+        for (let i = period; i < tr.length; i++) { 
+            atr = (atr * (period - 1) + tr[i]) / period; 
+            pDM = (pDM * (period - 1) + plusDM[i]) / period; 
+            mDM = (mDM * (period - 1) + minusDM[i]) / period; 
+            lp = atr ? (pDM / atr) * 100 : 0; 
+            lm = atr ? (mDM / atr) * 100 : 0; 
+            dx.push((lp + lm) ? (Math.abs(lp - lm) / (lp + lm)) * 100 : 0); 
+        } 
+        let adx = 15; 
+        if (dx.length >= period) { 
+            let s = dx.slice(0, period).reduce((a,b) => a + b, 0) / period; 
+            for (let i = period; i < dx.length; i++) s = (s * (period - 1) + dx[i]) / period; 
+            adx = s; 
+        } 
+        return { adx: Math.max(5, Math.min(100, adx)), plusDI: lp, minusDI: lm }; 
+    }
+    
+    function computeRSI(data) { 
+        if (data.length < 15) return 50; 
+        const c = data.map(x => x.c); let g = [], l = []; 
+        for (let i = 1; i < c.length; i++) { 
+            const d = c[i] - c[i-1]; 
+            g.push(d > 0 ? d : 0); 
+            l.push(d < 0 ? -d : 0); 
+        } 
+        let ag = g.slice(0, 14).reduce((a,b) => a + b, 0) / 14, al = l.slice(0, 14).reduce((a,b) => a + b, 0) / 14; 
+        for (let i = 14; i < g.length; i++) { 
+            ag = (ag * 13 + g[i]) / 14; 
+            al = (al * 13 + l[i]) / 14; 
+        } 
+        return al === 0 ? 100 : 100 - (100 / (1 + ag / al)); 
+    }
+    
+    function calculateTCLevels(data, cfg) { 
+        if (data.length < cfg.pivotLookback) return { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }; 
+        const rd = data.slice(-cfg.pivotLookback); 
+        const h = Math.max(...rd.map(c => c.h)), l = Math.min(...rd.map(c => c.l)), c = rd[rd.length-1].c; 
+        const pv = (h + l + c) / 3; 
+        return { pivot: pv, r1: 2 * pv - l, r2: pv + (h - l), s1: 2 * pv - h, s2: pv - (h - l) }; 
+    }
+    
+    function updatePivotFVGStyle(hasActiveFVG) {
+        const pivotRow = document.getElementById('pivot-row');
+        const pivotLabel = document.getElementById('pivot-label');
+        const pivotValue = document.getElementById('pivot-value');
+        if (!pivotRow) return;
+        
+        if (hasActiveFVG) {
+            pivotRow.classList.add('fvg-active');
+            if (pivotLabel) pivotLabel.classList.add('fvg-active-label');
+            if (pivotValue) pivotValue.classList.add('fvg-active-value');
+        } else {
+            pivotRow.classList.remove('fvg-active');
+            if (pivotLabel) pivotLabel.classList.remove('fvg-active-label');
+            if (pivotValue) pivotValue.classList.remove('fvg-active-value');
+        }
+    }
+    
+    // ==================== MTF ANALYSIS ====================
+    async function fetchMTFBias(pair, tf, key) {
+        try {
+            const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${pair}&interval=${tf}&limit=150`);
+            const data = await resp.json();
+            if (Array.isArray(data) && data.length >= 50) {
+                const formatted = data.map(d => ({ t: d[0], o: +d[1], h: +d[2], l: +d[3], c: +d[4], v: +d[5] }));
+                const cfg = PAIR_CONFIG[pair];
+                const price = formatted[formatted.length-1].c;
+                const ma20 = calculateMA(formatted, cfg.maFast);
+                const ma50 = calculateMA(formatted, cfg.maSlow);
+                const adx = calculateADX(formatted);
+                let bias = 'NEUTRAL';
+                if (adx.adx >= cfg.adxThreshold) {
+                    if (price > ma20 && price > ma50 && adx.plusDI > adx.minusDI) bias = 'BULLISH';
+                    else if (price < ma20 && price < ma50 && adx.minusDI > adx.plusDI) bias = 'BEARISH';
+                }
+                mtfCache[key] = { bias, strength: Math.min(100, adx.adx) };
+            }
+        } catch(e) {}
+    }
+    
+    async function updateAllMTF() {
+        await Promise.all([
+            fetchMTFBias(currentPair, '4h', 'h4'),
+            fetchMTFBias(currentPair, '1h', 'h1'),
+            fetchMTFBias(currentPair, '30m', 'm30'),
+            fetchMTFBias(currentPair, '15m', 'm15'),
+            fetchMTFBias(currentPair, '5m', 'm5')
+        ]);
+        updateMTFUI();
+    }
+    
+    function updateMTFUI() {
+        const tfMap = { '4h': 'h4', '1h': 'h1', '30m': 'm30', '15m': 'm15', '5m': 'm5' };
+        let aligned = 0, conflict = 0;
+        
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            const tf = btn.dataset.tf;
+            const key = tfMap[tf];
+            const cached = mtfCache[key];
+            if (!cached) return;
+            
+            const symbolSpan = btn.querySelector('.tf-bias-symbol');
+            if (symbolSpan) {
+                symbolSpan.textContent = MTF_SYMBOLS[cached.bias] || '●';
+                symbolSpan.className = `tf-bias-symbol ${cached.bias.toLowerCase()}`;
+                if (cached.strength > 60) symbolSpan.classList.add('strong');
+            }
+            
+            btn.setAttribute('data-mtf-info', `${tf}: ${cached.bias} (${Math.round(cached.strength)}%)`);
+            btn.classList.remove('aligned', 'conflict');
+            
+            if (engine.bias !== 'NEUTRAL') {
+                if (cached.bias === engine.bias) { 
+                    btn.classList.add('aligned'); 
+                    aligned++; 
+                } else if (cached.bias !== 'NEUTRAL') { 
+                    btn.classList.add('conflict'); 
+                    conflict++; 
+                }
+            }
+        });
+        
+        const mtfSummary = document.getElementById('mtf-summary');
+        if (mtfSummary) {
+            mtfSummary.textContent = `MTF: ${aligned}/5`;
+            mtfSummary.className = `mtf-summary-badge ${conflict > 0 ? 'conflict' : 'aligned'}`;
+        }
+    }
+    
+    // ==================== DECISION ENGINE (BUG FIXED) ====================
+    function calculateSLTP(price, bias, levels, atr, cfg) {
+        let eL, eH, sl, tp1, tp2;
+        const slBuffer = price * cfg.slBufferPct;
+        
+        if (bias === 'BULLISH') {
+            eL = levels.pivot;
+            eH = levels.r1;
+            sl = levels.s1 - slBuffer;
+            const riskAmount = eL - sl;
+            tp1 = eL + (riskAmount * cfg.tp1Ratio);
+            tp2 = eL + (riskAmount * cfg.tp2Ratio);
+            
+            // Validasi: TP1 tidak boleh > R2
+            if (tp1 > levels.r2) tp1 = levels.r2 * 0.99;
+            // Validasi: TP2 harus > TP1
+            if (tp2 <= tp1) tp2 = tp1 * 1.02;
+            
+        } else if (bias === 'BEARISH') {
+            eH = levels.pivot;
+            eL = levels.s1;
+            sl = levels.r1 + slBuffer;
+            const riskAmount = sl - eH;
+            tp1 = eH - (riskAmount * cfg.tp1Ratio);
+            tp2 = eH - (riskAmount * cfg.tp2Ratio);
+            
+            // Validasi: TP1 tidak boleh < S2
+            if (tp1 < levels.s2) tp1 = levels.s2 * 1.01;
+            // Validasi: TP2 harus < TP1 (karena BEARISH)
+            if (tp2 >= tp1) tp2 = tp1 * 0.98;
+            
+        } else {
+            eL = eH = price;
+            sl = tp1 = tp2 = price;
+        }
+        
+        return { eL, eH, sl, tp1, tp2 };
     }
     
     function updateDecision() {
-        if (isDataStale) { UI.decision.textContent = 'DATA STALE'; UI.decision.style.color = 'var(--warning)'; UI.signalBar.style.background = 'rgba(248, 81, 73, 0.1)'; return; }
-        const arr = getCandleArray(); if (arr.length < 30) return;
+        const arr = candleBuffer;
+        if (arr.length < 30) return;
+        
         const p = lastPrice, cfg = getConfig(), prec = getPrecision();
-        engine.ma20 = calculateMA(arr, cfg.maFast); engine.ma50 = calculateMA(arr, cfg.maSlow);
-        const adx = calculateADX(arr); engine.adx = adx.adx; engine.plusDI = adx.plusDI; engine.minusDI = adx.minusDI;
-        engine.atr = calculateATR(arr, cfg.atrPeriod); engine.rsi = computeRSI(arr);
-        engine.levels = calculateTCLevels(arr, cfg); engine.interactions = detectLevelInteraction(p, engine.levels, cfg);
-        const tc = determineTCBias(p, engine.levels, adx, engine.rsi); engine.bias = tc.bias; engine.strength = tc.strength;
         
-        // ==================== SMC DETECTION ====================
-        const fvg = detectFVG(arr);
-        const ob = detectOrderBlock(arr, engine.levels.pivot, p);
+        const ma20 = calculateMA(arr, cfg.maFast);
+        const ma50 = calculateMA(arr, cfg.maSlow);
+        const adx = calculateADX(arr);
+        const rsi = computeRSI(arr);
+        const atr = calculateATR(arr, cfg.atrPeriod);
+        const levels = calculateTCLevels(arr, cfg);
         
-        engine.fvgType = fvg.type;
-        engine.fvgZone = { top: fvg.top, bottom: fvg.bottom };
-        engine.obType = ob.type;
-        engine.obZone = { top: ob.top, bottom: ob.bottom };
+        // SMC DETECTION
+        smcEngine.detectFVG(arr);
+        smcEngine.detectOrderBlocks(arr, levels.pivot, p);
+        smcEngine.checkMitigation(p);
         
-        // Update Pivot styling based on FVG
-        updatePivotFVGStyle(engine.fvgType);
+        const { isHighProb, reason, fvgActive, obActive } = smcEngine.isInHighProbZone('NEUTRAL', p);
+        const smcStatus = smcEngine.getStatusText();
         
-        // Log FVG detection (only once per occurrence)
-        const fvgHash = `${engine.fvgType}_${fvg.top.toFixed(2)}_${fvg.bottom.toFixed(2)}`;
-        if (engine.fvgType !== 'NONE' && fvgHash !== lastFVGLogHash) {
-            consoleManager.addSMCLog('FVG', `${engine.fvgType} [${fvg.bottom.toFixed(prec)} - ${fvg.top.toFixed(prec)}]`);
-            lastFVGLogHash = fvgHash;
-        } else if (engine.fvgType === 'NONE') {
-            lastFVGLogHash = '';
+        document.getElementById('fvg-status').textContent = smcStatus.fvgText;
+        document.getElementById('ob-status').textContent = smcStatus.obText;
+        updatePivotFVGStyle(fvgActive);
+        
+        // Bias & Strength (DIPERBAIKI - cek MA dan DI)
+        let bias = 'NEUTRAL', strength = 50;
+        
+        // Cek Pivot
+        if (p > levels.pivot) bias = 'BULLISH';
+        else if (p < levels.pivot) bias = 'BEARISH';
+        
+        // Cek MA (konfirmasi)
+        const maBullish = p > ma20 && ma20 > ma50;
+        const maBearish = p < ma20 && ma20 < ma50;
+        
+        // Cek ADX/DI (konfirmasi)
+        const diBullish = adx.plusDI > adx.minusDI;
+        const diBearish = adx.minusDI > adx.plusDI;
+        
+        // Koreksi bias jika kontradiksi
+        if (bias === 'BULLISH' && maBearish && diBearish) {
+            bias = 'NEUTRAL';
+            strength -= 20;
+        } else if (bias === 'BEARISH' && maBullish && diBullish) {
+            bias = 'NEUTRAL';
+            strength -= 20;
         }
         
-        // Check High Probability Setup
-        let isHighProb = false;
-        let confirmReason = '';
-        
-        if (engine.bias === 'BULLISH') {
-            const inFvg = (fvg.type === 'BULLISH' && p <= fvg.top && p >= fvg.bottom);
-            const inOb = (ob.type === 'BULLISH_OB' && p <= ob.top && p >= ob.bottom);
-            
-            if (inFvg) { isHighProb = true; confirmReason = 'FVG RETEST'; }
-            else if (inOb) { isHighProb = true; confirmReason = 'OB RETEST'; }
-            
-            if (inOb) { consoleManager.addSMCLog('OB', `Bullish OB Retest [${ob.bottom.toFixed(prec)} - ${ob.top.toFixed(prec)}]`); }
-        } else if (engine.bias === 'BEARISH') {
-            const inFvg = (fvg.type === 'BEARISH' && p <= fvg.top && p >= fvg.bottom);
-            const inOb = (ob.type === 'BEARISH_OB' && p <= ob.top && p >= ob.bottom);
-            
-            if (inFvg) { isHighProb = true; confirmReason = 'FVG RETEST'; }
-            else if (inOb) { isHighProb = true; confirmReason = 'OB RETEST'; }
-            
-            if (inOb) { consoleManager.addSMCLog('OB', `Bearish OB Retest [${ob.bottom.toFixed(prec)} - ${ob.top.toFixed(prec)}]`); }
+        // Tambah strength berdasarkan konfirmasi
+        if (bias === 'BULLISH') {
+            strength += 25;
+            if (maBullish) strength += 10;
+            if (diBullish) strength += 10;
+        } else if (bias === 'BEARISH') {
+            strength += 25;
+            if (maBearish) strength += 10;
+            if (diBearish) strength += 10;
         }
         
-        engine.isInHighProbZone = isHighProb;
-        engine.smcConfirm = isHighProb ? confirmReason : '';
+        if (adx.adx >= cfg.adxThreshold) strength += 15;
         
-        // MTF ADJUSTMENT
-        if (engine.bias !== 'NEUTRAL') { const mtfAdj = MTFManager.getConfirmationAdjustment(engine.bias); engine.strength = Math.max(0, Math.min(100, engine.strength + mtfAdj.adjustment)); engine.mtfLevel = mtfAdj.level; }
+        if (bias === 'BULLISH' && rsi > 40 && rsi < 70) strength += 10;
+        else if (bias === 'BEARISH' && rsi > 30 && rsi < 60) strength += 10;
+        else if ((bias === 'BULLISH' && rsi > 70) || (bias === 'BEARISH' && rsi < 30)) strength -= 15;
         
-        const sltp = calculateSLTP(p, engine.bias, engine.levels, engine.atr, cfg);
-        engine.sl = sltp.sl; engine.tp1 = sltp.tp1; engine.tp2 = sltp.tp2; engine.entryLow = sltp.entryLow; engine.entryHigh = sltp.entryHigh;
+        // SMC Adjustment
+        const { isHighProb: smcConfirm, reason: smcReason } = smcEngine.isInHighProbZone(bias, p);
+        if (smcConfirm) {
+            strength += 15;
+        } else if (bias !== 'NEUTRAL') {
+            strength -= 10;
+        }
         
-        UI.r2Value.textContent = engine.levels.r2.toFixed(prec); UI.r1Value.textContent = engine.levels.r1.toFixed(prec);
-        UI.pivotValue.textContent = engine.levels.pivot.toFixed(prec); UI.lastValue.textContent = p.toFixed(prec);
-        UI.s1Value.textContent = engine.levels.s1.toFixed(prec); UI.s2Value.textContent = engine.levels.s2.toFixed(prec);
-        UI.tcBias.textContent = engine.bias; UI.tcBias.className = `tc-intraday-bias ${engine.bias.toLowerCase()}`;
+        // Batasi strength maksimum 95%
+        strength = Math.min(95, Math.max(0, strength));
+        engine.bias = bias;
+        engine.strength = strength;
         
-        let st = 'MONITORING';
-        if (engine.interactions.pivot.status === 'testing') { st = 'TESTING PIVOT'; } 
-        else if (engine.interactions.pivot.status === 'breakout') { st = 'PIVOT BREAKOUT'; } 
-        else if (engine.interactions.r1.status === 'testing') { st = 'TESTING R1'; } 
-        else if (engine.interactions.r1.status === 'rejection') { st = 'R1 REJECTED'; } 
-        else if (engine.interactions.s1.status === 'testing') { st = 'TESTING S1'; } 
-        else if (engine.interactions.s1.status === 'rejection') { st = 'S1 REJECTED'; }
+        // SL/TP dengan fungsi yang sudah diperbaiki
+        const { eL, eH, sl, tp1, tp2 } = calculateSLTP(p, bias, levels, atr, cfg);
         
-        UI.levelStatus.textContent = st;
-        UI.levelAction.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-secondary)');
-        MTFManager.updateMTFSummary();
+        // Update UI
+        document.getElementById('r2-value').textContent = levels.r2.toFixed(prec);
+        document.getElementById('r1-value').textContent = levels.r1.toFixed(prec);
+        document.getElementById('pivot-value').textContent = levels.pivot.toFixed(prec);
+        document.getElementById('last-value').textContent = p.toFixed(prec);
+        document.getElementById('s1-value').textContent = levels.s1.toFixed(prec);
+        document.getElementById('s2-value').textContent = levels.s2.toFixed(prec);
+        const tcBias = document.getElementById('tc-bias');
+        tcBias.textContent = bias;
+        tcBias.className = `tc-intraday-bias ${bias.toLowerCase()}`;
         
-        UI.ma20Value.textContent = engine.ma20.toFixed(prec); UI.ma50Value.textContent = `MA50: ${engine.ma50.toFixed(prec)}`;
-        UI.maTrend.textContent = p > engine.ma20 ? '▲' : '▼'; UI.maTrend.style.color = p > engine.ma20 ? 'var(--accent-green)' : 'var(--accent-red)';
-        UI.adxValue.textContent = Math.round(engine.adx); if (engine.adx < cfg.adxThreshold) UI.adxValue.classList.add('adx-warning'); else UI.adxValue.classList.remove('adx-warning');
-        UI.diValues.textContent = `+DI ${Math.round(engine.plusDI)} | -DI ${Math.round(engine.minusDI)}`;
-        UI.adxTrend.textContent = engine.plusDI > engine.minusDI ? '▲' : '▼'; UI.adxTrend.style.color = engine.plusDI > engine.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
+        document.getElementById('ma20-value').textContent = ma20.toFixed(prec);
+        document.getElementById('ma50-value').textContent = `MA50: ${ma50.toFixed(prec)}`;
+        const maTrend = document.getElementById('ma-trend');
+        maTrend.textContent = p > ma20 ? '▲' : '▼';
+        maTrend.style.color = p > ma20 ? 'var(--accent-green)' : 'var(--accent-red)';
         
-        UI.entryLow.textContent = engine.entryLow.toFixed(prec); UI.entryHigh.textContent = engine.entryHigh.toFixed(prec);
-        UI.slDisplay.textContent = engine.sl.toFixed(prec); UI.tp1Display.textContent = engine.tp1.toFixed(prec); UI.tp2Display.textContent = engine.tp2.toFixed(prec);
-        if (engine.bias !== 'NEUTRAL' && engine.sl > 0) { const risk = engine.bias === 'BULLISH' ? Math.abs(engine.entryLow - engine.sl) : Math.abs(engine.sl - engine.entryHigh); UI.riskDisplay.textContent = risk.toFixed(prec); } else { UI.riskDisplay.textContent = '—'; }
+        document.getElementById('adx-value').textContent = Math.round(adx.adx);
+        document.getElementById('di-values').textContent = `+DI ${Math.round(adx.plusDI)} | -DI ${Math.round(adx.minusDI)}`;
+        const adxTrend = document.getElementById('adx-trend');
+        adxTrend.textContent = adx.plusDI > adx.minusDI ? '▲' : '▼';
+        adxTrend.style.color = adx.plusDI > adx.minusDI ? 'var(--accent-green)' : 'var(--accent-red)';
         
-        let dt = '', col = '', bg = '';
-        if (engine.adx < 15) { dt = `SIDEWAYS`; col = 'var(--warning)'; bg = 'rgba(227, 179, 65, 0.1)'; }
-        else if (engine.bias !== 'NEUTRAL' && engine.strength >= 50) {
-            if (isHighProb) {
-                const aw = engine.interactions?.pivot.status === 'breakout' ? 'BREAKOUT' : (engine.interactions?.r1.status === 'rejection' ? 'REVERSAL' : (engine.interactions?.s1.status === 'rejection' ? 'BOUNCE' : 'TREND'));
-                dt = `${engine.bias} ${aw} (${confirmReason})`;
-                col = engine.bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
-                bg = engine.bias === 'BULLISH' ? 'rgba(63, 185, 80, 0.15)' : 'rgba(248, 81, 73, 0.15)';
+        document.getElementById('rsi-value').textContent = Math.round(rsi);
+        const rsiTrend = document.getElementById('rsi-trend');
+        rsiTrend.textContent = rsi > 50 ? '▲' : '▼';
+        rsiTrend.style.color = rsi > 50 ? 'var(--accent-green)' : 'var(--accent-red)';
+        document.getElementById('atr-value').textContent = `ATR: ${atr.toFixed(prec)}`;
+        
+        document.getElementById('entry-low').textContent = eL.toFixed(prec);
+        document.getElementById('entry-high').textContent = eH.toFixed(prec);
+        document.getElementById('sl-display').textContent = sl.toFixed(prec);
+        document.getElementById('tp1-display').textContent = tp1.toFixed(prec);
+        document.getElementById('tp2-display').textContent = tp2.toFixed(prec);
+        
+        const risk = bias === 'BULLISH' ? Math.abs(eL - sl) : Math.abs(sl - eH);
+        document.getElementById('risk-display').textContent = risk.toFixed(prec);
+        
+        // Signal
+        let dt = 'WAITING', col = 'var(--text-tertiary)', bg = 'var(--bg-secondary)', conf = 'LOW', confClass = 'low';
+        
+        if (adx.adx < 15) { 
+            dt = 'SIDEWAYS'; 
+            col = 'var(--warning)'; 
+            bg = 'rgba(227,179,65,0.1)'; 
+        } else if (bias !== 'NEUTRAL' && strength >= 50) {
+            if (smcConfirm) {
+                dt = `${bias} TREND (${smcReason})`;
             } else {
-                dt = `Drink Coffee First! ☕`;
-                col = 'var(--text-tertiary)';
-                bg = 'var(--bg-secondary)';
-                engine.strength = Math.max(0, engine.strength - 20);
+                dt = `${bias} TREND`;
             }
-        } else if (engine.bias !== 'NEUTRAL') { dt = `WEAK ${engine.bias}`; col = 'var(--accent-gold)'; bg = 'rgba(227, 179, 65, 0.08)'; }
-        else { dt = `WAITING`; col = 'var(--text-tertiary)'; bg = 'var(--bg-secondary)'; }
-        
-        UI.decision.textContent = dt; UI.decision.style.color = col; UI.probability.textContent = `${engine.strength}%`; UI.probability.style.color = col;
-        UI.signalBar.style.background = bg; UI.signalBar.style.borderColor = isHighProb ? col : 'var(--border-subtle)';
-        UI.arrow.innerHTML = engine.bias === 'BULLISH' ? '▲' : (engine.bias === 'BEARISH' ? '▼' : '—');
-        UI.arrow.style.color = engine.bias === 'BULLISH' ? 'var(--accent-green)' : (engine.bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-tertiary)');
-        
-        const ch = `${currentPair}_${currentTF}_${engine.bias}_${engine.strength}_${st}_${confirmReason}`;
-        if (ch !== lastLogHash && engine.bias !== 'NEUTRAL') { 
-            consoleManager.addSignalLog(currentPair, currentTF, engine.bias, engine.strength, p, engine.levels.pivot.toFixed(prec), engine.levels.r1.toFixed(prec), engine.levels.s1.toFixed(prec), dt, st, confirmReason); 
-            lastLogHash = ch; 
+            col = bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
+            bg = bias === 'BULLISH' ? 'rgba(63,185,80,0.12)' : 'rgba(248,81,73,0.12)';
+            conf = strength >= 70 ? 'HIGH' : 'MEDIUM';
+            confClass = conf.toLowerCase();
+        } else if (bias !== 'NEUTRAL') { 
+            dt = `WEAK ${bias}`; 
+            col = 'var(--accent-gold)'; 
+            bg = 'rgba(227,179,65,0.08)'; 
         }
         
-        // Pastikan MTF UI diupdate setelah bias engine berubah
-        MTFManager.updateUI();
+        const decision = document.getElementById('decision-status');
+        decision.textContent = dt; decision.style.color = col;
+        document.getElementById('probability-badge').textContent = `${strength}%`;
+        document.getElementById('probability-badge').style.color = col;
+        document.getElementById('signal-bar').style.background = bg;
+        document.getElementById('signal-bar').style.borderColor = col;
+        const arrow = document.getElementById('direction-arrow');
+        arrow.innerHTML = bias === 'BULLISH' ? '▲' : (bias === 'BEARISH' ? '▼' : '—');
+        arrow.style.color = bias === 'BULLISH' ? 'var(--accent-green)' : (bias === 'BEARISH' ? 'var(--accent-red)' : 'var(--text-tertiary)');
+        
+        const confEl = document.getElementById('confidence-badge');
+        confEl.textContent = conf;
+        confEl.className = `confidence-badge ${confClass}`;
+        
+        document.getElementById('level-status').textContent = p > levels.pivot ? 'ABOVE PIVOT' : (p < levels.pivot ? 'BELOW PIVOT' : 'AT PIVOT');
+        const regime = document.getElementById('regime-badge');
+        const isTrending = adx.adx >= 20;
+        regime.textContent = isTrending ? 'TRENDING' : 'RANGING';
+        regime.className = `regime-badge ${isTrending ? 'trending' : 'ranging'}`;
+        
+        let exitMsg = '—';
+        if (bias === 'BULLISH') {
+            if (p >= tp2) exitMsg = '✅ TP2 HIT';
+            else if (p >= tp1) exitMsg = '🟡 TP1 HIT';
+            else if (p <= sl) exitMsg = '❌ SL HIT';
+            else exitMsg = '🟢 HOLD';
+        } else if (bias === 'BEARISH') {
+            if (p <= tp2) exitMsg = '✅ TP2 HIT';
+            else if (p <= tp1) exitMsg = '🟡 TP1 HIT';
+            else if (p >= sl) exitMsg = '❌ SL HIT';
+            else exitMsg = '🟢 HOLD';
+        }
+        document.getElementById('exit-signal').textContent = exitMsg;
+        
+        updateMTFUI();
+        
+        if (bias !== 'NEUTRAL' && strength >= 50) {
+            const hash = `${bias}_${strength}_${dt}`;
+            if (!window.lastSignalHash || window.lastSignalHash !== hash) {
+                addConsoleLog('signal', `${dt} (${strength}%) | P:${levels.pivot.toFixed(prec)}`);
+                window.lastSignalHash = hash;
+            }
+        }
     }
     
-    function updateUI(price) { const p = price || 0, prec = getPrecision(), f = p.toFixed(prec), parts = f.split('.'); UI.priceMain.innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`; UI.priceMain.style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)'); if (prevPrice > 0) { const ch = p - prevPrice, pct = (ch / prevPrice) * 100; UI.priceChange.innerHTML = `${ch > 0 ? '+' : ''}${ch.toFixed(prec)} (${pct.toFixed(2)}%)`; UI.priceChange.style.color = ch > 0 ? 'var(--accent-green)' : 'var(--accent-red)'; } lastPrice = p; prevPrice = p; updateDecision(); }
+    // ==================== PRICE UPDATE ====================
+    function handlePriceUpdate(price, kline) {
+        const prec = getPrecision();
+        const f = price.toFixed(prec);
+        const parts = f.split('.');
+        document.getElementById('live-price').innerHTML = `${parts[0]}<span class="price-decimal">.${parts[1] || '00'}</span>`;
+        const priceMain = document.getElementById('live-price');
+        priceMain.style.color = price > prevPrice ? 'var(--accent-green)' : (price < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
+        
+        if (prevPrice > 0) {
+            const ch = price - prevPrice;
+            const pct = (ch / prevPrice) * 100;
+            const changeEl = document.getElementById('price-change');
+            changeEl.innerHTML = `${ch > 0 ? '+' : ''}${ch.toFixed(prec)} (${pct.toFixed(2)}%)`;
+            changeEl.style.color = ch > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+        }
+        
+        if (kline) {
+            if (candleBuffer.length > 0) {
+                const last = candleBuffer[candleBuffer.length - 1];
+                if (kline.x) {
+                    candleBuffer.push({ t: kline.t, o: +kline.o, h: +kline.h, l: +kline.l, c: price, v: +kline.v });
+                    if (candleBuffer.length > MAX_CANDLES) candleBuffer.shift();
+                } else if (last.t === kline.t) {
+                    last.c = price;
+                    last.h = Math.max(last.h, +kline.h);
+                    last.l = Math.min(last.l, +kline.l);
+                }
+            }
+        }
+        
+        lastPrice = price;
+        prevPrice = price;
+        updateDecision();
+    }
     
-    function updateWSStatus(s, m) { if (!UI.dot) return; UI.dot.className = 'status-dot'; if (s === 'live') { UI.dot.classList.add('live'); UI.text.innerText = m || 'LIVE'; reconnectDelay = 1000; isUsingFallback = false; isDataStale = false; } else if (s === 'connecting') { UI.dot.classList.add('connecting'); UI.text.innerText = m || 'CONNECTING'; } else if (s === 'reconnect') { UI.dot.classList.add('reconnect'); UI.text.innerText = m || 'RECONNECT'; } else if (s === 'fallback') { UI.dot.classList.add('fallback'); UI.text.innerText = m || 'FALLBACK'; isUsingFallback = true; } else if (s === 'stale') { UI.dot.classList.add('stale'); UI.text.innerText = m || 'STALE'; isDataStale = true; } }
-    function cleanupWebSocket() { if (wsConnection) { isManualDisconnect = true; try { wsConnection.onopen = wsConnection.onmessage = wsConnection.onclose = wsConnection.onerror = null; if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) wsConnection.close(); } catch(e) {} wsConnection = null; } setTimeout(() => { isManualDisconnect = false; }, 100); }
-    async function fetchKlines() { try { const r = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=200`); const d = await r.json(); if (Array.isArray(d)) { candleBuffer.clear(); d.forEach(k => candleBuffer.push({ t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] })); invalidateCandleCache(); if (candleBuffer.length) { const l = candleBuffer.getLatest(); lastPrice = prevPrice = l.c; updateUI(lastPrice); } consoleManager.addEventLog('KLINES_LOADED', `${currentPair} ${currentTF} (${candleBuffer.length})`); return true; } } catch(e) {} return false; }
-    async function fetchPriceREST() { try { const r = await fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentPair}`); const d = await r.json(); if (d?.price) { const p = +d.price; if (p > 0 && (Date.now() - lastWSMessageTime > 3000 || isUsingFallback)) { lastPriceUpdateTime = Date.now(); updateUI(p); } } } catch(e) {} }
-    function initWebSocket() { cleanupWebSocket(); updateWSStatus('connecting'); try { wsConnection = new WebSocket(`wss://fstream.binance.com/ws/${currentPair.toLowerCase()}@kline_${currentTF}`); wsConnection.onopen = () => { reconnectDelay = 1000; lastWSMessageTime = lastPriceUpdateTime = Date.now(); isUsingFallback = false; isDataStale = false; updateWSStatus('live', `LIVE ${currentTF}`); consoleManager.addEventLog('WS_CONNECTED', `${currentPair} ${currentTF}`); }; wsConnection.onmessage = (e) => { try { const m = JSON.parse(e.data); if (m?.k) { const k = m.k, p = +k.c, h = +k.h, l = +k.l, o = +k.o, x = k.x, t = k.t; if (p > 0) { lastWSMessageTime = lastPriceUpdateTime = Date.now(); if (isUsingFallback) updateWSStatus('live'); if (isDataStale) updateWSStatus('live'); const arr = getCandleArray(); if (arr.length) { const lc = arr[arr.length-1]; if (x && lc.t !== t) { candleBuffer.push({ t, o, h, l, c: p, v: +k.v }); invalidateCandleCache(); } else if (!x && lc.t === t) { lc.c = p; lc.h = Math.max(lc.h, h); lc.l = Math.min(lc.l, l); invalidateCandleCache(); } } updateUI(p); } } } catch(err) {} }; wsConnection.onclose = () => { if (!isReloading && !isManualDisconnect) { updateWSStatus('reconnect'); if (reconnectTimer) clearTimeout(reconnectTimer); reconnectTimer = setTimeout(() => { if (!isReloading && !isManualDisconnect) { reconnectDelay = Math.min(reconnectDelay * 1.5, 30000); initWebSocket(); } }, reconnectDelay); } }; wsConnection.onerror = () => { if (!isReloading && !isManualDisconnect) updateWSStatus('reconnect', 'ERROR'); }; } catch(e) { updateWSStatus('fallback'); isUsingFallback = true; } }
+    function handleStatusUpdate(status, message) {
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        dot.className = `status-dot ${status}`;
+        text.textContent = message;
+    }
     
-    let hb, st, rf;
-    async function fullReload() { if (isReloading) return; isReloading = true; if (hb) clearInterval(hb); if (st) clearInterval(st); if (rf) clearInterval(rf); cleanupWebSocket(); lastLevelState = { pivot: { touched: false, broken: false, rejected: false }, r1: { touched: false, broken: false, rejected: false }, s1: { touched: false, broken: false, rejected: false } }; lastFVGLogHash = ''; document.querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('active', b.getAttribute('data-pair') === currentPair)); document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-tf') === currentTF)); updateWSStatus('connecting', 'LOADING'); consoleManager.addEventLog('RELOAD', `${currentPair} ${currentTF}`); await fetchKlines(); initWebSocket(); hb = setInterval(() => { if (wsConnection?.readyState === WebSocket.OPEN) try { wsConnection.send(JSON.stringify({ method: "ping" })); } catch(e) {} }, 30000); st = setInterval(() => { const n = Date.now(); if (n - lastPriceUpdateTime > 10000 && lastPrice > 0 && !isDataStale) updateWSStatus('stale'); else if (isDataStale && n - lastPriceUpdateTime < 5000) updateWSStatus(isUsingFallback ? 'fallback' : 'live'); if (wsConnection?.readyState === WebSocket.OPEN && n - lastWSMessageTime > 10000 && !isUsingFallback && !isReloading) { updateWSStatus('fallback'); isUsingFallback = true; fetchPriceREST(); } if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect'); }, 5000); rf = setInterval(fetchPriceREST, 5000); isReloading = false; setTimeout(() => MTFManager.fetchAllMTF(currentPair), 2000); }
+    // ==================== DATA FETCH ====================
+    async function fetchKlines() {
+        try {
+            const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=200`;
+            const r = await fetch(url);
+            const d = await r.json();
+            if (Array.isArray(d) && d.length > 0) {
+                candleBuffer = d.map(k => ({ t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] }));
+                const latest = candleBuffer[candleBuffer.length-1];
+                lastPrice = prevPrice = latest.c;
+                handlePriceUpdate(lastPrice, null);
+                addConsoleLog('event', `Klines loaded: ${currentPair} ${currentTF}`);
+                return true;
+            }
+        } catch(e) {}
+        return false;
+    }
     
-    document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => { if (!isReloading) { currentPair = b.getAttribute('data-pair'); fullReload(); } });
-    document.querySelectorAll('.tf-btn').forEach(b => b.onclick = () => { if (!isReloading) { currentTF = b.getAttribute('data-tf'); fullReload(); } });
-    document.getElementById('copySetupBtn').onclick = copyTradeSetup;
+    function initWebSocketManager() {
+        if (wsManager) wsManager.disconnect();
+        wsManager = new WebSocketManager({
+            pair: currentPair,
+            timeframe: currentTF,
+            onPrice: handlePriceUpdate,
+            onStatus: handleStatusUpdate,
+            onError: () => {}
+        });
+        wsManager.connect();
+    }
     
-    setInterval(() => { const n = new Date(); UI.clock.textContent = n.toLocaleTimeString('id-ID'); UI.date.textContent = `${n.getDate().toString().padStart(2,'0')}/${(n.getMonth()+1).toString().padStart(2,'0')}/${n.getFullYear()}`; const h = n.getHours(); UI.session.textContent = h >= 7 && h < 14 ? 'ASIA' : (h >= 14 && h < 20 ? 'LONDON' : 'NY'); }, 1000);
+    async function fullReload() {
+        if (isReloading) return;
+        isReloading = true;
+        
+        if (wsManager) {
+            wsManager.isManualDisconnect = true;
+            wsManager.disconnect();
+        }
+        
+        smcEngine.fvgs = [];
+        smcEngine.orderBlocks = [];
+        
+        addConsoleLog('event', `Reloading: ${currentPair} ${currentTF}`);
+        document.querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('active', b.dataset.pair === currentPair));
+        document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.dataset.tf === currentTF));
+        
+        await fetchKlines();
+        initWebSocketManager();
+        updateAllMTF();
+        
+        isReloading = false;
+    }
     
-    consoleManager.render(); consoleManager.addEventLog('INIT', 'URA v2.2 - TC LOGIC Active'); fullReload();
-    setTimeout(() => MTFManager.fetchAllMTF(currentPair), 3000);
-    setInterval(() => MTFManager.fetchAllMTF(currentPair), 120000);
+    // ==================== INITIALIZATION ====================
+    document.querySelectorAll('[data-pair]').forEach(b => b.onclick = () => {
+        if (!isReloading) { currentPair = b.dataset.pair; fullReload(); }
+    });
+    document.querySelectorAll('.tf-btn').forEach(b => b.onclick = () => {
+        if (!isReloading) { currentTF = b.dataset.tf; fullReload(); }
+    });
+    
+    document.getElementById('copySetupBtn').onclick = () => {
+        const txt = `=== URA v3.4 ===\nPair: ${currentPair} | TF: ${currentTF}\nPrice: ${lastPrice.toFixed(getPrecision())}\nBias: ${engine.bias} (${engine.strength}%)\nPivot: ${document.getElementById('pivot-value').textContent}\nSMC: ${document.getElementById('fvg-status').textContent} | ${document.getElementById('ob-status').textContent}\nEntry: ${document.getElementById('entry-low').textContent} - ${document.getElementById('entry-high').textContent}\nSL: ${document.getElementById('sl-display').textContent}\nTP1: ${document.getElementById('tp1-display').textContent} | TP2: ${document.getElementById('tp2-display').textContent}`;
+        navigator.clipboard?.writeText(txt);
+        addConsoleLog('copy', `Trade setup copied`);
+    };
+    
+    document.getElementById('themeToggleBtn').onclick = () => {
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        applyTheme(newTheme);
+        addConsoleLog('event', `Theme changed to ${newTheme}`);
+    };
+    
+    document.addEventListener('keydown', (e) => {
+        const key = e.key.toLowerCase();
+        if (key === 'p') { document.querySelector('[data-pair]:not(.active)')?.click(); e.preventDefault(); }
+        if (key === 't') { 
+            const btns = document.querySelectorAll('.tf-btn');
+            const active = document.querySelector('.tf-btn.active');
+            const idx = Array.from(btns).indexOf(active);
+            btns[(idx + 1) % btns.length]?.click();
+            e.preventDefault();
+        }
+        if (key === 'c') { document.getElementById('copySetupBtn').click(); e.preventDefault(); }
+    });
+    
+    setInterval(() => {
+        const n = new Date();
+        document.getElementById('clock-display').textContent = n.toLocaleTimeString('id-ID');
+        document.getElementById('date-display').textContent = `${n.getDate().toString().padStart(2,'0')}/${(n.getMonth()+1).toString().padStart(2,'0')}/${n.getFullYear()}`;
+        const h = n.getHours();
+        document.getElementById('session-tag').textContent = h >= 7 && h < 14 ? 'ASIA' : (h >= 14 && h < 20 ? 'LONDON' : 'NY');
+    }, 1000);
+    
+    setInterval(() => { if (!isReloading) updateAllMTF(); }, 60000);
+    
+    const savedTheme = localStorage.getItem('ura_theme') || 'dark';
+    applyTheme(savedTheme);
+    
+    addConsoleLog('event', 'URA v3.4 BUG FIX - All Systems Go');
+    fullReload();
+    
 })();
 </script>
 </body>
