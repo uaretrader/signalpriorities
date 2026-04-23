@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v3.4 – BUG FIX</title>
+    <title>URA v3.2 – STABLE CONNECTION</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -18,7 +18,7 @@
             --text-secondary: #8B949E;
             --text-tertiary: #6E7681;
             --accent-green: #3FB950;
-            --accent-red: #F85149;
+            --accent-red: #8B0000;
             --accent-blue: #58A6FF;
             --accent-gold: #E3B341;
             --accent-cyan: #56D4DD;
@@ -28,7 +28,6 @@
             --warning: #E3B341;
             --danger: #F85149;
             --silver-line: #30363D;
-            --fvg-active: #9B59B6;
         }
         
         body { 
@@ -117,7 +116,7 @@
         }
         .signal-content { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
         .signal-badge { font-size: 0.55rem; font-weight: 800; color: var(--accent-gold); letter-spacing: 0.3px; }
-        .signal-text { font-size: 0.7rem; font-weight: 700; }
+        .signal-text { font-size: 0.75rem; font-weight: 700; }
         .probability-badge { font-size: 0.5rem; font-weight: 600; padding: 2px 6px; border-radius: 100px; background: var(--bg-tertiary); }
         .confidence-badge { font-size: 0.45rem; font-weight: 700; padding: 2px 6px; border-radius: 100px; margin-left: 4px; }
         .confidence-badge.high { background: rgba(63,185,80,0.15); color: var(--accent-green); }
@@ -178,8 +177,8 @@
             border-radius: 5px; padding: 5px 8px; flex-shrink: 0;
         }
         .tc-header { display: flex; justify-content: space-between; margin-bottom: 3px; }
-        .tc-title { font-size: 0.55rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.3px; }
-        .tc-intraday-bias { font-size: 0.55rem; font-weight: 600; padding: 2px 6px; border-radius: 100px; }
+        .tc-title { font-size: 0.5rem; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.3px; }
+        .tc-intraday-bias { font-size: 0.45rem; font-weight: 600; padding: 2px 6px; border-radius: 100px; }
         .tc-intraday-bias.bullish { background: rgba(63,185,80,0.15); color: var(--accent-green); }
         .tc-intraday-bias.bearish { background: rgba(248,81,73,0.15); color: var(--accent-red); }
         .tc-intraday-bias.neutral { background: var(--bg-tertiary); color: var(--text-secondary); }
@@ -191,31 +190,16 @@
         .tc-level-row:hover { background: rgba(227,179,65,0.05); }
         .tc-level-row:last-child { border-bottom: none; }
         .tc-level-row.key-level { background: rgba(227,179,65,0.06); border-radius: 3px; padding: 3px 5px; }
-        .tc-level-row.key-level.fvg-active { background: rgba(155,89,182,0.15); border-left: 2px solid var(--fvg-active); }
-        .tc-level-label { font-size: 0.55rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
+        .tc-level-label { font-size: 0.5rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; }
         .tc-level-label.key { color: var(--accent-gold); }
-        .tc-level-label.key.fvg-active-label { color: var(--fvg-active); }
-        .tc-level-value { font-size: 0.65rem; font-weight: 700; color: var(--text-primary); font-family: 'Inter', monospace; }
+        .tc-level-value { font-size: 0.55rem; font-weight: 700; color: var(--text-primary); font-family: 'Inter', monospace; }
         .tc-level-value.resistance { color: var(--accent-red); }
         .tc-level-value.support { color: var(--accent-green); }
         .tc-level-value.pivot { color: var(--accent-gold); }
-        .tc-level-value.pivot.fvg-active-value { color: var(--fvg-active); font-weight: 800; }
-        
-        /* ========== SMC STATUS ROW ========== */
-        .smc-status-row {
-            display: flex; gap: 6px; flex-shrink: 0; font-size: 0.5rem; padding: 2px 0;
-            align-items: center; color: var(--text-secondary);
-        }
-        .smc-badge {
-            padding: 1px 5px; background: var(--bg-tertiary); border-radius: 100px;
-            font-weight: 600;
-        }
-        .smc-badge.fvg { color: var(--fvg-active); }
-        .smc-badge.ob { color: var(--accent-cyan); }
         
         /* ========== STATUS ROW ========== */
         .status-row {
-            display: flex; gap: 6px; flex-shrink: 0; font-size: 0.5rem; padding: 2px 0;
+            display: flex; gap: 6px; flex-shrink: 0; font-size: 0.42rem; padding: 2px 0;
             align-items: center;
         }
         .level-status { color: var(--text-secondary); }
@@ -247,7 +231,7 @@
         .action-value.entry { color: var(--accent-gold); }
         
         /* ========== EXIT ROW ========== */
-        .exit-row { font-size: 0.5rem; padding: 2px 0; color: var(--text-secondary); flex-shrink: 0; }
+        .exit-row { font-size: 0.42rem; padding: 2px 0; color: var(--text-secondary); flex-shrink: 0; }
         .exit-signal { color: var(--accent-orange); font-weight: 600; }
         
         /* ========== COPY BUTTON ========== */
@@ -281,8 +265,7 @@
         .console-output.bullish { color: var(--accent-green); }
         .console-output.bearish { color: var(--accent-red); }
         .console-output.neutral { color: var(--accent-gold); }
-        .console-output.fvg { color: var(--fvg-active); }
-        .console-output.ob { color: var(--accent-cyan); }
+        .console-output.fvg { color: var(--accent-purple); }
         
         /* ========== FOOTER ========== */
         .footer-bar {
@@ -295,17 +278,17 @@
         .text-green { color: var(--accent-green); }
         .text-red { color: var(--accent-red); }
         .text-gold { color: var(--accent-gold); }
-        .text-fvg { color: var(--fvg-active); }
         
         * { transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease; }
     </style>
 </head>
 <body>
 <div class="app-container">
+    <!-- HEADER -->
     <header class="header">
         <div class="logo-section">
-            <span class="logo">URA · TC v3.4</span>
-            <span class="version-tag">BUG FIX</span>
+            <span class="logo">URA · TC LOGIC</span>
+            <span class="version-tag">v3.2</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
             <div class="connection-badge">
@@ -316,6 +299,7 @@
         </div>
     </header>
 
+    <!-- PRICE + PAIR ROW -->
     <div class="price-pair-row">
         <div class="price-left">
             <div class="price-main" id="live-price">0.00</div>
@@ -327,6 +311,7 @@
         </div>
     </div>
 
+    <!-- SIGNAL BAR -->
     <div class="signal-bar" id="signal-bar">
         <div class="signal-content">
             <span class="signal-badge">SIGNAL</span>
@@ -337,6 +322,7 @@
         <div class="signal-arrow" id="direction-arrow">—</div>
     </div>
 
+    <!-- METRICS TRIO -->
     <div class="metrics-trio">
         <div class="metric-card">
             <div class="metric-header"><span class="metric-label">MA20/50</span><span id="ma-trend">—</span></div>
@@ -355,6 +341,7 @@
         </div>
     </div>
 
+    <!-- TIMEFRAME ROW -->
     <div class="tf-row">
         <div class="tf-group">
             <button class="tf-btn" data-tf="4h"><span class="tf-label">H4</span><span class="tf-bias-symbol"></span></button>
@@ -365,6 +352,7 @@
         </div>
     </div>
 
+    <!-- TC LEVELS -->
     <div class="tc-levels-container">
         <div class="tc-header">
             <span class="tc-title">📊 TC INTRADAY</span>
@@ -372,24 +360,20 @@
         </div>
         <div class="tc-level-row" onclick="copyValue('r2-value')"><span class="tc-level-label">R2</span><span class="tc-level-value resistance" id="r2-value">—</span></div>
         <div class="tc-level-row" onclick="copyValue('r1-value')"><span class="tc-level-label">R1</span><span class="tc-level-value resistance" id="r1-value">—</span></div>
-        <div class="tc-level-row key-level" id="pivot-row" onclick="copyValue('pivot-value')"><span class="tc-level-label key" id="pivot-label">⚡ PIVOT</span><span class="tc-level-value pivot" id="pivot-value">—</span></div>
+        <div class="tc-level-row key-level" onclick="copyValue('pivot-value')"><span class="tc-level-label key">⚡ PIVOT</span><span class="tc-level-value pivot" id="pivot-value">—</span></div>
         <div class="tc-level-row" onclick="copyValue('last-value')"><span class="tc-level-label">LAST</span><span class="tc-level-value" id="last-value">—</span></div>
         <div class="tc-level-row" onclick="copyValue('s1-value')"><span class="tc-level-label">S1</span><span class="tc-level-value support" id="s1-value">—</span></div>
         <div class="tc-level-row" onclick="copyValue('s2-value')"><span class="tc-level-label">S2</span><span class="tc-level-value support" id="s2-value">—</span></div>
     </div>
 
-    <div class="smc-status-row">
-        <span>SMC:</span>
-        <span class="smc-badge fvg" id="fvg-status">FVG: NONE</span>
-        <span class="smc-badge ob" id="ob-status">OB: NONE</span>
-    </div>
-
+    <!-- STATUS ROW -->
     <div class="status-row">
         <span class="level-status">Status: <span id="level-status">MONITORING</span></span>
         <span class="regime-badge" id="regime-badge">TRENDING</span>
         <span class="mtf-summary-badge" id="mtf-summary">MTF: —</span>
     </div>
 
+    <!-- ACTION SECTION -->
     <div class="action-section">
         <div class="action-card">
             <div class="action-header">ENTRY ZONE</div>
@@ -408,13 +392,16 @@
         </div>
     </div>
 
+    <!-- EXIT ROW -->
     <div class="exit-row">
         <span>🚪 Exit Signal:</span>
         <span class="exit-signal" id="exit-signal">—</span>
     </div>
     
+    <!-- COPY BUTTON -->
     <button class="copy-setup-btn" id="copySetupBtn">📋 COPY TRADE SETUP</button>
     
+    <!-- CONSOLE -->
     <div class="console-wrapper">
         <div class="console-header">
             <span>📟 CONSOLE (click line to copy)</span>
@@ -423,6 +410,7 @@
         <div class="console-f12" id="console-f12"></div>
     </div>
     
+    <!-- FOOTER -->
     <footer class="footer-bar">
         <span><span id="session-tag">NY</span> · <span id="date-display">—</span></span>
         <span id="clock-display">00:00:00</span>
@@ -440,8 +428,8 @@
     };
     
     const THEMES = {
-        dark: { name: 'DARK', icon: '🌙', variables: { '--bg-primary': '#0D1117', '--bg-secondary': '#161B22', '--bg-tertiary': '#21262D', '--border-subtle': '#30363D', '--text-primary': '#E6EDF3', '--text-secondary': '#8B949E', '--text-tertiary': '#6E7681', '--accent-green': '#3FB950', '--accent-red': '#F85149', '--accent-blue': '#58A6FF', '--accent-gold': '#E3B341', '--accent-cyan': '#56D4DD', '--accent-purple': '#A371F7', '--accent-orange': '#F0883E', '--success': '#3FB950', '--warning': '#E3B341', '--danger': '#F85149', '--silver-line': '#30363D', '--fvg-active': '#9B59B6' } },
-        light: { name: 'LIGHT', icon: '☀️', variables: { '--bg-primary': '#FFFFFF', '--bg-secondary': '#F6F8FA', '--bg-tertiary': '#EBECF0', '--border-subtle': '#D0D7DE', '--text-primary': '#1F2328', '--text-secondary': '#656D76', '--text-tertiary': '#8B949E', '--accent-green': '#1A7F37', '--accent-red': '#CF222E', '--accent-blue': '#0969DA', '--accent-gold': '#9A6700', '--accent-cyan': '#1B7C83', '--accent-purple': '#8E44AD', '--accent-orange': '#D2691E', '--success': '#1A7F37', '--warning': '#9A6700', '--danger': '#CF222E', '--silver-line': '#D0D7DE', '--fvg-active': '#8E44AD' } }
+        dark: { name: 'DARK', icon: '🌙', variables: { '--bg-primary': '#0D1117', '--bg-secondary': '#161B22', '--bg-tertiary': '#21262D', '--border-subtle': '#30363D', '--text-primary': '#E6EDF3', '--text-secondary': '#8B949E', '--text-tertiary': '#6E7681', '--accent-green': '#3FB950', '--accent-red': '#F85149', '--accent-blue': '#58A6FF', '--accent-gold': '#E3B341', '--accent-cyan': '#56D4DD', '--accent-purple': '#A371F7', '--accent-orange': '#F0883E', '--success': '#3FB950', '--warning': '#E3B341', '--danger': '#F85149', '--silver-line': '#30363D' } },
+        light: { name: 'LIGHT', icon: '☀️', variables: { '--bg-primary': '#FFFFFF', '--bg-secondary': '#F6F8FA', '--bg-tertiary': '#EBECF0', '--border-subtle': '#D0D7DE', '--text-primary': '#1F2328', '--text-secondary': '#656D76', '--text-tertiary': '#8B949E', '--accent-green': '#1A7F37', '--accent-red': '#CF222E', '--accent-blue': '#0969DA', '--accent-gold': '#9A6700', '--accent-cyan': '#1B7C83', '--accent-purple': '#8E44AD', '--accent-orange': '#D2691E', '--success': '#1A7F37', '--warning': '#9A6700', '--danger': '#CF222E', '--silver-line': '#D0D7DE' } }
     };
     
     // ==================== GLOBAL STATE ====================
@@ -462,182 +450,7 @@
     let consoleLogs = [];
     const MAX_LOGS = 50;
     
-    // ==================== SMC ENGINE (FVG + OB) ====================
-    class SMCEngine {
-        constructor() {
-            this.fvgs = [];
-            this.orderBlocks = [];
-            this.maxFvgAge = 20;
-            this.maxObAge = 30;
-        }
-        
-        detectFVG(candles) {
-            if (candles.length < 3) return [];
-            const newFvgs = [];
-            
-            for (let i = candles.length - 1; i >= Math.max(0, candles.length - 6); i--) {
-                const c1 = candles[i];
-                const c2 = candles[i-1];
-                const c3 = candles[i-2];
-                if (!c1 || !c2 || !c3) continue;
-                
-                let type = 'NONE', top = 0, bottom = 0, strength = 'WEAK';
-                
-                if (c1.l > c3.h) {
-                    type = 'BULLISH';
-                    top = c1.l;
-                    bottom = c3.h;
-                    const gapSize = (top - bottom) / bottom;
-                    strength = gapSize > 0.001 ? 'STRONG' : 'WEAK';
-                } else if (c1.h < c3.l) {
-                    type = 'BEARISH';
-                    top = c3.l;
-                    bottom = c1.h;
-                    const gapSize = (top - bottom) / bottom;
-                    strength = gapSize > 0.001 ? 'STRONG' : 'WEAK';
-                }
-                
-                if (type !== 'NONE') {
-                    const existingFvg = this.fvgs.find(f => 
-                        f.type === type && 
-                        Math.abs(f.top - top) / top < 0.001 && 
-                        Math.abs(f.bottom - bottom) / bottom < 0.001
-                    );
-                    if (!existingFvg) {
-                        newFvgs.push({ type, top, bottom, strength, createdAt: Date.now(), mitigated: false });
-                    }
-                }
-            }
-            
-            this.fvgs = [...this.fvgs, ...newFvgs];
-            this.cleanupFVG();
-            return this.fvgs.filter(f => !f.mitigated);
-        }
-        
-        checkMitigation(price) {
-            this.fvgs.forEach(f => {
-                if (!f.mitigated) {
-                    if (f.type === 'BULLISH' && price <= f.bottom) {
-                        f.mitigated = true;
-                        addConsoleLog('smc', `FVG Bullish MITIGATED at ${price.toFixed(2)}`);
-                    }
-                    if (f.type === 'BEARISH' && price >= f.top) {
-                        f.mitigated = true;
-                        addConsoleLog('smc', `FVG Bearish MITIGATED at ${price.toFixed(2)}`);
-                    }
-                }
-            });
-        }
-        
-        cleanupFVG() {
-            const now = Date.now();
-            this.fvgs = this.fvgs.filter(f => 
-                !f.mitigated && (now - f.createdAt) < this.maxFvgAge * 60000
-            );
-        }
-        
-        detectOrderBlocks(candles, pivot, price) {
-            if (candles.length < 10) return [];
-            const newOBs = [];
-            
-            for (let i = candles.length - 1; i > 5; i--) {
-                const curr = candles[i];
-                const prev = candles[i-1];
-                if (!curr || !prev) continue;
-                
-                if (curr.c > pivot && prev.c < pivot) {
-                    for (let j = i-1; j > 0; j--) {
-                        if (candles[j].c < candles[j].o) {
-                            const ob = { 
-                                type: 'BULLISH_OB', 
-                                top: candles[j].h, 
-                                bottom: candles[j].l, 
-                                createdAt: Date.now() 
-                            };
-                            const existingOb = this.orderBlocks.find(o => 
-                                o.type === 'BULLISH_OB' && 
-                                Math.abs(o.top - ob.top) / ob.top < 0.001
-                            );
-                            if (!existingOb) {
-                                newOBs.push(ob);
-                                addConsoleLog('smc', `Bullish OB detected [${ob.bottom.toFixed(2)} - ${ob.top.toFixed(2)}]`);
-                            }
-                            break;
-                        }
-                    }
-                } else if (curr.c < pivot && prev.c > pivot) {
-                    for (let j = i-1; j > 0; j--) {
-                        if (candles[j].c > candles[j].o) {
-                            const ob = { 
-                                type: 'BEARISH_OB', 
-                                top: candles[j].h, 
-                                bottom: candles[j].l, 
-                                createdAt: Date.now() 
-                            };
-                            const existingOb = this.orderBlocks.find(o => 
-                                o.type === 'BEARISH_OB' && 
-                                Math.abs(o.top - ob.top) / ob.top < 0.001
-                            );
-                            if (!existingOb) {
-                                newOBs.push(ob);
-                                addConsoleLog('smc', `Bearish OB detected [${ob.bottom.toFixed(2)} - ${ob.top.toFixed(2)}]`);
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-            
-            this.orderBlocks = [...this.orderBlocks, ...newOBs];
-            this.cleanupOB();
-            return this.orderBlocks;
-        }
-        
-        cleanupOB() {
-            const now = Date.now();
-            this.orderBlocks = this.orderBlocks.filter(ob => 
-                (now - ob.createdAt) < this.maxObAge * 60000
-            );
-        }
-        
-        isInHighProbZone(bias, price) {
-            const activeFvgs = this.fvgs.filter(f => !f.mitigated);
-            const activeObs = this.orderBlocks;
-            
-            if (bias === 'BULLISH') {
-                const inFvg = activeFvgs.some(f => f.type === 'BULLISH' && price <= f.top && price >= f.bottom);
-                const inOb = activeObs.some(ob => ob.type === 'BULLISH_OB' && price <= ob.top && price >= ob.bottom);
-                return { 
-                    isHighProb: inFvg || inOb, 
-                    reason: inFvg ? 'FVG RETEST' : (inOb ? 'OB RETEST' : ''),
-                    fvgActive: activeFvgs.filter(f => f.type === 'BULLISH').length > 0,
-                    obActive: activeObs.filter(ob => ob.type === 'BULLISH_OB').length > 0
-                };
-            } else if (bias === 'BEARISH') {
-                const inFvg = activeFvgs.some(f => f.type === 'BEARISH' && price <= f.top && price >= f.bottom);
-                const inOb = activeObs.some(ob => ob.type === 'BEARISH_OB' && price <= ob.top && price >= ob.bottom);
-                return { 
-                    isHighProb: inFvg || inOb, 
-                    reason: inFvg ? 'FVG RETEST' : (inOb ? 'OB RETEST' : ''),
-                    fvgActive: activeFvgs.filter(f => f.type === 'BEARISH').length > 0,
-                    obActive: activeObs.filter(ob => ob.type === 'BEARISH_OB').length > 0
-                };
-            }
-            return { isHighProb: false, reason: '', fvgActive: false, obActive: false };
-        }
-        
-        getStatusText() {
-            const activeFvgs = this.fvgs.filter(f => !f.mitigated);
-            const activeObs = this.orderBlocks;
-            const fvgText = activeFvgs.length > 0 ? `FVG: ${activeFvgs[0].type} (${activeFvgs[0].strength})` : 'FVG: NONE';
-            const obText = activeObs.length > 0 ? `OB: ${activeObs[0].type.replace('_OB','')}` : 'OB: NONE';
-            return { fvgText, obText };
-        }
-    }
-    
-    const smcEngine = new SMCEngine();
-    
-    // ==================== WEBSOCKET MANAGER ====================
+    // ==================== WEBSOCKET MANAGER (STABLE) ====================
     let wsManager = null;
     
     class WebSocketManager {
@@ -646,19 +459,19 @@
             this.timeframe = options.timeframe;
             this.onPrice = options.onPrice;
             this.onStatus = options.onStatus;
+            this.onCandle = options.onCandle;
             this.onError = options.onError;
             
             this.ws = null;
             this.isManualDisconnect = false;
             this.isUsingFallback = false;
+            this.isDataStale = false;
             this.lastPriceUpdateTime = 0;
             this.lastWSMessageTime = 0;
             this.reconnectDelay = 1000;
             this.reconnectTimer = null;
             this.heartbeatTimer = null;
             this.fallbackTimer = null;
-            this.reconnectAttempts = 0;
-            this.maxReconnectAttempts = 10;
         }
         
         connect() {
@@ -672,10 +485,10 @@
                 
                 this.ws.onopen = () => {
                     this.reconnectDelay = 1000;
-                    this.reconnectAttempts = 0;
                     this.lastWSMessageTime = Date.now();
                     this.lastPriceUpdateTime = Date.now();
                     this.isUsingFallback = false;
+                    this.isDataStale = false;
                     this.updateStatus('live', `LIVE ${this.timeframe}`);
                     addConsoleLog('event', `WebSocket connected`);
                     this.startHeartbeat();
@@ -694,29 +507,25 @@
                                 this.onPrice(price, k);
                             }
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        this.onError('parse_error', e);
+                    }
                 };
                 
                 this.ws.onclose = () => {
                     this.stopHeartbeat();
-                    if (!isReloading && !this.isManualDisconnect) {
-                        this.reconnectAttempts++;
-                        if (this.reconnectAttempts > this.maxReconnectAttempts) {
-                            this.updateStatus('fallback', 'FALLBACK');
-                            this.isUsingFallback = true;
-                            addConsoleLog('error', `Max reconnect attempts reached, using fallback`);
-                            this.startFallback();
-                        } else {
-                            this.updateStatus('reconnect', 'RECONNECTING');
-                            addConsoleLog('event', `WebSocket closed, reconnecting (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
-                            this.scheduleReconnect();
-                        }
+                    if (!this.isReloading && !this.isManualDisconnect) {
+                        this.updateStatus('reconnect', 'RECONNECTING');
+                        addConsoleLog('event', `WebSocket closed, reconnecting...`);
+                        this.scheduleReconnect();
                     }
                 };
                 
-                this.ws.onerror = () => {
-                    if (!isReloading && !this.isManualDisconnect) {
+                this.ws.onerror = (e) => {
+                    if (!this.isReloading && !this.isManualDisconnect) {
                         this.updateStatus('reconnect', 'ERROR');
+                        this.onError('websocket_error', e);
+                        addConsoleLog('error', `WebSocket error`);
                     }
                 };
                 
@@ -737,7 +546,10 @@
             }
             if (this.ws) {
                 try {
-                    this.ws.onopen = this.ws.onmessage = this.ws.onclose = this.ws.onerror = null;
+                    this.ws.onopen = null;
+                    this.ws.onmessage = null;
+                    this.ws.onclose = null;
+                    this.ws.onerror = null;
                     if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
                         this.ws.close();
                     }
@@ -752,10 +564,17 @@
             setTimeout(() => { this.isManualDisconnect = false; }, 100);
         }
         
+        updateSymbol(pair, timeframe) {
+            this.pair = pair;
+            this.timeframe = timeframe;
+            this.disconnect();
+            this.connect();
+        }
+        
         scheduleReconnect() {
             if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
             this.reconnectTimer = setTimeout(() => {
-                if (!isReloading && !this.isManualDisconnect) {
+                if (!this.isReloading && !this.isManualDisconnect) {
                     this.reconnectDelay = Math.min(this.reconnectDelay * 1.5, 30000);
                     this.connect();
                 }
@@ -807,8 +626,21 @@
         
         updateStatus(status, message) {
             this.onStatus(status, message);
-            if (status === 'live') this.stopFallback();
-            else if (status === 'fallback') this.startFallback();
+            
+            if (status === 'live') {
+                this.stopFallback();
+            } else if (status === 'fallback') {
+                this.startFallback();
+            }
+        }
+        
+        checkStale() {
+            if (Date.now() - this.lastPriceUpdateTime > 15000 && this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.updateStatus('stale', 'STALE');
+                addConsoleLog('error', `Data stale - no updates`);
+                return true;
+            }
+            return false;
         }
     }
     
@@ -836,11 +668,7 @@
         const c = document.getElementById('console-f12');
         let h = '';
         consoleLogs.slice(-6).forEach(l => {
-            let cls = '';
-            if (l.message.includes('BULLISH')) cls = 'bullish';
-            else if (l.message.includes('BEARISH')) cls = 'bearish';
-            else if (l.type === 'smc' && l.message.includes('FVG')) cls = 'fvg';
-            else if (l.type === 'smc' && l.message.includes('OB')) cls = 'ob';
+            const cls = l.message.includes('BULLISH') ? 'bullish' : (l.message.includes('BEARISH') ? 'bearish' : (l.type === 'smc' ? 'fvg' : ''));
             h += `<div class="console-line" onclick="copyConsoleLine(this)"><span class="console-prompt">></span><span class="console-output ${cls}">[${l.time}] ${l.message}</span></div>`;
         });
         c.innerHTML = h || '<div class="console-line"><span class="console-prompt">></span><span class="console-output">Waiting for data...</span></div>';
@@ -934,23 +762,6 @@
         return { pivot: pv, r1: 2 * pv - l, r2: pv + (h - l), s1: 2 * pv - h, s2: pv - (h - l) }; 
     }
     
-    function updatePivotFVGStyle(hasActiveFVG) {
-        const pivotRow = document.getElementById('pivot-row');
-        const pivotLabel = document.getElementById('pivot-label');
-        const pivotValue = document.getElementById('pivot-value');
-        if (!pivotRow) return;
-        
-        if (hasActiveFVG) {
-            pivotRow.classList.add('fvg-active');
-            if (pivotLabel) pivotLabel.classList.add('fvg-active-label');
-            if (pivotValue) pivotValue.classList.add('fvg-active-value');
-        } else {
-            pivotRow.classList.remove('fvg-active');
-            if (pivotLabel) pivotLabel.classList.remove('fvg-active-label');
-            if (pivotValue) pivotValue.classList.remove('fvg-active-value');
-        }
-    }
-    
     // ==================== MTF ANALYSIS ====================
     async function fetchMTFBias(pair, tf, key) {
         try {
@@ -974,6 +785,7 @@
     }
     
     async function updateAllMTF() {
+        addConsoleLog('event', `Fetching MTF data...`);
         await Promise.all([
             fetchMTFBias(currentPair, '4h', 'h4'),
             fetchMTFBias(currentPair, '1h', 'h1'),
@@ -982,39 +794,30 @@
             fetchMTFBias(currentPair, '5m', 'm5')
         ]);
         updateMTFUI();
+        addConsoleLog('event', `MTF data updated`);
     }
     
     function updateMTFUI() {
         const tfMap = { '4h': 'h4', '1h': 'h1', '30m': 'm30', '15m': 'm15', '5m': 'm5' };
         let aligned = 0, conflict = 0;
-        
         document.querySelectorAll('.tf-btn').forEach(btn => {
             const tf = btn.dataset.tf;
             const key = tfMap[tf];
             const cached = mtfCache[key];
             if (!cached) return;
-            
             const symbolSpan = btn.querySelector('.tf-bias-symbol');
             if (symbolSpan) {
                 symbolSpan.textContent = MTF_SYMBOLS[cached.bias] || '●';
                 symbolSpan.className = `tf-bias-symbol ${cached.bias.toLowerCase()}`;
                 if (cached.strength > 60) symbolSpan.classList.add('strong');
             }
-            
             btn.setAttribute('data-mtf-info', `${tf}: ${cached.bias} (${Math.round(cached.strength)}%)`);
             btn.classList.remove('aligned', 'conflict');
-            
             if (engine.bias !== 'NEUTRAL') {
-                if (cached.bias === engine.bias) { 
-                    btn.classList.add('aligned'); 
-                    aligned++; 
-                } else if (cached.bias !== 'NEUTRAL') { 
-                    btn.classList.add('conflict'); 
-                    conflict++; 
-                }
+                if (cached.bias === engine.bias) { btn.classList.add('aligned'); aligned++; }
+                else if (cached.bias !== 'NEUTRAL') { btn.classList.add('conflict'); conflict++; }
             }
         });
-        
         const mtfSummary = document.getElementById('mtf-summary');
         if (mtfSummary) {
             mtfSummary.textContent = `MTF: ${aligned}/5`;
@@ -1022,45 +825,7 @@
         }
     }
     
-    // ==================== DECISION ENGINE (BUG FIXED) ====================
-    function calculateSLTP(price, bias, levels, atr, cfg) {
-        let eL, eH, sl, tp1, tp2;
-        const slBuffer = price * cfg.slBufferPct;
-        
-        if (bias === 'BULLISH') {
-            eL = levels.pivot;
-            eH = levels.r1;
-            sl = levels.s1 - slBuffer;
-            const riskAmount = eL - sl;
-            tp1 = eL + (riskAmount * cfg.tp1Ratio);
-            tp2 = eL + (riskAmount * cfg.tp2Ratio);
-            
-            // Validasi: TP1 tidak boleh > R2
-            if (tp1 > levels.r2) tp1 = levels.r2 * 0.99;
-            // Validasi: TP2 harus > TP1
-            if (tp2 <= tp1) tp2 = tp1 * 1.02;
-            
-        } else if (bias === 'BEARISH') {
-            eH = levels.pivot;
-            eL = levels.s1;
-            sl = levels.r1 + slBuffer;
-            const riskAmount = sl - eH;
-            tp1 = eH - (riskAmount * cfg.tp1Ratio);
-            tp2 = eH - (riskAmount * cfg.tp2Ratio);
-            
-            // Validasi: TP1 tidak boleh < S2
-            if (tp1 < levels.s2) tp1 = levels.s2 * 1.01;
-            // Validasi: TP2 harus < TP1 (karena BEARISH)
-            if (tp2 >= tp1) tp2 = tp1 * 0.98;
-            
-        } else {
-            eL = eH = price;
-            sl = tp1 = tp2 = price;
-        }
-        
-        return { eL, eH, sl, tp1, tp2 };
-    }
-    
+    // ==================== DECISION ENGINE ====================
     function updateDecision() {
         const arr = candleBuffer;
         if (arr.length < 30) return;
@@ -1074,74 +839,39 @@
         const atr = calculateATR(arr, cfg.atrPeriod);
         const levels = calculateTCLevels(arr, cfg);
         
-        // SMC DETECTION
-        smcEngine.detectFVG(arr);
-        smcEngine.detectOrderBlocks(arr, levels.pivot, p);
-        smcEngine.checkMitigation(p);
-        
-        const { isHighProb, reason, fvgActive, obActive } = smcEngine.isInHighProbZone('NEUTRAL', p);
-        const smcStatus = smcEngine.getStatusText();
-        
-        document.getElementById('fvg-status').textContent = smcStatus.fvgText;
-        document.getElementById('ob-status').textContent = smcStatus.obText;
-        updatePivotFVGStyle(fvgActive);
-        
-        // Bias & Strength (DIPERBAIKI - cek MA dan DI)
         let bias = 'NEUTRAL', strength = 50;
+        if (p > levels.pivot) { bias = 'BULLISH'; strength += 25; }
+        else if (p < levels.pivot) { bias = 'BEARISH'; strength += 25; }
         
-        // Cek Pivot
-        if (p > levels.pivot) bias = 'BULLISH';
-        else if (p < levels.pivot) bias = 'BEARISH';
-        
-        // Cek MA (konfirmasi)
-        const maBullish = p > ma20 && ma20 > ma50;
-        const maBearish = p < ma20 && ma20 < ma50;
-        
-        // Cek ADX/DI (konfirmasi)
-        const diBullish = adx.plusDI > adx.minusDI;
-        const diBearish = adx.minusDI > adx.plusDI;
-        
-        // Koreksi bias jika kontradiksi
-        if (bias === 'BULLISH' && maBearish && diBearish) {
-            bias = 'NEUTRAL';
-            strength -= 20;
-        } else if (bias === 'BEARISH' && maBullish && diBullish) {
-            bias = 'NEUTRAL';
-            strength -= 20;
+        if (adx.adx >= cfg.adxThreshold) {
+            strength += 15;
+            if (bias === 'BULLISH' && adx.plusDI > adx.minusDI) strength += 10;
+            else if (bias === 'BEARISH' && adx.minusDI > adx.plusDI) strength += 10;
         }
-        
-        // Tambah strength berdasarkan konfirmasi
-        if (bias === 'BULLISH') {
-            strength += 25;
-            if (maBullish) strength += 10;
-            if (diBullish) strength += 10;
-        } else if (bias === 'BEARISH') {
-            strength += 25;
-            if (maBearish) strength += 10;
-            if (diBearish) strength += 10;
-        }
-        
-        if (adx.adx >= cfg.adxThreshold) strength += 15;
         
         if (bias === 'BULLISH' && rsi > 40 && rsi < 70) strength += 10;
         else if (bias === 'BEARISH' && rsi > 30 && rsi < 60) strength += 10;
         else if ((bias === 'BULLISH' && rsi > 70) || (bias === 'BEARISH' && rsi < 30)) strength -= 15;
         
-        // SMC Adjustment
-        const { isHighProb: smcConfirm, reason: smcReason } = smcEngine.isInHighProbZone(bias, p);
-        if (smcConfirm) {
-            strength += 15;
-        } else if (bias !== 'NEUTRAL') {
-            strength -= 10;
-        }
-        
-        // Batasi strength maksimum 95%
-        strength = Math.min(95, Math.max(0, strength));
+        strength = Math.min(100, Math.max(0, strength));
         engine.bias = bias;
         engine.strength = strength;
         
-        // SL/TP dengan fungsi yang sudah diperbaiki
-        const { eL, eH, sl, tp1, tp2 } = calculateSLTP(p, bias, levels, atr, cfg);
+        let eL = levels.pivot, eH = levels.r1, sl = levels.s1, tp1 = levels.r1, tp2 = levels.r2;
+        const slBuffer = p * cfg.slBufferPct;
+        if (bias === 'BULLISH') {
+            eL = levels.pivot; eH = levels.r1;
+            sl = levels.s1 - slBuffer;
+            const riskAmount = eL - sl;
+            tp1 = eL + riskAmount * cfg.tp1Ratio;
+            tp2 = eL + riskAmount * cfg.tp2Ratio;
+        } else if (bias === 'BEARISH') {
+            eH = levels.pivot; eL = levels.s1;
+            sl = levels.r1 + slBuffer;
+            const riskAmount = sl - eH;
+            tp1 = eH - riskAmount * cfg.tp1Ratio;
+            tp2 = eH - riskAmount * cfg.tp2Ratio;
+        }
         
         // Update UI
         document.getElementById('r2-value').textContent = levels.r2.toFixed(prec);
@@ -1181,28 +911,15 @@
         const risk = bias === 'BULLISH' ? Math.abs(eL - sl) : Math.abs(sl - eH);
         document.getElementById('risk-display').textContent = risk.toFixed(prec);
         
-        // Signal
         let dt = 'WAITING', col = 'var(--text-tertiary)', bg = 'var(--bg-secondary)', conf = 'LOW', confClass = 'low';
-        
-        if (adx.adx < 15) { 
-            dt = 'SIDEWAYS'; 
-            col = 'var(--warning)'; 
-            bg = 'rgba(227,179,65,0.1)'; 
-        } else if (bias !== 'NEUTRAL' && strength >= 50) {
-            if (smcConfirm) {
-                dt = `${bias} TREND (${smcReason})`;
-            } else {
-                dt = `${bias} TREND`;
-            }
+        if (adx.adx < 15) { dt = 'SIDEWAYS'; col = 'var(--warning)'; bg = 'rgba(227,179,65,0.1)'; conf = 'LOW'; }
+        else if (bias !== 'NEUTRAL' && strength >= 50) {
+            dt = `${bias} TREND`;
             col = bias === 'BULLISH' ? 'var(--accent-green)' : 'var(--accent-red)';
             bg = bias === 'BULLISH' ? 'rgba(63,185,80,0.12)' : 'rgba(248,81,73,0.12)';
             conf = strength >= 70 ? 'HIGH' : 'MEDIUM';
             confClass = conf.toLowerCase();
-        } else if (bias !== 'NEUTRAL') { 
-            dt = `WEAK ${bias}`; 
-            col = 'var(--accent-gold)'; 
-            bg = 'rgba(227,179,65,0.08)'; 
-        }
+        } else if (bias !== 'NEUTRAL') { dt = `WEAK ${bias}`; col = 'var(--accent-gold)'; bg = 'rgba(227,179,65,0.08)'; }
         
         const decision = document.getElementById('decision-status');
         decision.textContent = dt; decision.style.color = col;
@@ -1243,13 +960,13 @@
         if (bias !== 'NEUTRAL' && strength >= 50) {
             const hash = `${bias}_${strength}_${dt}`;
             if (!window.lastSignalHash || window.lastSignalHash !== hash) {
-                addConsoleLog('signal', `${dt} (${strength}%) | P:${levels.pivot.toFixed(prec)}`);
+                addConsoleLog('signal', `${bias} ${dt} (${strength}%) | P:${levels.pivot.toFixed(prec)}`);
                 window.lastSignalHash = hash;
             }
         }
     }
     
-    // ==================== PRICE UPDATE ====================
+    // ==================== PRICE UPDATE HANDLER ====================
     function handlePriceUpdate(price, kline) {
         const prec = getPrecision();
         const f = price.toFixed(prec);
@@ -1266,6 +983,7 @@
             changeEl.style.color = ch > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
         }
         
+        // Update candle buffer jika ada data kline
         if (kline) {
             if (candleBuffer.length > 0) {
                 const last = candleBuffer[candleBuffer.length - 1];
@@ -1285,6 +1003,7 @@
         updateDecision();
     }
     
+    // ==================== STATUS UPDATE HANDLER ====================
     function handleStatusUpdate(status, message) {
         const dot = document.getElementById('status-dot');
         const text = document.getElementById('status-text');
@@ -1303,22 +1022,29 @@
                 const latest = candleBuffer[candleBuffer.length-1];
                 lastPrice = prevPrice = latest.c;
                 handlePriceUpdate(lastPrice, null);
-                addConsoleLog('event', `Klines loaded: ${currentPair} ${currentTF}`);
+                addConsoleLog('event', `Klines loaded: ${currentPair} ${currentTF} (${candleBuffer.length})`);
                 return true;
             }
-        } catch(e) {}
+        } catch(e) {
+            addConsoleLog('error', `Fetch klines failed`);
+        }
         return false;
     }
     
     function initWebSocketManager() {
-        if (wsManager) wsManager.disconnect();
+        if (wsManager) {
+            wsManager.disconnect();
+        }
+        
         wsManager = new WebSocketManager({
             pair: currentPair,
             timeframe: currentTF,
             onPrice: handlePriceUpdate,
             onStatus: handleStatusUpdate,
-            onError: () => {}
+            onCandle: (candle, isClosed) => {},
+            onError: (type, error) => {}
         });
+        
         wsManager.connect();
     }
     
@@ -1327,12 +1053,10 @@
         isReloading = true;
         
         if (wsManager) {
-            wsManager.isManualDisconnect = true;
+            wsManager.isReloading = true;
             wsManager.disconnect();
+            wsManager.isReloading = false;
         }
-        
-        smcEngine.fvgs = [];
-        smcEngine.orderBlocks = [];
         
         addConsoleLog('event', `Reloading: ${currentPair} ${currentTF}`);
         document.querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('active', b.dataset.pair === currentPair));
@@ -1354,7 +1078,7 @@
     });
     
     document.getElementById('copySetupBtn').onclick = () => {
-        const txt = `=== URA v3.4 ===\nPair: ${currentPair} | TF: ${currentTF}\nPrice: ${lastPrice.toFixed(getPrecision())}\nBias: ${engine.bias} (${engine.strength}%)\nPivot: ${document.getElementById('pivot-value').textContent}\nSMC: ${document.getElementById('fvg-status').textContent} | ${document.getElementById('ob-status').textContent}\nEntry: ${document.getElementById('entry-low').textContent} - ${document.getElementById('entry-high').textContent}\nSL: ${document.getElementById('sl-display').textContent}\nTP1: ${document.getElementById('tp1-display').textContent} | TP2: ${document.getElementById('tp2-display').textContent}`;
+        const txt = `=== URA v3.2 ===\nPair: ${currentPair} | TF: ${currentTF}\nPrice: ${lastPrice.toFixed(getPrecision())}\nBias: ${engine.bias} (${engine.strength}%)\nPivot: ${document.getElementById('pivot-value').textContent}\nEntry: ${document.getElementById('entry-low').textContent} - ${document.getElementById('entry-high').textContent}\nSL: ${document.getElementById('sl-display').textContent}\nTP1: ${document.getElementById('tp1-display').textContent} | TP2: ${document.getElementById('tp2-display').textContent}`;
         navigator.clipboard?.writeText(txt);
         addConsoleLog('copy', `Trade setup copied`);
     };
@@ -1365,6 +1089,7 @@
         addConsoleLog('event', `Theme changed to ${newTheme}`);
     };
     
+    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         const key = e.key.toLowerCase();
         if (key === 'p') { document.querySelector('[data-pair]:not(.active)')?.click(); e.preventDefault(); }
@@ -1378,6 +1103,7 @@
         if (key === 'c') { document.getElementById('copySetupBtn').click(); e.preventDefault(); }
     });
     
+    // Clock
     setInterval(() => {
         const n = new Date();
         document.getElementById('clock-display').textContent = n.toLocaleTimeString('id-ID');
@@ -1386,12 +1112,22 @@
         document.getElementById('session-tag').textContent = h >= 7 && h < 14 ? 'ASIA' : (h >= 14 && h < 20 ? 'LONDON' : 'NY');
     }, 1000);
     
+    // Stale detection
+    setInterval(() => {
+        if (wsManager) {
+            wsManager.checkStale();
+        }
+    }, 5000);
+    
+    // MTF refresh
     setInterval(() => { if (!isReloading) updateAllMTF(); }, 60000);
     
+    // Load saved theme
     const savedTheme = localStorage.getItem('ura_theme') || 'dark';
     applyTheme(savedTheme);
     
-    addConsoleLog('event', 'URA v3.4 BUG FIX - All Systems Go');
+    // START
+    addConsoleLog('event', 'URA v3.2 STABLE CONNECTION - Initializing');
     fullReload();
     
 })();
