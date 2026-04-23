@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v3.2 – STABLE CONNECTION</title>
+    <title>URA v3.2 – STABLE (TC LOGIC)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -287,7 +287,7 @@
     <!-- HEADER -->
     <header class="header">
         <div class="logo-section">
-            <span class="logo">URA · TC LOGIC</span>
+            <span class="logo">URA · ADVISOR</span>
             <span class="version-tag">v3.2</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -421,7 +421,7 @@
 (function() {
     'use strict';
     
-    // ==================== CONFIGURATION ====================
+    // ==================== KONFIGURASI ====================
     const PAIR_CONFIG = {
         XAUUSDT: { adxThreshold: 20, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, maFast: 20, maSlow: 50, pivotLookback: 20, levelBufferPct: 0.0015, breakoutConfirmPct: 0.002, slBufferPct: 0.003, tp1Ratio: 1.5, tp2Ratio: 2.5 },
         BTCUSDT: { adxThreshold: 18, rsiOverbought: 70, rsiOversold: 30, atrPeriod: 14, maFast: 20, maSlow: 50, pivotLookback: 20, levelBufferPct: 0.002, breakoutConfirmPct: 0.0025, slBufferPct: 0.004, tp1Ratio: 1.5, tp2Ratio: 2.5 }
@@ -429,18 +429,37 @@
     
     const THEMES = {
         dark: { name: 'DARK', icon: '🌙', variables: { '--bg-primary': '#0D1117', '--bg-secondary': '#161B22', '--bg-tertiary': '#21262D', '--border-subtle': '#30363D', '--text-primary': '#E6EDF3', '--text-secondary': '#8B949E', '--text-tertiary': '#6E7681', '--accent-green': '#3FB950', '--accent-red': '#F85149', '--accent-blue': '#58A6FF', '--accent-gold': '#E3B341', '--accent-cyan': '#56D4DD', '--accent-purple': '#A371F7', '--accent-orange': '#F0883E', '--success': '#3FB950', '--warning': '#E3B341', '--danger': '#F85149', '--silver-line': '#30363D' } },
-        light: { name: 'LIGHT', icon: '☀️', variables: { '--bg-primary': '#FFFFFF', '--bg-secondary': '#F6F8FA', '--bg-tertiary': '#EBECF0', '--border-subtle': '#D0D7DE', '--text-primary': '#1F2328', '--text-secondary': '#656D76', '--text-tertiary': '#8B949E', '--accent-green': '#1A7F37', '--accent-red': '#CF222E', '--accent-blue': '#0969DA', '--accent-gold': '#9A6700', '--accent-cyan': '#1B7C83', '--accent-purple': '#8E44AD', '--accent-orange': '#D2691E', '--success': '#1A7F37', '--warning': '#9A6700', '--danger': '#CF222E', '--silver-line': '#D0D7DE' } }
+        light: { name: 'LIGHT', icon: '☀️', variables: { '--bg-primary': '#FFFFFF', '--bg-secondary': '#F6F8FA', '--bg-tertiary': '#EBECF0', '--border-subtle': '#D0D7DE', '--text-primary': '#1F2328', '--text-secondary': '#656D76', '--text-tertiary': '#8B949E', '--accent-green': '#1A7F37', '--accent-red': '#CF222E', '--accent-blue': '#0969DA', '--accent-gold': '#9A6700', '--accent-cyan': '#1B7C83', '--accent-purple': '#8E44AD', '--accent-orange': '#D2691E', '--success': '#1A7F37', '--warning': '#9A6700', '--danger': '#8B0000', '--silver-line': '#D0D7DE' } }
     };
     
     // ==================== GLOBAL STATE ====================
     let currentTheme = 'dark';
     let currentPair = 'XAUUSDT';
     let currentTF = '30m';
-    let candleBuffer = [];
-    const MAX_CANDLES = 200;
+    
+    // Candle buffer (CircularBuffer dari skrip 1)
+    class CircularBuffer {
+        constructor(maxSize) { this.maxSize = maxSize; this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap = new Map(); }
+        push(item) {
+            if (this.timestampMap.has(item.t)) { this.data[this.timestampMap.get(item.t)] = item; return; }
+            if (this.length < this.maxSize) { this.data.push(item); this.timestampMap.set(item.t, this.length); this.length++; this.end = this.length; }
+            else { const old = this.data[this.start]; if (old) this.timestampMap.delete(old.t); this.data[this.start] = item; this.timestampMap.set(item.t, this.start); this.start = (this.start + 1) % this.maxSize; this.end = (this.end + 1) % this.maxSize; }
+        }
+        getLatest() { if (this.length === 0) return null; return this.data[(this.end - 1 + this.maxSize) % this.maxSize]; }
+        toArray() { if (this.length === 0) return []; const r = []; for (let i = 0; i < this.length; i++) r.push(this.data[(this.start + i) % this.maxSize]); return r; }
+        clear() { this.data = []; this.start = 0; this.end = 0; this.length = 0; this.timestampMap.clear(); }
+    }
+    
+    let candleBuffer = new CircularBuffer(200);
+    let cachedCandleArray = null;
+    let lastCacheTime = 0;
+    function getCandleArray() { const now = Date.now(); if (!cachedCandleArray || (now - lastCacheTime) > 500) { cachedCandleArray = candleBuffer.toArray(); lastCacheTime = now; } return cachedCandleArray; }
+    function invalidateCandleCache() { cachedCandleArray = null; }
+    
     let lastPrice = 0, prevPrice = 0;
     let engine = { bias: 'NEUTRAL', strength: 0 };
     let isReloading = false;
+    let reloadQueue = false;
     
     // MTF Cache
     const mtfCache = { h4: { bias: 'NEUTRAL', strength: 0 }, h1: { bias: 'NEUTRAL', strength: 0 }, m30: { bias: 'NEUTRAL', strength: 0 }, m15: { bias: 'NEUTRAL', strength: 0 }, m5: { bias: 'NEUTRAL', strength: 0 } };
@@ -450,201 +469,153 @@
     let consoleLogs = [];
     const MAX_LOGS = 50;
     
-    // ==================== WEBSOCKET MANAGER (STABLE) ====================
-    let wsManager = null;
+    // ==================== WEBSOCKET (DARI SKRIP 1) ====================
+    let wsConnection = null;
+    let reconnectDelay = 1000;
+    let reconnectTimer = null;
+    let heartbeatInterval = null;
+    let stuckCheckInterval = null;
+    let restFallbackInterval = null;
+    let isManualDisconnect = false;
+    let isUsingFallback = false;
+    let isDataStale = false;
+    let lastWSMessageTime = 0;
+    let lastPriceUpdateTime = 0;
     
-    class WebSocketManager {
-        constructor(options) {
-            this.pair = options.pair;
-            this.timeframe = options.timeframe;
-            this.onPrice = options.onPrice;
-            this.onStatus = options.onStatus;
-            this.onCandle = options.onCandle;
-            this.onError = options.onError;
-            
-            this.ws = null;
-            this.isManualDisconnect = false;
-            this.isUsingFallback = false;
-            this.isDataStale = false;
-            this.lastPriceUpdateTime = 0;
-            this.lastWSMessageTime = 0;
-            this.reconnectDelay = 1000;
-            this.reconnectTimer = null;
-            this.heartbeatTimer = null;
-            this.fallbackTimer = null;
-        }
-        
-        connect() {
-            this.cleanup();
-            this.updateStatus('connecting', 'CONNECTING');
-            addConsoleLog('event', `WebSocket connecting to ${this.pair} ${this.timeframe}...`);
-            
+    function updateWSStatus(status, message) {
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        if (!dot || !text) return;
+        dot.className = `status-dot ${status}`;
+        text.innerText = message;
+        if (status === 'live') { isUsingFallback = false; isDataStale = false; reconnectDelay = 1000; }
+        else if (status === 'fallback') { isUsingFallback = true; }
+        else if (status === 'stale') { isDataStale = true; }
+    }
+    
+    function cleanupWebSocket() {
+        if (wsConnection) {
+            isManualDisconnect = true;
             try {
-                const url = `wss://fstream.binance.com/ws/${this.pair.toLowerCase()}@kline_${this.timeframe}`;
-                this.ws = new WebSocket(url);
-                
-                this.ws.onopen = () => {
-                    this.reconnectDelay = 1000;
-                    this.lastWSMessageTime = Date.now();
-                    this.lastPriceUpdateTime = Date.now();
-                    this.isUsingFallback = false;
-                    this.isDataStale = false;
-                    this.updateStatus('live', `LIVE ${this.timeframe}`);
-                    addConsoleLog('event', `WebSocket connected`);
-                    this.startHeartbeat();
-                    this.stopFallback();
-                };
-                
-                this.ws.onmessage = (event) => {
-                    try {
-                        const msg = JSON.parse(event.data);
-                        if (msg?.k) {
-                            const k = msg.k;
-                            const price = +k.c;
-                            if (price > 0) {
-                                this.lastWSMessageTime = Date.now();
-                                this.lastPriceUpdateTime = Date.now();
-                                this.onPrice(price, k);
-                            }
-                        }
-                    } catch (e) {
-                        this.onError('parse_error', e);
-                    }
-                };
-                
-                this.ws.onclose = () => {
-                    this.stopHeartbeat();
-                    if (!this.isReloading && !this.isManualDisconnect) {
-                        this.updateStatus('reconnect', 'RECONNECTING');
-                        addConsoleLog('event', `WebSocket closed, reconnecting...`);
-                        this.scheduleReconnect();
-                    }
-                };
-                
-                this.ws.onerror = (e) => {
-                    if (!this.isReloading && !this.isManualDisconnect) {
-                        this.updateStatus('reconnect', 'ERROR');
-                        this.onError('websocket_error', e);
-                        addConsoleLog('error', `WebSocket error`);
-                    }
-                };
-                
-            } catch (e) {
-                this.updateStatus('fallback', 'FALLBACK');
-                this.isUsingFallback = true;
-                addConsoleLog('error', `WebSocket init failed, using fallback`);
-                this.startFallback();
-            }
+                wsConnection.onopen = wsConnection.onmessage = wsConnection.onclose = wsConnection.onerror = null;
+                if (wsConnection.readyState === WebSocket.OPEN || wsConnection.readyState === WebSocket.CONNECTING) wsConnection.close();
+            } catch(e) {}
+            wsConnection = null;
         }
-        
-        cleanup() {
-            this.stopHeartbeat();
-            this.stopFallback();
-            if (this.reconnectTimer) {
-                clearTimeout(this.reconnectTimer);
-                this.reconnectTimer = null;
-            }
-            if (this.ws) {
-                try {
-                    this.ws.onopen = null;
-                    this.ws.onmessage = null;
-                    this.ws.onclose = null;
-                    this.ws.onerror = null;
-                    if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
-                        this.ws.close();
-                    }
-                } catch (e) {}
-                this.ws = null;
-            }
-        }
-        
-        disconnect() {
-            this.isManualDisconnect = true;
-            this.cleanup();
-            setTimeout(() => { this.isManualDisconnect = false; }, 100);
-        }
-        
-        updateSymbol(pair, timeframe) {
-            this.pair = pair;
-            this.timeframe = timeframe;
-            this.disconnect();
-            this.connect();
-        }
-        
-        scheduleReconnect() {
-            if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-            this.reconnectTimer = setTimeout(() => {
-                if (!this.isReloading && !this.isManualDisconnect) {
-                    this.reconnectDelay = Math.min(this.reconnectDelay * 1.5, 30000);
-                    this.connect();
+        setTimeout(() => { isManualDisconnect = false; }, 100);
+    }
+    
+    async function fetchPriceREST() {
+        try {
+            const resp = await fetch(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${currentPair}`);
+            const data = await resp.json();
+            if (data?.price) {
+                const price = parseFloat(data.price);
+                if (price > 0 && (Date.now() - lastWSMessageTime > 3000 || isUsingFallback)) {
+                    lastPriceUpdateTime = Date.now();
+                    handlePriceUpdate(price, null);
                 }
-            }, this.reconnectDelay);
-        }
-        
-        startHeartbeat() {
-            this.stopHeartbeat();
-            this.heartbeatTimer = setInterval(() => {
-                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                    try { this.ws.send(JSON.stringify({ method: 'ping' })); } catch (e) {}
+            }
+        } catch(e) {}
+    }
+    
+    async function fetchKlines() {
+        try {
+            const resp = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=200`);
+            const data = await resp.json();
+            if (Array.isArray(data)) {
+                candleBuffer.clear();
+                data.forEach(d => {
+                    candleBuffer.push({ t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]), v: parseFloat(d[5]) });
+                });
+                invalidateCandleCache();
+                if (candleBuffer.length > 0) {
+                    const latest = candleBuffer.getLatest();
+                    lastPrice = prevPrice = latest.c;
+                    handlePriceUpdate(lastPrice, null);
                 }
-            }, 30000);
-        }
-        
-        stopHeartbeat() {
-            if (this.heartbeatTimer) {
-                clearInterval(this.heartbeatTimer);
-                this.heartbeatTimer = null;
-            }
-        }
-        
-        async fetchPriceREST() {
-            try {
-                const url = `https://fapi.binance.com/fapi/v1/ticker/price?symbol=${this.pair}`;
-                const resp = await fetch(url);
-                const data = await resp.json();
-                if (data?.price) {
-                    const price = +data.price;
-                    if (price > 0 && (Date.now() - this.lastWSMessageTime > 3000 || this.isUsingFallback)) {
-                        this.lastPriceUpdateTime = Date.now();
-                        this.onPrice(price, null);
-                    }
-                }
-            } catch (e) {}
-        }
-        
-        startFallback() {
-            this.stopFallback();
-            this.fallbackTimer = setInterval(() => this.fetchPriceREST(), 5000);
-        }
-        
-        stopFallback() {
-            if (this.fallbackTimer) {
-                clearInterval(this.fallbackTimer);
-                this.fallbackTimer = null;
-            }
-        }
-        
-        updateStatus(status, message) {
-            this.onStatus(status, message);
-            
-            if (status === 'live') {
-                this.stopFallback();
-            } else if (status === 'fallback') {
-                this.startFallback();
-            }
-        }
-        
-        checkStale() {
-            if (Date.now() - this.lastPriceUpdateTime > 15000 && this.ws && this.ws.readyState === WebSocket.OPEN) {
-                this.updateStatus('stale', 'STALE');
-                addConsoleLog('error', `Data stale - no updates`);
+                addConsoleLog('event', `Klines loaded: ${currentPair} ${currentTF} (${candleBuffer.length} candles)`);
                 return true;
             }
-            return false;
+        } catch(e) { addConsoleLog('error', `Fetch klines failed: ${e.message}`); }
+        return false;
+    }
+    
+    function initWebSocket() {
+        cleanupWebSocket();
+        updateWSStatus('connecting', 'CONNECTING');
+        
+        const streamName = `${currentPair.toLowerCase()}@kline_${currentTF}`;
+        try {
+            wsConnection = new WebSocket(`wss://fstream.binance.com/ws/${streamName}`);
+            
+            wsConnection.onopen = () => {
+                reconnectDelay = 1000;
+                lastWSMessageTime = lastPriceUpdateTime = Date.now();
+                isUsingFallback = false;
+                isDataStale = false;
+                updateWSStatus('live', `LIVE ${currentTF}`);
+                addConsoleLog('event', `WebSocket connected: ${currentPair} ${currentTF}`);
+            };
+            
+            wsConnection.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    if (msg?.k) {
+                        const k = msg.k;
+                        const price = parseFloat(k.c);
+                        if (price > 0) {
+                            lastWSMessageTime = lastPriceUpdateTime = Date.now();
+                            if (isUsingFallback) updateWSStatus('live', `LIVE ${currentTF}`);
+                            if (isDataStale) updateWSStatus('live', `LIVE ${currentTF}`);
+                            
+                            const candleArray = getCandleArray();
+                            if (candleArray.length > 0) {
+                                const lastCandle = candleArray[candleArray.length - 1];
+                                if (k.x && lastCandle.t !== k.t) {
+                                    candleBuffer.push({ t: k.t, o: parseFloat(k.o), h: parseFloat(k.h), l: parseFloat(k.l), c: price, v: parseFloat(k.v) });
+                                    invalidateCandleCache();
+                                } else if (!k.x && lastCandle.t === k.t) {
+                                    lastCandle.c = price;
+                                    lastCandle.h = Math.max(lastCandle.h, parseFloat(k.h));
+                                    lastCandle.l = Math.min(lastCandle.l, parseFloat(k.l));
+                                    invalidateCandleCache();
+                                }
+                            }
+                            handlePriceUpdate(price, k);
+                        }
+                    }
+                } catch(err) {}
+            };
+            
+            wsConnection.onclose = () => {
+                if (!isReloading && !isManualDisconnect) {
+                    updateWSStatus('reconnect', 'RECONNECT');
+                    addConsoleLog('event', 'WebSocket closed, reconnecting...');
+                    if (reconnectTimer) clearTimeout(reconnectTimer);
+                    reconnectTimer = setTimeout(() => {
+                        if (!isReloading && !isManualDisconnect) {
+                            reconnectDelay = Math.min(reconnectDelay * 1.5, 30000);
+                            initWebSocket();
+                        }
+                    }, reconnectDelay);
+                }
+            };
+            
+            wsConnection.onerror = () => {
+                if (!isReloading && !isManualDisconnect) {
+                    updateWSStatus('reconnect', 'ERROR');
+                    addConsoleLog('error', 'WebSocket error');
+                }
+            };
+        } catch(e) {
+            updateWSStatus('fallback', 'FALLBACK');
+            isUsingFallback = true;
+            addConsoleLog('error', 'WebSocket init failed, using fallback');
         }
     }
     
-    // ==================== UTILITY FUNCTIONS ====================
+    // ==================== UTILITY ====================
     function getPrecision() { return currentPair === "XAUUSDT" ? 2 : 1; }
     function getConfig() { return PAIR_CONFIG[currentPair]; }
     
@@ -691,76 +662,11 @@
     };
     
     // ==================== TECHNICAL INDICATORS ====================
-    function calculateMA(data, period) { 
-        if (data.length < period) return 0; 
-        return data.slice(-period).reduce((a,b) => a + b.c, 0) / period; 
-    }
-    
-    function calculateATR(data, period = 14) { 
-        if (data.length < period + 1) return 0; 
-        let tr = []; 
-        for (let i = 1; i < data.length; i++) { 
-            const h = data[i].h, l = data[i].l, pc = data[i-1].c; 
-            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); 
-        } 
-        return tr.slice(-period).reduce((a,b) => a + b, 0) / period; 
-    }
-    
-    function calculateADX(data) { 
-        if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 }; 
-        const period = 14; let tr = [], plusDM = [], minusDM = []; 
-        for (let i = 1; i < data.length; i++) { 
-            const h = data[i].h, l = data[i].l, ph = data[i-1].h, pl = data[i-1].l, pc = data[i-1].c; 
-            tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); 
-            const up = h - ph, down = pl - l; 
-            if (up > down && up > 0) { plusDM.push(up); minusDM.push(0); } 
-            else if (down > up && down > 0) { plusDM.push(0); minusDM.push(down); } 
-            else { plusDM.push(0); minusDM.push(0); } 
-        } 
-        let atr = tr.slice(0, period).reduce((a,b) => a + b, 0); 
-        let pDM = plusDM.slice(0, period).reduce((a,b) => a + b, 0); 
-        let mDM = minusDM.slice(0, period).reduce((a,b) => a + b, 0); 
-        let dx = [], lp = 0, lm = 0; 
-        for (let i = period; i < tr.length; i++) { 
-            atr = (atr * (period - 1) + tr[i]) / period; 
-            pDM = (pDM * (period - 1) + plusDM[i]) / period; 
-            mDM = (mDM * (period - 1) + minusDM[i]) / period; 
-            lp = atr ? (pDM / atr) * 100 : 0; 
-            lm = atr ? (mDM / atr) * 100 : 0; 
-            dx.push((lp + lm) ? (Math.abs(lp - lm) / (lp + lm)) * 100 : 0); 
-        } 
-        let adx = 15; 
-        if (dx.length >= period) { 
-            let s = dx.slice(0, period).reduce((a,b) => a + b, 0) / period; 
-            for (let i = period; i < dx.length; i++) s = (s * (period - 1) + dx[i]) / period; 
-            adx = s; 
-        } 
-        return { adx: Math.max(5, Math.min(100, adx)), plusDI: lp, minusDI: lm }; 
-    }
-    
-    function computeRSI(data) { 
-        if (data.length < 15) return 50; 
-        const c = data.map(x => x.c); let g = [], l = []; 
-        for (let i = 1; i < c.length; i++) { 
-            const d = c[i] - c[i-1]; 
-            g.push(d > 0 ? d : 0); 
-            l.push(d < 0 ? -d : 0); 
-        } 
-        let ag = g.slice(0, 14).reduce((a,b) => a + b, 0) / 14, al = l.slice(0, 14).reduce((a,b) => a + b, 0) / 14; 
-        for (let i = 14; i < g.length; i++) { 
-            ag = (ag * 13 + g[i]) / 14; 
-            al = (al * 13 + l[i]) / 14; 
-        } 
-        return al === 0 ? 100 : 100 - (100 / (1 + ag / al)); 
-    }
-    
-    function calculateTCLevels(data, cfg) { 
-        if (data.length < cfg.pivotLookback) return { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }; 
-        const rd = data.slice(-cfg.pivotLookback); 
-        const h = Math.max(...rd.map(c => c.h)), l = Math.min(...rd.map(c => c.l)), c = rd[rd.length-1].c; 
-        const pv = (h + l + c) / 3; 
-        return { pivot: pv, r1: 2 * pv - l, r2: pv + (h - l), s1: 2 * pv - h, s2: pv - (h - l) }; 
-    }
+    function calculateMA(data, period) { if (data.length < period) return 0; return data.slice(-period).reduce((a,b) => a + b.c, 0) / period; }
+    function calculateATR(data, period = 14) { if (data.length < period + 1) return 0; let tr = []; for (let i = 1; i < data.length; i++) { const h = data[i].h, l = data[i].l, pc = data[i-1].c; tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); } return tr.slice(-period).reduce((a,b) => a + b, 0) / period; }
+    function calculateADX(data) { if (data.length < 28) return { adx: 15, plusDI: 0, minusDI: 0 }; const period = 14; let tr = [], plusDM = [], minusDM = []; for (let i = 1; i < data.length; i++) { const h = data[i].h, l = data[i].l, ph = data[i-1].h, pl = data[i-1].l, pc = data[i-1].c; tr.push(Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc))); const up = h - ph, down = pl - l; if (up > down && up > 0) { plusDM.push(up); minusDM.push(0); } else if (down > up && down > 0) { plusDM.push(0); minusDM.push(down); } else { plusDM.push(0); minusDM.push(0); } } let atr = tr.slice(0, period).reduce((a,b) => a + b, 0); let pDM = plusDM.slice(0, period).reduce((a,b) => a + b, 0); let mDM = minusDM.slice(0, period).reduce((a,b) => a + b, 0); let dx = [], lp = 0, lm = 0; for (let i = period; i < tr.length; i++) { atr = (atr * (period - 1) + tr[i]) / period; pDM = (pDM * (period - 1) + plusDM[i]) / period; mDM = (mDM * (period - 1) + minusDM[i]) / period; lp = atr ? (pDM / atr) * 100 : 0; lm = atr ? (mDM / atr) * 100 : 0; dx.push((lp + lm) ? (Math.abs(lp - lm) / (lp + lm)) * 100 : 0); } let adx = 15; if (dx.length >= period) { let s = dx.slice(0, period).reduce((a,b) => a + b, 0) / period; for (let i = period; i < dx.length; i++) s = (s * (period - 1) + dx[i]) / period; adx = s; } return { adx: Math.max(5, Math.min(100, adx)), plusDI: lp, minusDI: lm }; }
+    function computeRSI(data) { if (data.length < 15) return 50; const c = data.map(x => x.c); let g = [], l = []; for (let i = 1; i < c.length; i++) { const d = c[i] - c[i-1]; g.push(d > 0 ? d : 0); l.push(d < 0 ? -d : 0); } let ag = g.slice(0, 14).reduce((a,b) => a + b, 0) / 14, al = l.slice(0, 14).reduce((a,b) => a + b, 0) / 14; for (let i = 14; i < g.length; i++) { ag = (ag * 13 + g[i]) / 14; al = (al * 13 + l[i]) / 14; } return al === 0 ? 100 : 100 - (100 / (1 + ag / al)); }
+    function calculateTCLevels(data, cfg) { if (data.length < cfg.pivotLookback) return { pivot: 0, r1: 0, r2: 0, s1: 0, s2: 0 }; const rd = data.slice(-cfg.pivotLookback); const h = Math.max(...rd.map(c => c.h)), l = Math.min(...rd.map(c => c.l)), c = rd[rd.length-1].c; const pv = (h + l + c) / 3; return { pivot: pv, r1: 2 * pv - l, r2: pv + (h - l), s1: 2 * pv - h, s2: pv - (h - l) }; }
     
     // ==================== MTF ANALYSIS ====================
     async function fetchMTFBias(pair, tf, key) {
@@ -827,7 +733,7 @@
     
     // ==================== DECISION ENGINE ====================
     function updateDecision() {
-        const arr = candleBuffer;
+        const arr = getCandleArray();
         if (arr.length < 30) return;
         
         const p = lastPrice, cfg = getConfig(), prec = getPrecision();
@@ -983,90 +889,57 @@
             changeEl.style.color = ch > 0 ? 'var(--accent-green)' : 'var(--accent-red)';
         }
         
-        // Update candle buffer jika ada data kline
-        if (kline) {
-            if (candleBuffer.length > 0) {
-                const last = candleBuffer[candleBuffer.length - 1];
-                if (kline.x) {
-                    candleBuffer.push({ t: kline.t, o: +kline.o, h: +kline.h, l: +kline.l, c: price, v: +kline.v });
-                    if (candleBuffer.length > MAX_CANDLES) candleBuffer.shift();
-                } else if (last.t === kline.t) {
-                    last.c = price;
-                    last.h = Math.max(last.h, +kline.h);
-                    last.l = Math.min(last.l, +kline.l);
-                }
-            }
-        }
-        
         lastPrice = price;
         prevPrice = price;
         updateDecision();
     }
     
-    // ==================== STATUS UPDATE HANDLER ====================
-    function handleStatusUpdate(status, message) {
-        const dot = document.getElementById('status-dot');
-        const text = document.getElementById('status-text');
-        dot.className = `status-dot ${status}`;
-        text.textContent = message;
-    }
-    
-    // ==================== DATA FETCH ====================
-    async function fetchKlines() {
-        try {
-            const url = `https://fapi.binance.com/fapi/v1/klines?symbol=${currentPair}&interval=${currentTF}&limit=200`;
-            const r = await fetch(url);
-            const d = await r.json();
-            if (Array.isArray(d) && d.length > 0) {
-                candleBuffer = d.map(k => ({ t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[5] }));
-                const latest = candleBuffer[candleBuffer.length-1];
-                lastPrice = prevPrice = latest.c;
-                handlePriceUpdate(lastPrice, null);
-                addConsoleLog('event', `Klines loaded: ${currentPair} ${currentTF} (${candleBuffer.length})`);
-                return true;
-            }
-        } catch(e) {
-            addConsoleLog('error', `Fetch klines failed`);
-        }
-        return false;
-    }
-    
-    function initWebSocketManager() {
-        if (wsManager) {
-            wsManager.disconnect();
-        }
-        
-        wsManager = new WebSocketManager({
-            pair: currentPair,
-            timeframe: currentTF,
-            onPrice: handlePriceUpdate,
-            onStatus: handleStatusUpdate,
-            onCandle: (candle, isClosed) => {},
-            onError: (type, error) => {}
-        });
-        
-        wsManager.connect();
-    }
-    
+    // ==================== FULL RELOAD ====================
     async function fullReload() {
-        if (isReloading) return;
+        if (isReloading) { reloadQueue = true; return; }
         isReloading = true;
+        reloadQueue = false;
         
-        if (wsManager) {
-            wsManager.isReloading = true;
-            wsManager.disconnect();
-            wsManager.isReloading = false;
-        }
+        if (heartbeatInterval) clearInterval(heartbeatInterval);
+        if (stuckCheckInterval) clearInterval(stuckCheckInterval);
+        if (restFallbackInterval) clearInterval(restFallbackInterval);
+        
+        cleanupWebSocket();
         
         addConsoleLog('event', `Reloading: ${currentPair} ${currentTF}`);
         document.querySelectorAll('[data-pair]').forEach(b => b.classList.toggle('active', b.dataset.pair === currentPair));
         document.querySelectorAll('.tf-btn').forEach(b => b.classList.toggle('active', b.dataset.tf === currentTF));
         
         await fetchKlines();
-        initWebSocketManager();
+        
+        initWebSocket();
+        
+        heartbeatInterval = setInterval(() => {
+            if (wsConnection?.readyState === WebSocket.OPEN) {
+                try { wsConnection.send(JSON.stringify({ method: "ping" })); } catch(e) {}
+            }
+        }, 30000);
+        
+        stuckCheckInterval = setInterval(() => {
+            const now = Date.now();
+            if (now - lastPriceUpdateTime > 10000 && lastPrice > 0 && !isDataStale) updateWSStatus('stale', 'DATA STALE');
+            else if (isDataStale && now - lastPriceUpdateTime < 5000) updateWSStatus(isUsingFallback ? 'fallback' : 'live', isUsingFallback ? 'FALLBACK' : `LIVE ${currentTF}`);
+            
+            if (wsConnection?.readyState === WebSocket.OPEN && now - lastWSMessageTime > 10000 && !isUsingFallback && !isReloading) {
+                updateWSStatus('fallback', 'FALLBACK');
+                isUsingFallback = true;
+                fetchPriceREST();
+            }
+            
+            if (wsConnection?.readyState !== WebSocket.OPEN && !isReloading && !isManualDisconnect) updateWSStatus('reconnect', 'RECONNECT');
+        }, 5000);
+        
+        restFallbackInterval = setInterval(fetchPriceREST, 5000);
+        
         updateAllMTF();
         
         isReloading = false;
+        if (reloadQueue) setTimeout(() => fullReload(), 100);
     }
     
     // ==================== INITIALIZATION ====================
@@ -1089,45 +962,25 @@
         addConsoleLog('event', `Theme changed to ${newTheme}`);
     };
     
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
-        const key = e.key.toLowerCase();
-        if (key === 'p') { document.querySelector('[data-pair]:not(.active)')?.click(); e.preventDefault(); }
-        if (key === 't') { 
-            const btns = document.querySelectorAll('.tf-btn');
-            const active = document.querySelector('.tf-btn.active');
-            const idx = Array.from(btns).indexOf(active);
-            btns[(idx + 1) % btns.length]?.click();
-            e.preventDefault();
-        }
-        if (key === 'c') { document.getElementById('copySetupBtn').click(); e.preventDefault(); }
+        if (e.key.toLowerCase() === 'p') { document.querySelector('[data-pair]:not(.active)')?.click(); e.preventDefault(); }
+        if (e.key.toLowerCase() === 't') { const btns = document.querySelectorAll('.tf-btn'); const active = document.querySelector('.tf-btn.active'); const idx = Array.from(btns).indexOf(active); btns[(idx + 1) % btns.length]?.click(); e.preventDefault(); }
+        if (e.key.toLowerCase() === 'c') { document.getElementById('copySetupBtn').click(); e.preventDefault(); }
     });
     
-    // Clock
     setInterval(() => {
         const n = new Date();
         document.getElementById('clock-display').textContent = n.toLocaleTimeString('id-ID');
         document.getElementById('date-display').textContent = `${n.getDate().toString().padStart(2,'0')}/${(n.getMonth()+1).toString().padStart(2,'0')}/${n.getFullYear()}`;
-        const h = n.getHours();
-        document.getElementById('session-tag').textContent = h >= 7 && h < 14 ? 'ASIA' : (h >= 14 && h < 20 ? 'LONDON' : 'NY');
+        document.getElementById('session-tag').textContent = n.getHours() >= 7 && n.getHours() < 14 ? 'ASIA' : (n.getHours() >= 14 && n.getHours() < 20 ? 'LONDON' : 'NY');
     }, 1000);
     
-    // Stale detection
-    setInterval(() => {
-        if (wsManager) {
-            wsManager.checkStale();
-        }
-    }, 5000);
-    
-    // MTF refresh
     setInterval(() => { if (!isReloading) updateAllMTF(); }, 60000);
     
-    // Load saved theme
     const savedTheme = localStorage.getItem('ura_theme') || 'dark';
     applyTheme(savedTheme);
     
-    // START
-    addConsoleLog('event', 'URA v3.2 STABLE CONNECTION - Initializing');
+    addConsoleLog('event', 'URA v3.2 STABLE WEBSOCKET (TC LOGIC)');
     fullReload();
     
 })();
