@@ -115,7 +115,7 @@
             flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-subtle);
             border-radius: 5px; padding: 5px 6px; cursor: pointer;
         }
-        .metric-header { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-tertiary); margin-bottom: 2px; }
+        .metric-header { display: flex; justify-content: space-between; font-size: 6px; color: var(--text-tertiary); margin-bottom: 2px; }
         .metric-value { font-size: 10px; font-weight: 500; }
         .metric-sub { font-size: 6px; color: var(--text-secondary); }
         
@@ -124,13 +124,13 @@
             border-radius: 5px; padding: 5px 6px; flex-shrink: 0;
         }
         .smc-header { display: flex; justify-content: space-between; margin-bottom: 3px; }
-        .smc-title { font-size: 10px; font-weight: 600; color: var(--accent-purple); }
+        .smc-title { font-size: 8px; font-weight: 500; color: var(--accent-purple); }
         .smc-items { display: flex; gap: 3px; }
         .smc-item {
             flex: 1; background: var(--bg-tertiary); border-radius: 4px;
             padding: 4px 5px; cursor: pointer; text-align: center;
         }
-        .smc-item-icon { font-size: 7px; }
+        .smc-item-icon { font-size: 8px; }
         .smc-item-label { font-size: 8px; color: var(--text-tertiary); font-weight: 500; }
         .smc-item-value { font-size: 8px; font-weight: 500; color: var(--text-primary); }
         .smc-item-detail { font-size: 7px; color: var(--text-secondary); }
@@ -185,6 +185,12 @@
         .tc-value.bb { color: var(--accent-cyan); }
         .tc-row.key { background: rgba(245,158,11,0.1); border-left: 2px solid var(--accent-gold); }
         
+        .copy-btn {
+            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+            color: var(--text-secondary); padding: 5px; font-size: 7px;
+            font-weight: 500; cursor: pointer; border-radius: 4px; flex-shrink: 0;
+        }
+        
         .action-section { display: flex; gap: 3px; flex-shrink: 0; }
         .action-card {
             flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-subtle);
@@ -209,17 +215,13 @@
             padding: 2px 3px; background: var(--bg-tertiary); border-radius: 3px;
         }
         .hits-label { font-size: 7px; color: var(--text-tertiary); }
-        .hits-value { font-size: 9px; font-weight: 600; }
+        .hits-value { font-size: 8px; font-weight: 500; }
         .hits-value.safe { color: var(--accent-green); }
         .hits-value.danger { color: var(--accent-red); }
         .hits-value.warn { color: var(--accent-orange); }
         .hits-value.pend { color: var(--text-secondary); }
-        .hits-value.info { color: var(--accent-cyan); }
-        
-        .copy-btn {
-            background: var(--bg-secondary); border: 1px solid var(--border-subtle);
-            color: var(--text-secondary); padding: 5px; font-size: 7px;
-            font-weight: 500; cursor: pointer; border-radius: 4px; flex-shrink: 0;
+        .hits-value.info { color: var(--accent-cyan);
+          
         }
         
         .console-wrap { flex-shrink: 0; }
@@ -374,6 +376,8 @@
             <div class="action-row"><span class="action-label">TP2</span><span class="action-value tp" id="tp2-val">—</span></div>
         </div>
     </div>
+    
+    <button class="copy-btn" id="copy-btn">📋 COPY TRADE SETUP</button>
 
     <div class="hits-panel">
         <div class="hits-title">🎯 SL/TP HITS</div>
@@ -388,8 +392,6 @@
             <div class="hits-row"><span class="hits-label">24h Low</span><span class="hits-value info" id="h24l">—</span></div>
         </div>
     </div>
-
-    <button class="copy-btn" id="copy-btn">📋 COPY TRADE SETUP</button>
 
     <div class="console-wrap">
         <div class="console-head"><span>📟 CONSOLE</span><span id="con-count">0</span></div>
