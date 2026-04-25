@@ -300,7 +300,24 @@ function getSessionStartTime(session){
 }
 function getSessionData(d){
  var session=getCurrentSession();
- if(session.name==='WEEKEND')return null;
+ 
+ // ============ WEEKEND FALLBACK: Gunakan 24 jam terakhir ============
+ if(session.name==='WEEKEND'){
+  var now=Date.now();
+  var startTS=now-86400000; // 24 jam terakhir
+  var sessionCandles=[];
+  for(var i=0;i<d.length;i++){if(d[i].t>=startTS)sessionCandles.push(d[i])}
+  if(sessionCandles.length<2)return null;
+  var sHigh=-Infinity,sLow=Infinity,sOpen=sessionCandles[0].o,sClose=d[d.length-1].c;
+  for(i=0;i<sessionCandles.length;i++){sHigh=Math.max(sHigh,sessionCandles[i].h);sLow=Math.min(sLow,sessionCandles[i].l)}
+  var sPivot=(sHigh+sLow+sClose)/3;
+  sessionHigh=sHigh;sessionLow=sLow;
+  return{name:'WEEKEND',label:'WEEKEND',start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,
+   r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),
+   s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)}
+ }
+ // ============ END WEEKEND FALLBACK ============
+ 
  var startTS=getSessionStartTime(session);
  var sessionCandles=[];
  for(var i=0;i<d.length;i++){if(d[i].t>=startTS)sessionCandles.push(d[i])}
