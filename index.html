@@ -556,7 +556,24 @@ function updateMTF(){
 function cleanWS(){if(ws){manualOff=true;try{ws.onopen=ws.onmessage=ws.onclose=ws.onerror=null;if(ws.readyState<2)ws.close();}catch(e){}ws=null;}if(hbT){clearInterval(hbT);hbT=null;}if(fbT){clearInterval(fbT);fbT=null;}}
 function scheduleReconnect(){if(wsRT)clearTimeout(wsRT);if(manualOff||isLoading)return;wsRT=setTimeout(function(){if(!manualOff&&!isLoading){recDelay=Math.min(recDelay*1.5,30000);connectWS();}},recDelay);}
 function setStatus(s,m){setC('status-dot','status-dot '+s);setT('status-text',m);if(s==='live'){isFB=false;isStale=false;recDelay=1500;}else if(s==='fallback')isFB=true;else if(s==='stale')isStale=true;}
-function startFB(){if(fbT)clearInterval(fbT);fbT=setInterval(async function(){try{var r=await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair);if(!r.ok)return;var d=await r.json();if(d&&d.price){var prc=+d.price;if(prc>0&&(Date.now()-lastMsg>3000||isFB)){lastUpd=Date.now();price=prc;analyze();}}}catch(e){}},4000);}
+function startFB(){
+    if(fbT)clearInterval(fbT);
+    fbT=setInterval(async function(){
+        try{
+            var r=await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair);
+            if(!r.ok)return;
+            var d=await r.json();
+            if(d&&d.price){
+                var prc=+d.price;
+                if(prc>0&&(Date.now()-lastMsg>1000||isFB)){
+                    lastUpd=Date.now();
+                    price=prc;
+                    analyze();
+                }
+            }
+        }catch(e){}
+    },1000); // ← 1000ms = 1 detik
+}
 
 async function fetchKL(){
  try{var r=await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval='+tf+'&limit=300');if(!r.ok)return false;var d=await r.json();if(Array.isArray(d)&&d.length>0){buf=[];d.forEach(function(k){pushCandle({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]});});var lst=buf[buf.length-1];if(lst){price=lst.c;prevPrice=lst.c;lastUpd=Date.now();}activeSignal=null;lastGeneratedSignal=null;lastSignalTimestamp=0;analyze();return true;}}catch(e){}return false;
@@ -567,8 +584,47 @@ function connectWS(){
  try{ws=new WebSocket('wss://fstream.binance.com/ws/'+pair.toLowerCase()+'@kline_'+tf);ws.onopen=function(){recDelay=1500;lastMsg=lastUpd=Date.now();isFB=false;isStale=false;setStatus('live','LIVE');if(fbT){clearInterval(fbT);fbT=null;}hbT=setInterval(function(){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({method:'ping'}));},25000);};ws.onmessage=function(e){try{var m=JSON.parse(e.data);if(m&&m.k){var k=m.k,prc=+k.c;if(prc>0){lastMsg=lastUpd=Date.now();if(isFB)setStatus('live','LIVE');if(isStale)setStatus('live','LIVE');pushCandle({t:k.t,o:+k.o,h:+k.h,l:+k.l,c:prc,v:+k.v});price=prc;analyze();}}}catch(e){}};ws.onclose=function(){if(hbT){clearInterval(hbT);hbT=null;}if(!isLoading&&!manualOff){setStatus('reconnect','RECON');scheduleReconnect();}};ws.onerror=function(){if(!isLoading&&!manualOff)setStatus('reconnect','ERROR');};}catch(e){setStatus('fallback','FALLBACK');isFB=true;startFB();}
 }
 
-setInterval(function(){var n=Date.now();if(n-lastUpd>12000&&price>0&&!isStale){setStatus('stale','STALE');isStale=true;}else if(isStale&&n-lastUpd<5000){setStatus(isFB?'fallback':'live',isFB?'FALLBACK':'LIVE');isStale=false;}if(ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg>12000&&!isFB&&!isLoading){setStatus('fallback','FALLBACK');isFB=true;startFB();}},4000);
-setInterval(function(){if(cooldownRemaining>0)updateCooldownUI();},1000);
+setInterval(function(){
+    var n=Date.now();
+    
+    // 1. Deteksi STALE setelah 5 detik tanpa update
+    if(n-lastUpd>5000&&price>0&&!isStale){
+        setStatus('stale','STALE');
+        isStale=true;
+        // Auto-reset sinyal
+        if(activeSignal){activeSignal=null;lastSignalTimestamp=0;}
+    }
+    
+    // 2. Recovery dari STALE jika ada update baru
+    else if(isStale&&n-lastUpd<2000){
+        setStatus(isFB?'fallback':'live',isFB?'FALLBACK':'LIVE');
+        isStale=false;
+    }
+    
+    // 3. ⚡ JATUH KE FALLBACK kalau STALE lebih dari 8 detik
+    if(isStale&&n-lastUpd>8000&&!isFB){
+        setStatus('fallback','FALLBACK');
+        isFB=true;
+        isStale=false;  // Reset stale karena sudah fallback
+        startFB();       // Mulai polling
+    }
+    
+    // 4. Deteksi WebSocket putus → langsung fallback
+    if(ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg>5000&&!isFB&&!isLoading){
+        setStatus('fallback','FALLBACK');
+        isFB=true;
+        startFB();
+    }
+    
+// 5. Recovery dari FALLBACK ke LIVE
+if(isFB&&n-lastMsg<2000){
+    if(ws&&ws.readyState===WebSocket.OPEN){
+        setStatus('live','LIVE');
+        isFB=false;
+        if(fbT){clearInterval(fbT);fbT=null;}
+    }
+}
+},1000);
 
 async function reload(){
  if(isLoading)return;isLoading=true;manualOff=true;cleanWS();if(fbT){clearInterval(fbT);fbT=null;}if(wsRT){clearTimeout(wsRT);wsRT=null;}sessionHigh=0;sessionLow=0;activeSignal=null;lastGeneratedSignal=null;lastSignalTimestamp=0;
