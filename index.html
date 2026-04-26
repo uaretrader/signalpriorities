@@ -418,12 +418,12 @@ function genFusionScalping(smcS,p,lv){
  if(isBullDominant)s.tp=[p+atr*sc.tpATR1,p+atr*sc.tpATR2];else s.tp=[p-atr*sc.tpATR1,p-atr*sc.tpATR2];
  
  // 8. Decision
- if(isBullDominant&&bullScore>=sc.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Scalp Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
- else if(!isBullDominant&&bearScore>=sc.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Scalp Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
- else{s.bias=isBullDominant?'BULLISH':'BEARISH';s.conf=Math.round(Math.max(bullScore,bearScore));s.reason='Scalp Low ('+s.conf+'<'+sc.minConf+')';}
+ if(isBullDominant&&bullScore>=sc.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
+ else if(!isBullDominant&&bearScore>=sc.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
+ else{s.bias=isBullDominant?'BULLISH':'BEARISH';s.conf=Math.round(Math.max(bullScore,bearScore));s.reason='Low ('+s.conf+'<'+sc.minConf+')';}
  
  // 9. RR Validation
- if(s.entry&&s.sl&&s.tp[0]&&s.action!=='WAIT'){var entryMid,risk,reward;if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}if(risk>0&&reward>0){var rr=reward/risk;s.rr=rr;if(rr<sc.minRR){s.action='WAIT';s.reason='Scalp Bad RR ('+rr.toFixed(2)+')';}}}
+ if(s.entry&&s.sl&&s.tp[0]&&s.action!=='WAIT'){var entryMid,risk,reward;if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}if(risk>0&&reward>0){var rr=reward/risk;s.rr=rr;if(rr<sc.minRR){s.action='WAIT';s.reason='Bad RR ('+rr.toFixed(2)+')';}}}
  
  // 10. Cooldown
  var now=Date.now();if(now-lastSignalTimestamp<sc.cooldown&&activeSignal&&activeSignal.action!=='WAIT'&&s.action!=='WAIT'){s.action='WAIT';s.reason='Scalp Cooldown ('+Math.round((sc.cooldown-(now-lastSignalTimestamp))/1000)+'s)';}
