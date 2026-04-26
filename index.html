@@ -249,7 +249,7 @@ var SESSION_NAMES={ASIA:'ASIA SESSION INTRADAY',LONDON:'LONDON SESSION INTRADAY'
 var SYM={BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
 var pair=getSavedPair(),tf=getSavedTF(),price=0,prevPrice=0,sessionHigh=0,sessionLow=0,activeSignal=null,lastGeneratedSignal=null;
 var ws=null,wsRT=null,hbT=null,fbT=null,recDelay=1500,lastMsg=0,lastUpd=0,manualOff=false,isFB=false,isStale=false,isLoading=false,lastSignalTimestamp=0;
-var cooldownRemaining=0,cooldownTotal=0,isScalpingMode=false;
+var cooldownRemaining=0,cooldownTotal=0,isScalpingMode=false,staleSince=0;
 var mtf={h4:'NEUTRAL',h1:'NEUTRAL',m30:'NEUTRAL',m15:'NEUTRAL',m5:'NEUTRAL'};
 var buf=[],currentATR=0,sessionData=null;
 var currentTheme='dark';
@@ -656,43 +656,50 @@ function connectWS(){
 setInterval(function(){
     var n=Date.now();
     
-    // 1. Deteksi STALE setelah 5 detik tanpa update
-    if(n-lastUpd>5000&&price>0&&!isStale){
+    // 1. Deteksi STALE setelah 5 detik tanpa update (hanya kalau belum FALLBACK)
+    if(n-lastUpd>5000&&price>0&&!isStale&&!isFB){
         setStatus('stale','STALE');
         isStale=true;
-        // Auto-reset sinyal
-        if(activeSignal){activeSignal=null;lastSignalTimestamp=0;}
+        staleSince=n; // Catat waktu mulai STALE
     }
     
     // 2. Recovery dari STALE jika ada update baru
-    else if(isStale&&n-lastUpd<2000){
-        setStatus(isFB?'fallback':'live',isFB?'FALLBACK':'LIVE');
+    if(isStale&&n-lastUpd<2000){
+        setStatus('live','LIVE');
         isStale=false;
+        staleSince=0;
     }
     
-    // 3. ⚡ JATUH KE FALLBACK kalau STALE lebih dari 8 detik
-    if(isStale&&n-lastUpd>8000&&!isFB){
+    // 3. STALE > 8 detik → FALLBACK + reset sinyal
+    if(isStale&&!isFB&&staleSince>0&&n-staleSince>8000){
         setStatus('fallback','FALLBACK');
         isFB=true;
-        isStale=false;  // Reset stale karena sudah fallback
-        startFB();       // Mulai polling
+        isStale=false;
+        staleSince=0;
+        if(activeSignal){activeSignal=null;lastSignalTimestamp=0;} // Reset sinyal
+        startFB();
     }
     
-    // 4. Deteksi WebSocket putus → langsung fallback
+    // 4. FALLBACK: coba reconnect WebSocket tiap 10 detik
+    if(isFB&&(!ws||ws.readyState>1)){
+        if(n-lastUpd>10000){
+            connectWS();
+        }
+    }
+    
+    // 5. FALLBACK → LIVE kalau WebSocket sudah pulih
+    if(isFB&&ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg<2000){
+        setStatus('live','LIVE');
+        isFB=false;
+        if(fbT){clearInterval(fbT);fbT=null;}
+    }
+    
+    // 6. Deteksi WebSocket silent → langsung fallback
     if(ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg>5000&&!isFB&&!isLoading){
         setStatus('fallback','FALLBACK');
         isFB=true;
         startFB();
     }
-    
-// 5. Recovery dari FALLBACK ke LIVE
-if(isFB&&n-lastMsg<2000){
-    if(ws&&ws.readyState===WebSocket.OPEN){
-        setStatus('live','LIVE');
-        isFB=false;
-        if(fbT){clearInterval(fbT);fbT=null;}
-    }
-}
 },1000);
 
 async function reload(){
