@@ -427,7 +427,7 @@ if(isScalpingMode && atr > p*0.01) atr = p*0.005; // Maks 0.5% harga
  
  // 8. Decision
  if(isBullDominant&&bullScore>=sc.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Scalp Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
- else if(!isBullDominant&&bearScore>=sc.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Scalp Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
+ else if(!isBullDominant&&bearScore>=sc.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Scalp (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
  else{s.bias=isBullDominant?'BULLISH':'BEARISH';s.conf=Math.round(Math.max(bullScore,bearScore));s.reason='Scalp Low ('+s.conf+'<'+sc.minConf+')';}
  
  // 9. RR Validation (1.0)
