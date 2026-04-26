@@ -247,12 +247,26 @@ var LARGE_TF=['h4','h1'];
 var SCALPING_TF=['15m','5m'];
 var SESSION_NAMES={ASIA:'ASIA SESSION INTRADAY',LONDON:'LONDON SESSION INTRADAY',NY:'NEW YORK SESSION INTRADAY',WEEKEND:'WEEKEND — 24H RANGE'};
 var SYM={BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
-var pair='XAUUSDT',tf='30m',price=0,prevPrice=0,sessionHigh=0,sessionLow=0,activeSignal=null,lastGeneratedSignal=null;
+var pair=getSavedPair(),tf=getSavedTF(),price=0,prevPrice=0,sessionHigh=0,sessionLow=0,activeSignal=null,lastGeneratedSignal=null;
 var ws=null,wsRT=null,hbT=null,fbT=null,recDelay=1500,lastMsg=0,lastUpd=0,manualOff=false,isFB=false,isStale=false,isLoading=false,lastSignalTimestamp=0;
 var cooldownRemaining=0,cooldownTotal=0,isScalpingMode=false;
 var mtf={h4:'NEUTRAL',h1:'NEUTRAL',m30:'NEUTRAL',m15:'NEUTRAL',m5:'NEUTRAL'};
 var buf=[],currentATR=0,sessionData=null;
 var currentTheme='dark';
+
+// ===== PAIR & TF SAVE/LOAD =====
+function getSavedTF(){
+    try{var s=localStorage.getItem('ura-tf');if(s&&['4h','1h','30m','15m','5m'].indexOf(s)>=0)return s;}catch(e){}
+    return '30m'; // default
+}
+function saveTF(v){try{localStorage.setItem('ura-tf',v);}catch(e){}}
+
+function getSavedPair(){
+    try{var s=localStorage.getItem('ura-pair');if(s&&(s==='XAUUSDT'||s==='BTCUSDT'))return s;}catch(e){}
+    return 'XAUUSDT'; // default
+}
+function savePair(v){try{localStorage.setItem('ura-pair',v);}catch(e){}}
+// ===============================
 
 function pushCandle(k){var idx=buf.findIndex(function(c){return c.t===k.t});if(idx>=0){buf[idx]=k;return}buf.push(k);if(buf.length>300)buf.shift()}
 function getCandles(){return buf}
@@ -641,8 +655,25 @@ async function fetchMTF(pr,tff,key){
 async function updateAllMTF(){var tasks=Object.entries(MTF_MAP).map(function(e){return fetchMTF(pair,e[0],e[1]);});await Promise.allSettled(tasks);updateMTF();}
 
 var switchTimeout=null;
-document.querySelectorAll('[data-pair]').forEach(function(b){b.addEventListener('click',function(){if(isLoading)return;pair=this.dataset.pair;if(switchTimeout)clearTimeout(switchTimeout);switchTimeout=setTimeout(function(){reload();},150);});});
-document.querySelectorAll('.tf-btn').forEach(function(b){b.addEventListener('click',function(){if(isLoading)return;tf=this.dataset.tf;updateScalpingMode();if(switchTimeout)clearTimeout(switchTimeout);switchTimeout=setTimeout(function(){reload();},150);});});
+document.querySelectorAll('[data-pair]').forEach(function(b){
+    b.addEventListener('click',function(){
+        if(isLoading)return;
+        pair=this.dataset.pair;
+        savePair(pair); // ← TAMBAHKAN
+        if(switchTimeout)clearTimeout(switchTimeout);
+        switchTimeout=setTimeout(function(){reload();},150);
+    });
+});
+document.querySelectorAll('.tf-btn').forEach(function(b){
+    b.addEventListener('click',function(){
+        if(isLoading)return;
+        tf=this.dataset.tf;
+        saveTF(tf); // ← TAMBAHKAN
+        updateScalpingMode();
+        if(switchTimeout)clearTimeout(switchTimeout);
+        switchTimeout=setTimeout(function(){reload();},150);
+    });
+});
 document.getElementById('fusion-bar').addEventListener('click',copySetup);
 document.getElementById('copy-btn').addEventListener('click',copySetup);
 
