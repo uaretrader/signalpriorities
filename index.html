@@ -78,11 +78,7 @@
         .signal-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px}
         .signal-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
         .signal-badge{font-size:10px;font-weight:800;background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .signal-badge.scalp{
-    background:linear-gradient(135deg,var(--accent-orange),var(--accent-pink));
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-}
+        .signal-badge.scalp{background:linear-gradient(135deg,var(--accent-orange),var(--accent-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .signal-text{font-size:clamp(12px,3.5vw,14px);font-weight:700}
         .conf-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
         .conf-badge.high{background:var(--conf-high-bg);color:var(--accent-green);border:1px solid var(--accent-green)}
@@ -92,9 +88,9 @@
         .fusion-details{display:flex;gap:6px;margin-top:5px;font-size:9px;color:var(--text-secondary);flex-wrap:wrap;align-items:center}
         .fusion-details span{white-space:nowrap}
         .rr-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;white-space:nowrap;margin-left:4px}
-.rr-badge.good{background:var(--rr-good-bg);color:var(--accent-green)}
-.rr-badge.ok{background:var(--rr-ok-bg);color:var(--accent-gold)}
-.rr-badge.bad{background:var(--rr-bad-bg);color:var(--accent-red)}
+        .rr-badge.good{background:var(--rr-good-bg);color:var(--accent-green)}
+        .rr-badge.ok{background:var(--rr-ok-bg);color:var(--accent-gold)}
+        .rr-badge.bad{background:var(--rr-bad-bg);color:var(--accent-red)}
         .cooldown-bar{width:100%;height:3px;background:var(--bg-tertiary);border-radius:2px;margin-top:4px;overflow:hidden;display:none;transition:background 0.3s}
         .cooldown-bar.active{display:block}
         .cooldown-fill{height:100%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-gold));border-radius:2px;transition:width 1s linear}
@@ -249,7 +245,7 @@ var SESSION_NAMES={ASIA:'ASIA SESSION INTRADAY',LONDON:'LONDON SESSION INTRADAY'
 var SYM={BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
 var pair=getSavedPair(),tf=getSavedTF(),price=0,prevPrice=0,sessionHigh=0,sessionLow=0,activeSignal=null,lastGeneratedSignal=null;
 var ws=null,wsRT=null,hbT=null,fbT=null,recDelay=1500,lastMsg=0,lastUpd=0,manualOff=false,isFB=false,isStale=false,isLoading=false,lastSignalTimestamp=0;
-var cooldownRemaining=0,cooldownTotal=0,isScalpingMode=false,staleSince=0;
+var cooldownRemaining=0,cooldownTotal=0,isScalpingMode=false,staleSince=0,reconnectAttempts=0;
 var mtf={h4:'NEUTRAL',h1:'NEUTRAL',m30:'NEUTRAL',m15:'NEUTRAL',m5:'NEUTRAL'};
 var buf=[],currentATR=0,sessionData=null;
 var currentTheme='dark';
@@ -257,13 +253,13 @@ var currentTheme='dark';
 // ===== PAIR & TF SAVE/LOAD =====
 function getSavedTF(){
     try{var s=localStorage.getItem('ura-tf');if(s&&['4h','1h','30m','15m','5m'].indexOf(s)>=0)return s;}catch(e){}
-    return '30m'; // default
+    return '30m';
 }
 function saveTF(v){try{localStorage.setItem('ura-tf',v);}catch(e){}}
 
 function getSavedPair(){
     try{var s=localStorage.getItem('ura-pair');if(s&&(s==='XAUUSDT'||s==='BTCUSDT'))return s;}catch(e){}
-    return 'XAUUSDT'; // default
+    return 'XAUUSDT';
 }
 function savePair(v){try{localStorage.setItem('ura-pair',v);}catch(e){}}
 // ===============================
@@ -354,9 +350,9 @@ function genFusionIntraday(tcB,tcS,tcE,tcSL,smcS,p,lv,sd){
  var isBullDominant=bullScore>bearScore;
  if(smcS.entry&&smcS.entry.lo!=null)s.entry=smcS.entry;else if(isBullDominant)s.entry={lo:lv.s1||(p*0.997),hi:lv.pivot||(p*0.999)};else s.entry={lo:lv.pivot||(p*1.001),hi:lv.r1||(p*1.003)};
  if(smcS.inv){s.sl=smcS.inv;}
-else if(isBullDominant){s.sl=(lv.s2&&lv.s2<p*0.995)?lv.s2:(p*0.99);}
-else{s.sl=(lv.r2&&lv.r2>p*1.005)?lv.r2:(p*1.01);}
-if(s.entry&&s.sl){if(isBullDominant&&s.sl>=s.entry.lo){s.sl=s.entry.lo*0.993;}else if(!isBullDominant&&s.sl<=s.entry.hi){s.sl=s.entry.hi*1.007;}}
+ else if(isBullDominant){s.sl=(lv.s2&&lv.s2<p*0.995)?lv.s2:(p*0.99);}
+ else{s.sl=(lv.r2&&lv.r2>p*1.005)?lv.r2:(p*1.01);}
+ if(s.entry&&s.sl){if(isBullDominant&&s.sl>=s.entry.lo){s.sl=s.entry.lo*0.993;}else if(!isBullDominant&&s.sl<=s.entry.hi){s.sl=s.entry.hi*1.007;}}
  if(isBullDominant){s.tp=[lv.r1,lv.r2].filter(function(v){return v>p});if(s.tp.length===0)s.tp=[p*1.008,p*1.015];}else{s.tp=[lv.s1,lv.s2].filter(function(v){return v<p});if(s.tp.length===0)s.tp=[p*0.992,p*0.985];}
  var h1B=mtf.h1,htfB=mtf.h4,m15B=mtf.m15,m5B=mtf.m5;
  if(isBullDominant&&bullScore>=cf.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Bullish ('+mtfBull+'/'+((mtfBull+mtfBear)||1)+' MTF)';}
@@ -386,26 +382,23 @@ function genFusionScalping(smcS,p,lv){
  var s={action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
  var sc=SCALP_CFG;var bullScore=0,bearScore=0;var arr=getCandles();if(arr.length<15)return s;
  
- // 1. Momentum Candle (40%)
+ // 1. Momentum Candle (50%)
  var latest=arr[arr.length-1],prev=arr[arr.length-2];
  var body=Math.abs(latest.c-latest.o),range=latest.h-latest.l;
  var bodyRatio=range>0?body/range:0;var direction=latest.c>latest.o?'BULL':'BEAR';
- var momScore=Math.round(bodyRatio*40*sc.momW);
- if(direction==='BULL'&&bodyRatio>0.4)bullScore+=momScore;
- else if(direction==='BEAR'&&bodyRatio>0.4)bearScore+=momScore;
+ var momScore=Math.round(bodyRatio*50*sc.momW);
+ if(direction==='BULL'&&bodyRatio>0.3)bullScore+=momScore;
+ else if(direction==='BEAR'&&bodyRatio>0.3)bearScore+=momScore;
  
- // 2. SMC Proximity (35%)
+ // 2. SMC Proximity (30%)
  if(smcS.bias==='BULLISH')bullScore+=Math.round(smcS.str*sc.smcW);
  else if(smcS.bias==='BEARISH')bearScore+=Math.round(smcS.str*sc.smcW);
  
- // 3. Price Action: HH/HL vs LH/LL (25%)
+ // 3. Price Action: HH/HL vs LH/LL (20%)
  var highs=[],lows=[];
  for(var i=arr.length-8;i<arr.length-1;i++){if(i>0&&i<arr.length-1){if(arr[i].h>arr[i-1].h&&arr[i].h>arr[i+1].h)highs.push(arr[i].h);if(arr[i].l<arr[i-1].l&&arr[i].l<arr[i+1].l)lows.push(arr[i].l);}}
- if(highs.length>=2&&highs[highs.length-1]>highs[highs.length-2])bullScore+=Math.round(25*sc.paW);
- // Gunakan low candle terbaru vs low candle sebelumnya
-var currLow = Math.min(latest.l, prev.l);
-var prevLow = Math.min(arr[arr.length-3].l, arr[arr.length-4].l);
-if(currLow < prevLow) bearScore += Math.round(25*sc.paW);
+ if(highs.length>=2&&highs[highs.length-1]>highs[highs.length-2])bullScore+=Math.round(20*sc.paW);
+ if(lows.length>=2&&lows[lows.length-1]<lows[lows.length-2])bearScore+=Math.round(20*sc.paW);
  
  // 4. ADX Quick Check
  if(arr.length>=28){var adx=ADX(arr);if(adx.adx>=sc.adxTh){if(adx.pDI>adx.mDI)bullScore+=10;else bearScore+=10;}}
@@ -414,8 +407,7 @@ if(currLow < prevLow) bearScore += Math.round(25*sc.paW);
  
  // 5. Entry Zone Sempit
  var atr=(currentATR && currentATR > 0) ? currentATR : (p*0.002);
-// Untuk scalping, batasi ATR maksimum
-if(isScalpingMode && atr > p*0.01) atr = p*0.005; // Maks 0.5% harga
+ if(isScalpingMode && atr > p*0.008) atr = p*0.008;
  if(smcS.entry&&smcS.entry.lo!=null){var mid=(smcS.entry.lo+smcS.entry.hi)/2;var hw=(smcS.entry.hi-smcS.entry.lo)*sc.entryWidth;s.entry={lo:mid-hw,hi:mid+hw};}
  else if(isBullDominant)s.entry={lo:p-atr*0.15,hi:p};else s.entry={lo:p,hi:p+atr*0.15};
  
@@ -427,14 +419,14 @@ if(isScalpingMode && atr > p*0.01) atr = p*0.005; // Maks 0.5% harga
  
  // 8. Decision
  if(isBullDominant&&bullScore>=sc.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Scalp Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
- else if(!isBullDominant&&bearScore>=sc.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Scalp (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
+ else if(!isBullDominant&&bearScore>=sc.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Scalp Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
  else{s.bias=isBullDominant?'BULLISH':'BEARISH';s.conf=Math.round(Math.max(bullScore,bearScore));s.reason='Scalp Low ('+s.conf+'<'+sc.minConf+')';}
  
- // 9. RR Validation (1.0)
- if(s.entry&&s.sl&&s.tp[0]&&s.action!=='WAIT'){var entryMid,risk,reward;if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}if(risk>0&&reward>0){var rr=reward/risk;s.rr=rr;if(rr<sc.minRR){s.action='WAIT';s.reason='Scalp Bad RR';}}}
+ // 9. RR Validation
+ if(s.entry&&s.sl&&s.tp[0]&&s.action!=='WAIT'){var entryMid,risk,reward;if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}if(risk>0&&reward>0){var rr=reward/risk;s.rr=rr;if(rr<sc.minRR){s.action='WAIT';s.reason='Scalp Bad RR ('+rr.toFixed(2)+')';}}}
  
- // 10. Cooldown 1 menit
- var now=Date.now();if(now-lastSignalTimestamp<sc.cooldown&&activeSignal&&activeSignal.action!=='WAIT'&&s.action!=='WAIT'){s.action='WAIT';s.reason='Scalp Cooldown';}
+ // 10. Cooldown
+ var now=Date.now();if(now-lastSignalTimestamp<sc.cooldown&&activeSignal&&activeSignal.action!=='WAIT'&&s.action!=='WAIT'){s.action='WAIT';s.reason='Scalp Cooldown ('+Math.round((sc.cooldown-(now-lastSignalTimestamp))/1000)+'s)';}
  s.conf=Math.min(100,Math.max(0,s.conf));return s;
 }
 
@@ -463,7 +455,7 @@ function tcCopyRow(rowEl,toastEl){
 }
 function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTimeout(el._timeout);el._timeout=setTimeout(function(){el.classList.remove('show')},1400);}
 
- function analyze(){
+function analyze(){
  var arr=getCandles();if(arr.length<30)return;
  var p=price,cf=CFG[pair],pr=cf.prec;
  
@@ -472,7 +464,6 @@ function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTi
  if(activeSignal&&activeSignal.action!=='WAIT'){
   var shouldReset=false;
   
-  // 1. Cek SL hit
   if(activeSignal.sl){
    if((activeSignal.bias==='BULLISH'&&p<=activeSignal.sl)||
       (activeSignal.bias==='BEARISH'&&p>=activeSignal.sl)){
@@ -480,7 +471,6 @@ function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTi
    }
   }
   
-  // 2. Cek TP1 hit
   if(!shouldReset&&activeSignal.tp&&activeSignal.tp[0]){
    if((activeSignal.bias==='BULLISH'&&p>=activeSignal.tp[0])||
       (activeSignal.bias==='BEARISH'&&p<=activeSignal.tp[0])){
@@ -488,22 +478,20 @@ function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTi
    }
   }
   
-  // 3. Cek expired (>1.5x ATR dari entry)
   if(!shouldReset&&currentATR>0&&activeSignal.entry){
    var entryMid=activeSignal.bias==='BULLISH'?
     activeSignal.entry.lo:activeSignal.entry.hi;
-   if(Math.abs(p-entryMid)>currentATR*1.5){
+   if(Math.abs(p-entryMid)>currentATR*2.0){
     shouldReset=true;
    }
   }
   
-  // 4. Cek sinyal >25 detik + candle reversal
   if(!shouldReset&&lastSignalTimestamp>0){
    var signalAge=Date.now()-lastSignalTimestamp;
-   if(signalAge>25000){
+   if(signalAge>45000){
     var lc=arr[arr.length-1],pc=arr[arr.length-2];
-    if((activeSignal.bias==='BULLISH'&&lc.c<pc.c)||
-       (activeSignal.bias==='BEARISH'&&lc.c>pc.c)){
+    if((activeSignal.bias==='BULLISH'&&lc.c<lc.o&&lc.c<pc.c)||
+       (activeSignal.bias==='BEARISH'&&lc.c>lc.o&&lc.c>pc.c)){
      shouldReset=true;
     }
    }
@@ -537,7 +525,7 @@ function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTi
  // === DUAL ENGINE ROUTING ===
  var newSignal;
  if(!justReset){
-  if(isScalpingMode){newSignal=genFusionScalping(smcS,p,usePv);if(newSignal.action!=='WAIT')newSignal.reason='⚡'+newSignal.reason;else newSignal.reason='⚡'+newSignal.reason;}
+  if(isScalpingMode){newSignal=genFusionScalping(smcS,p,usePv);if(newSignal.action!=='WAIT')newSignal.reason='⚡'+newSignal.reason;}
   else{newSignal=genFusionIntraday(tcB,tcS,tcE,tcSL,smcS,p,usePv,sessionData);}
  }else{
   newSignal={action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'Reset',rr:null};
@@ -590,7 +578,11 @@ function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTi
   }else{
    setT('sig-status',isStaleSignal?'WAITING (STALE)':'WAITING');$('sig-status').style.color='var(--text-tertiary)';
    setT('sig-arrow','—');setT('sig-conf','WAIT');setC('sig-conf','conf-badge low');
-   if(isStaleSignal)$('fusion-bar').classList.add('stale-signal');else $('fusion-bar').classList.remove('stale-signal');
+   if(isStaleSignal&&isStale&&!isFB){
+    $('fusion-bar').classList.add('stale-signal');
+   }else if(!isFB){
+    $('fusion-bar').classList.remove('stale-signal');
+   }
   }
   setT('sig-decision','FUSION: '+displaySignal.bias);setT('sig-strength','Conf: '+displaySignal.conf+'%');setT('sig-reason',displaySignal.reason||'—');
   if(displaySignal.rr!=null){var rrClass=displaySignal.rr>=2?'good':(displaySignal.rr>=(isScalpingMode?SCALP_CFG.minRR:CFG[pair].minRR)?'ok':'bad');setT('sig-rr','RR: '+displaySignal.rr.toFixed(2));setC('sig-rr','rr-badge '+rrClass);}else{setT('sig-rr','');setC('sig-rr','');}
@@ -641,7 +633,7 @@ function startFB(){
                 }
             }
         }catch(e){}
-    },1000); // ← 1000ms = 1 detik
+    },1000);
 }
 
 async function fetchKL(){
@@ -650,54 +642,49 @@ async function fetchKL(){
 
 function connectWS(){
  cleanWS();if(wsRT){clearTimeout(wsRT);wsRT=null;}setStatus('connecting','CONNECT');
- try{ws=new WebSocket('wss://fstream.binance.com/ws/'+pair.toLowerCase()+'@kline_'+tf);ws.onopen=function(){recDelay=1500;lastMsg=lastUpd=Date.now();isFB=false;isStale=false;setStatus('live','LIVE');if(fbT){clearInterval(fbT);fbT=null;}hbT=setInterval(function(){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({method:'ping'}));},25000);};ws.onmessage=function(e){try{var m=JSON.parse(e.data);if(m&&m.k){var k=m.k,prc=+k.c;if(prc>0){lastMsg=lastUpd=Date.now();if(isFB)setStatus('live','LIVE');if(isStale)setStatus('live','LIVE');pushCandle({t:k.t,o:+k.o,h:+k.h,l:+k.l,c:prc,v:+k.v});price=prc;analyze();}}}catch(e){}};ws.onclose=function(){if(hbT){clearInterval(hbT);hbT=null;}if(!isLoading&&!manualOff){setStatus('reconnect','RECON');scheduleReconnect();}};ws.onerror=function(){if(!isLoading&&!manualOff)setStatus('reconnect','ERROR');};}catch(e){setStatus('fallback','FALLBACK');isFB=true;startFB();}
+ try{ws=new WebSocket('wss://fstream.binance.com/ws/'+pair.toLowerCase()+'@kline_'+tf);ws.onopen=function(){recDelay=1500;lastMsg=lastUpd=Date.now();isFB=false;isStale=false;reconnectAttempts=0;setStatus('live','LIVE');if(fbT){clearInterval(fbT);fbT=null;}hbT=setInterval(function(){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({method:'ping'}));},25000);};ws.onmessage=function(e){try{var m=JSON.parse(e.data);if(m&&m.k){var k=m.k,prc=+k.c;if(prc>0){lastMsg=lastUpd=Date.now();if(isFB)setStatus('live','LIVE');if(isStale)setStatus('live','LIVE');pushCandle({t:k.t,o:+k.o,h:+k.h,l:+k.l,c:prc,v:+k.v});price=prc;analyze();}}}catch(e){}};ws.onclose=function(){if(hbT){clearInterval(hbT);hbT=null;}if(!isLoading&&!manualOff){setStatus('reconnect','RECON');scheduleReconnect();}};ws.onerror=function(){if(!isLoading&&!manualOff)setStatus('reconnect','ERROR');};}catch(e){setStatus('fallback','FALLBACK');isFB=true;startFB();}
 }
 
 setInterval(function(){
     var n=Date.now();
     
-    // 1. Deteksi STALE setelah 5 detik tanpa update (hanya kalau belum FALLBACK)
     if(n-lastUpd>5000&&price>0&&!isStale&&!isFB){
         setStatus('stale','STALE');
         isStale=true;
-        staleSince=n; // Catat waktu mulai STALE
+        staleSince=n;
     }
     
-    // 2. Recovery dari STALE jika ada update baru
     if(isStale&&n-lastUpd<2000){
         setStatus('live','LIVE');
         isStale=false;
         staleSince=0;
     }
     
-    // 3. STALE > 8 detik → FALLBACK + reset sinyal
     if(isStale&&!isFB&&staleSince>0&&n-staleSince>8000){
         setStatus('fallback','FALLBACK');
         isFB=true;
         isStale=false;
         staleSince=0;
-        if(activeSignal){activeSignal=null;lastSignalTimestamp=0;} // Reset sinyal
+        reconnectAttempts=0;
         startFB();
     }
     
-    // 4. FALLBACK: coba reconnect WebSocket tiap 10 detik
-    if(isFB&&(!ws||ws.readyState>1)){
-        if(n-lastUpd>10000){
-            connectWS();
-        }
+    if(isFB&&n-lastUpd>15000&&reconnectAttempts<5){
+        reconnectAttempts++;
+        connectWS();
     }
     
-    // 5. FALLBACK → LIVE kalau WebSocket sudah pulih
     if(isFB&&ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg<2000){
         setStatus('live','LIVE');
         isFB=false;
+        reconnectAttempts=0;
         if(fbT){clearInterval(fbT);fbT=null;}
     }
     
-    // 6. Deteksi WebSocket silent → langsung fallback
     if(ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg>5000&&!isFB&&!isLoading){
         setStatus('fallback','FALLBACK');
         isFB=true;
+        reconnectAttempts=0;
         startFB();
     }
 },1000);
@@ -721,7 +708,7 @@ document.querySelectorAll('[data-pair]').forEach(function(b){
     b.addEventListener('click',function(){
         if(isLoading)return;
         pair=this.dataset.pair;
-        savePair(pair); // ← TAMBAHKAN
+        savePair(pair);
         if(switchTimeout)clearTimeout(switchTimeout);
         switchTimeout=setTimeout(function(){reload();},150);
     });
@@ -730,7 +717,7 @@ document.querySelectorAll('.tf-btn').forEach(function(b){
     b.addEventListener('click',function(){
         if(isLoading)return;
         tf=this.dataset.tf;
-        saveTF(tf); // ← TAMBAHKAN
+        saveTF(tf);
         updateScalpingMode();
         if(switchTimeout)clearTimeout(switchTimeout);
         switchTimeout=setTimeout(function(){reload();},150);
