@@ -590,8 +590,11 @@ function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTi
   }else{
    setT('sig-status',isStaleSignal?'WAITING (STALE)':'WAITING');$('sig-status').style.color='var(--text-tertiary)';
    setT('sig-arrow','—');setT('sig-conf','WAIT');setC('sig-conf','conf-badge low');
-   if(isStaleSignal)$('fusion-bar').classList.add('stale-signal');else $('fusion-bar').classList.remove('stale-signal');
-  }
+   if(isStaleSignal&&isStale&&!isFB){
+    $('fusion-bar').classList.add('stale-signal');
+}else if(!isFB){
+    $('fusion-bar').classList.remove('stale-signal');
+}
   setT('sig-decision','FUSION: '+displaySignal.bias);setT('sig-strength','Conf: '+displaySignal.conf+'%');setT('sig-reason',displaySignal.reason||'—');
   if(displaySignal.rr!=null){var rrClass=displaySignal.rr>=2?'good':(displaySignal.rr>=(isScalpingMode?SCALP_CFG.minRR:CFG[pair].minRR)?'ok':'bad');setT('sig-rr','RR: '+displaySignal.rr.toFixed(2));setC('sig-rr','rr-badge '+rrClass);}else{setT('sig-rr','');setC('sig-rr','');}
   if(displaySignal.entry){setT('entry-lo',displaySignal.entry.lo!=null?displaySignal.entry.lo.toFixed(pr):'—');setT('entry-hi',displaySignal.entry.hi!=null?displaySignal.entry.hi.toFixed(pr):'—');}else{setT('entry-lo','—');setT('entry-hi','—');}
@@ -656,48 +659,54 @@ function connectWS(){
 setInterval(function(){
     var n=Date.now();
     
-    // 1. Deteksi STALE setelah 5 detik tanpa update (hanya kalau belum FALLBACK)
+    // === 1. DETEKSI STALE ===
     if(n-lastUpd>5000&&price>0&&!isStale&&!isFB){
         setStatus('stale','STALE');
         isStale=true;
-        staleSince=n; // Catat waktu mulai STALE
+        staleSince=n;
     }
     
-    // 2. Recovery dari STALE jika ada update baru
+    // === 2. RECOVERY STALE → LIVE ===
     if(isStale&&n-lastUpd<2000){
         setStatus('live','LIVE');
         isStale=false;
         staleSince=0;
     }
     
-    // 3. STALE > 8 detik → FALLBACK + reset sinyal
+    // === 3. STALE → FALLBACK (8 detik) ===
     if(isStale&&!isFB&&staleSince>0&&n-staleSince>8000){
         setStatus('fallback','FALLBACK');
         isFB=true;
         isStale=false;
         staleSince=0;
-        if(activeSignal){activeSignal=null;lastSignalTimestamp=0;} // Reset sinyal
+        reconnectAttempts=0;
+        // 🔧 JANGAN reset sinyal saat transisi ke FALLBACK
+        // if(activeSignal){activeSignal=null;lastSignalTimestamp=0;} // ← HAPUS!
         startFB();
     }
     
-    // 4. FALLBACK: coba reconnect WebSocket tiap 10 detik
-    if(isFB&&(!ws||ws.readyState>1)){
-        if(n-lastUpd>10000){
+    // === 4. AUTO-RECONNECT SAAT FALLBACK ===
+    if(isFB){
+        // Coba reconnect tiap 15 detik
+        if(n-lastUpd>15000&&reconnectAttempts<5){
+            reconnectAttempts++;
             connectWS();
         }
     }
     
-    // 5. FALLBACK → LIVE kalau WebSocket sudah pulih
+    // === 5. FALLBACK → LIVE ===
     if(isFB&&ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg<2000){
         setStatus('live','LIVE');
         isFB=false;
+        reconnectAttempts=0;
         if(fbT){clearInterval(fbT);fbT=null;}
     }
     
-    // 6. Deteksi WebSocket silent → langsung fallback
+    // === 6. WEBSOCKET SILENT → FALLBACK ===
     if(ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg>5000&&!isFB&&!isLoading){
         setStatus('fallback','FALLBACK');
         isFB=true;
+        reconnectAttempts=0;
         startFB();
     }
 },1000);
