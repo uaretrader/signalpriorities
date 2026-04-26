@@ -339,7 +339,10 @@ function genFusionIntraday(tcB,tcS,tcE,tcSL,smcS,p,lv,sd){
  var arr=getCandles();if(arr.length>=28){var adx=ADX(arr);if(adx.adx>=cf.adxTh){if(adx.pDI>adx.mDI)bullScore+=15;else bearScore+=15;}}
  var isBullDominant=bullScore>bearScore;
  if(smcS.entry&&smcS.entry.lo!=null)s.entry=smcS.entry;else if(isBullDominant)s.entry={lo:lv.s1||(p*0.997),hi:lv.pivot||(p*0.999)};else s.entry={lo:lv.pivot||(p*1.001),hi:lv.r1||(p*1.003)};
- s.sl=smcS.inv||(isBullDominant?(lv.s2||p*0.99):(lv.r2||p*1.01));
+ if(smcS.inv){s.sl=smcS.inv;}
+else if(isBullDominant){s.sl=(lv.s2&&lv.s2<p*0.995)?lv.s2:(p*0.99);}
+else{s.sl=(lv.r2&&lv.r2>p*1.005)?lv.r2:(p*1.01);}
+if(s.entry&&s.sl){if(isBullDominant&&s.sl>=s.entry.lo){s.sl=s.entry.lo*0.993;}else if(!isBullDominant&&s.sl<=s.entry.hi){s.sl=s.entry.hi*1.007;}}
  if(isBullDominant){s.tp=[lv.r1,lv.r2].filter(function(v){return v>p});if(s.tp.length===0)s.tp=[p*1.008,p*1.015];}else{s.tp=[lv.s1,lv.s2].filter(function(v){return v<p});if(s.tp.length===0)s.tp=[p*0.992,p*0.985];}
  var h1B=mtf.h1,htfB=mtf.h4,m15B=mtf.m15,m5B=mtf.m5;
  if(isBullDominant&&bullScore>=cf.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Bullish ('+mtfBull+'/'+((mtfBull+mtfBear)||1)+' MTF)';}
@@ -354,7 +357,6 @@ function genFusionIntraday(tcB,tcS,tcE,tcSL,smcS,p,lv,sd){
   if(m15B!=='NEUTRAL'&&m5B!=='NEUTRAL'&&m15B===m5B&&((s.bias==='BULLISH'&&m15B==='BEARISH')||(s.bias==='BEARISH'&&m15B==='BULLISH'))){s.conf=Math.round(s.conf*cf.m15m5Pen);s.reason+=' | M15+M5!';}
   if(s.conf<cf.minConf){s.action='WAIT';s.reason+=' - Low confidence';}
  }
- if(s.entry&&s.sl&&s.action!=='WAIT'){if((s.bias==='BULLISH'&&s.entry.hi>=s.sl)||(s.bias==='BEARISH'&&s.entry.lo<=s.sl))s.sl=s.bias==='BULLISH'?s.entry.lo*0.997:s.entry.hi*1.003;}
  if(s.entry&&s.sl&&s.tp.length>0&&s.tp[0]!=null&&!isNaN(s.tp[0])&&s.action!=='WAIT'){
   var entryMid,risk,reward;
   if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}
