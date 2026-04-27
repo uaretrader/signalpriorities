@@ -1,1388 +1,748 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>URA v5.1 – DUAL ENGINE (Optimized)</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap');
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    :root, [data-theme="dark"] {
-      --bg-primary: #0A0E15;
-      --bg-secondary: #11161E;
-      --bg-tertiary: #1A2330;
-      --border-subtle: #2A3646;
-      --text-primary: #EDF2F7;
-      --text-secondary: #9CA3AF;
-      --text-tertiary: #6B7280;
-      --accent-green: #10B981;
-      --accent-red: #EF4444;
-      --accent-blue: #3B82F6;
-      --accent-gold: #F59E0B;
-      --accent-cyan: #06B6D4;
-      --accent-purple: #8B5CF6;
-      --accent-orange: #F97316;
-      --accent-pink: #EC4899;
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --conf-high-bg: rgba(16, 185, 129, 0.2);
-      --conf-med-bg: rgba(245, 158, 11, 0.2);
-      --conf-low-bg: rgba(239, 68, 68, 0.2);
-      --rr-good-bg: rgba(16, 185, 129, 0.2);
-      --rr-ok-bg: rgba(245, 158, 11, 0.2);
-      --rr-bad-bg: rgba(239, 68, 68, 0.2);
-      --tc-key-bg: rgba(245, 158, 11, 0.1);
-      --stale-notice-bg: rgba(249, 115, 22, 0.1);
-      --session-warn-bg: rgba(245, 158, 11, 0.1);
-      --version-tag-bg: rgba(245, 158, 11, 0.15);
-      --tc-bias-neutral-bg: var(--bg-tertiary);
-      --copy-btn-hover-bg: rgba(6, 182, 212, 0.1);
-      --fusion-bg: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-      --scalp-bg: rgba(249, 115, 22, 0.15);
-      --anomali-bg: rgba(239, 68, 68, 0.15);
-      --anomali-border: #EF4444;
-    }
-    [data-theme="light"] {
-      --bg-primary: #F7F8FA;
-      --bg-secondary: #FFFFFF;
-      --bg-tertiary: #EEF1F5;
-      --border-subtle: #D1D5DB;
-      --text-primary: #1F2937;
-      --text-secondary: #4B5563;
-      --text-tertiary: #6B7280;
-      --accent-green: #059669;
-      --accent-red: #DC2626;
-      --accent-blue: #2563EB;
-      --accent-gold: #D97706;
-      --accent-cyan: #0891B2;
-      --accent-purple: #7C3AED;
-      --accent-orange: #EA580C;
-      --accent-pink: #DB2777;
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --conf-high-bg: rgba(5, 150, 105, 0.12);
-      --conf-med-bg: rgba(217, 119, 6, 0.12);
-      --conf-low-bg: rgba(220, 38, 38, 0.12);
-      --rr-good-bg: rgba(5, 150, 105, 0.12);
-      --rr-ok-bg: rgba(217, 119, 6, 0.12);
-      --rr-bad-bg: rgba(220, 38, 38, 0.12);
-      --tc-key-bg: rgba(217, 119, 6, 0.08);
-      --stale-notice-bg: rgba(234, 88, 12, 0.08);
-      --session-warn-bg: rgba(217, 119, 6, 0.08);
-      --version-tag-bg: rgba(217, 119, 6, 0.12);
-      --tc-bias-neutral-bg: #E5E7EB;
-      --copy-btn-hover-bg: rgba(8, 145, 178, 0.08);
-      --fusion-bg: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
-      --scalp-bg: rgba(234, 88, 12, 0.12);
-      --anomali-bg: rgba(220, 38, 38, 0.12);
-      --anomali-border: #DC2626;
-    }
-    body {
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      height: 100vh;
-      height: 100dvh;
-      width: 100vw;
-      overflow: hidden;
-      position: fixed;
-      top: 0;
-      left: 0;
-      display: flex;
-      justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      -webkit-user-select: none;
-      user-select: none;
-      transition: background 0.3s, color 0.3s;
-    }
-    .app-container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      height: 100dvh;
-      width: 100%;
-      max-width: 500px;
-      padding: 6px 8px;
-      padding-bottom: calc(6px + var(--safe-bottom));
-      gap: 3px;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 5px 0;
-      border-bottom: 1px solid var(--border-subtle);
-      flex-shrink: 0;
-    }
-    .logo-section {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-shrink: 0;
-    }
-    .logo {
-      font-weight: 800;
-      font-size: clamp(12px, 3.5vw, 14px);
-      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .version-tag {
-      font-size: 9px;
-      color: var(--accent-gold);
-      background: var(--version-tag-bg);
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-weight: 700;
-    }
-    .mode-tag {
-      font-size: 9px;
-      color: var(--accent-orange);
-      background: var(--scalp-bg);
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-weight: 700;
-      display: none;
-      animation: pulse 1.5s infinite;
-    }
-    .header-right-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-    .connection-badge {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 9px;
-      color: var(--text-secondary);
-      flex-shrink: 0;
-    }
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .status-dot.live {
-      background: var(--accent-green);
-      animation: pulse 2s infinite;
-    }
-    .status-dot.connecting {
-      background: var(--accent-gold);
-      animation: pulse 1s infinite;
-    }
-    .status-dot.reconnect {
-      background: var(--accent-orange);
-      animation: pulse 1s infinite;
-    }
-    .status-dot.fallback {
-      background: var(--accent-blue);
-      animation: pulse 1.5s infinite;
-    }
-    .status-dot.stale {
-      background: var(--accent-red);
-    }
-    @keyframes pulse {
-      0%, 100% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.4;
-      }
-    }
-    .theme-toggle-btn {
-      background: var(--bg-tertiary);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      cursor: pointer;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      flex-shrink: 0;
-      padding: 0;
-      line-height: 1;
-    }
-    .theme-toggle-btn:active {
-      transform: scale(0.9);
-      border-color: var(--accent-gold);
-      color: var(--accent-gold);
-    }
-    .price-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
-      padding: 6px 0;
-    }
-    .price-left {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .price-main {
-      font-size: clamp(22px, 6vw, 28px);
-      font-weight: 700;
-      line-height: 1;
-    }
-    .price-decimal {
-      font-size: clamp(14px, 4vw, 18px);
-      opacity: 0.6;
-    }
-    .price-change {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 10px;
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-subtle);
-    }
-    .pair-group {
-      display: flex;
-      gap: 2px;
-      background: var(--bg-secondary);
-      padding: 2px;
-      border-radius: 4px;
-      border: 1px solid var(--border-subtle);
-      flex-shrink: 0;
-    }
-    .pair-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-tertiary);
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 3px;
-      min-width: 42px;
-      transition: all 0.15s;
-    }
-    .pair-btn.active {
-      color: var(--text-primary);
-      background: var(--bg-tertiary);
-    }
-    .fusion-bar {
-      background: var(--fusion-bg);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 8px 10px;
-      flex-shrink: 0;
-      cursor: pointer;
-      position: relative;
-      transition: opacity 0.3s, background 0.3s;
-    }
-    .fusion-bar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
-      border-radius: 8px 8px 0 0;
-    }
-    .fusion-bar.stale-signal {
-      opacity: 0.55;
-    }
-    .fusion-bar.scalp-mode::before {
-      background: linear-gradient(90deg, var(--accent-orange), var(--accent-pink));
-    }
-    .fusion-bar.anomali {
-      border-color: var(--anomali-border);
-      background: var(--anomali-bg);
-      box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
-    }
-    .signal-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-    .signal-left {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .signal-badge {
-      font-size: 10px;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .signal-badge.scalp {
-      background: linear-gradient(135deg, var(--accent-orange), var(--accent-pink));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .signal-text {
-      font-size: clamp(12px, 3.5vw, 14px);
-      font-weight: 700;
-    }
-    .conf-badge {
-      font-size: 9px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-      white-space: nowrap;
-    }
-    .conf-badge.high {
-      background: var(--conf-high-bg);
-      color: var(--accent-green);
-      border: 1px solid var(--accent-green);
-    }
-    .conf-badge.medium {
-      background: var(--conf-med-bg);
-      color: var(--accent-gold);
-      border: 1px solid var(--accent-gold);
-    }
-    .conf-badge.low {
-      background: var(--conf-low-bg);
-      color: var(--accent-red);
-      border: 1px solid var(--accent-red);
-    }
-    .signal-arrow {
-      font-size: 15px;
-    }
-    .fusion-details {
-      display: flex;
-      gap: 6px;
-      margin-top: 5px;
-      font-size: 9px;
-      color: var(--text-secondary);
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .fusion-details span {
-      white-space: nowrap;
-    }
-    .rr-badge {
-      font-size: 9px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 10px;
-      white-space: nowrap;
-      margin-left: 4px;
-    }
-    .rr-badge.good {
-      background: var(--rr-good-bg);
-      color: var(--accent-green);
-    }
-    .rr-badge.ok {
-      background: var(--rr-ok-bg);
-      color: var(--accent-gold);
-    }
-    .rr-badge.bad {
-      background: var(--rr-bad-bg);
-      color: var(--accent-red);
-    }
-    .cooldown-bar {
-      width: 100%;
-      height: 3px;
-      background: var(--bg-tertiary);
-      border-radius: 2px;
-      margin-top: 4px;
-      overflow: hidden;
-      display: none;
-      transition: background 0.3s;
-    }
-    .cooldown-bar.active {
-      display: block;
-    }
-    .cooldown-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--accent-orange), var(--accent-gold));
-      border-radius: 2px;
-      transition: width 1s linear;
-    }
-    .metrics-trio {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
-      flex-shrink: 0;
-    }
-    .metric-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 6px 6px;
-      cursor: pointer;
-      min-width: 0;
-      transition: border-color 0.15s, background 0.3s;
-    }
-    .metric-card:active {
-      border-color: var(--accent-cyan);
-    }
-    .metric-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 8px;
-      color: var(--text-tertiary);
-      margin-bottom: 3px;
-      min-height: 14px;
-    }
-    .metric-value {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-primary);
-      min-height: 16px;
-      display: flex;
-      align-items: center;
-    }
-    .metric-sub {
-      font-size: 7px;
-      color: var(--text-secondary);
-      margin-top: 1px;
-      min-height: 12px;
-    }
-    .smc-panel {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 6px 6px;
-      flex-shrink: 0;
-      transition: background 0.3s;
-    }
-    .smc-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-      min-height: 16px;
-    }
-    .smc-title {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--accent-purple);
-    }
-    .smc-items {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
-    }
-    .smc-item {
-      background: var(--bg-tertiary);
-      border-radius: 5px;
-      padding: 5px 5px;
-      cursor: pointer;
-      text-align: center;
-      min-width: 0;
-      transition: border-color 0.15s, background 0.3s;
-      min-height: 58px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-    .smc-item:active {
-      border: 1px solid var(--accent-purple);
-    }
-    .smc-item-icon {
-      font-size: 8px;
-      margin-bottom: 2px;
-      min-height: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .smc-item-value {
-      font-size: 8.5px;
-      font-weight: 500;
-      color: var(--text-primary);
-      line-height: 1.3;
-      min-height: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      word-break: break-all;
-    }
-    .smc-item-detail {
-      font-size: 7px;
-      color: var(--text-secondary);
-      min-height: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .tf-row {
-      flex-shrink: 0;
-    }
-    .tf-group {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 2px;
-      background: var(--bg-secondary);
-      padding: 3px;
-      border-radius: 6px;
-      border: 1px solid var(--border-subtle);
-      transition: background 0.3s;
-    }
-    .tf-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-tertiary);
-      padding: 7px 2px;
-      font-size: 9px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      position: relative;
-      min-width: 0;
-      transition: all 0.15s;
-    }
-    .tf-btn.active {
-      color: var(--text-primary);
-      background: var(--bg-tertiary);
-    }
-    .tf-btn.scalp-active {
-      color: var(--accent-orange);
-      background: rgba(249, 115, 22, 0.1);
-    }
-    .tf-bias-symbol {
-      font-size: 9px;
-    }
-    .tf-bias-symbol.bullish {
-      color: var(--accent-green);
-    }
-    .tf-bias-symbol.bearish {
-      color: var(--accent-red);
-    }
-    .tf-bias-symbol.neutral {
-      color: var(--text-tertiary);
-    }
-    .tf-mtf-dot {
-      position: absolute;
-      top: 3px;
-      right: 3px;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .tf-btn.aligned .tf-mtf-dot {
-      opacity: 1;
-      background: var(--accent-green);
-      box-shadow: 0 0 4px var(--accent-green);
-    }
-    .tf-btn.conflict .tf-mtf-dot {
-      opacity: 1;
-      background: var(--accent-red);
-      box-shadow: 0 0 4px var(--accent-red);
-    }
-    .tf-btn.warning .tf-mtf-dot {
-      opacity: 1;
-      background: var(--accent-orange);
-      box-shadow: 0 0 4px var(--accent-orange);
-    }
-    .tc-dashboard {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 6px 6px;
-      flex-shrink: 0;
-      transition: background 0.3s;
-    }
-    .tc-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 4px;
-      padding-bottom: 3px;
-      border-bottom: 1px solid var(--border-subtle);
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-    .tc-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--accent-cyan);
-    }
-    .tc-update {
-      font-size: 8px;
-      color: var(--text-tertiary);
-    }
-    .tc-update.active-session {
-      color: var(--accent-gold);
-      font-weight: 700;
-    }
-    .tc-bias {
-      font-size: 9px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-      white-space: nowrap;
-    }
-    .tc-bias.bullish {
-      background: var(--conf-high-bg);
-      color: var(--accent-green);
-      border: 1px solid var(--accent-green);
-    }
-    .tc-bias.bearish {
-      background: var(--conf-low-bg);
-      color: var(--accent-red);
-      border: 1px solid var(--accent-red);
-    }
-    .tc-bias.neutral {
-      background: var(--tc-bias-neutral-bg);
-      color: var(--text-secondary);
-      border: 1px solid var(--border-subtle);
-    }
-    .tc-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1px 8px;
-    }
-    .tc-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 3px 4px;
-      cursor: pointer;
-      border-bottom: 1px dotted var(--border-subtle);
-      min-height: 20px;
-      transition: background 0.15s;
-      border-radius: 3px;
-    }
-    .tc-row:hover {
-      background: var(--bg-tertiary);
-    }
-    .tc-row:active {
-      background: var(--bg-tertiary);
-    }
-    .tc-label {
-      font-size: 8px;
-      font-weight: 700;
-      color: var(--text-tertiary);
-    }
-    .tc-value {
-      font-size: 10px;
-      font-weight: 700;
-      font-family: 'SF Mono', 'Consolas', monospace;
-    }
-    .tc-value.res {
-      color: var(--accent-red);
-    }
-    .tc-value.sup {
-      color: var(--accent-green);
-    }
-    .tc-value.piv {
-      color: var(--accent-gold);
-    }
-    .tc-value.bb {
-      color: var(--accent-cyan);
-    }
-    .tc-row.key {
-      background: var(--tc-key-bg);
-      border-left: 3px solid var(--accent-gold);
-      border-radius: 0 3px 3px 0;
-    }
-    .tc-row.key .tc-label {
-      color: var(--accent-gold);
-      font-weight: 800;
-    }
-    .tc-copy-toast {
-      position: fixed;
-      background: var(--accent-cyan);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 5px 12px;
-      border-radius: 15px;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.25s;
-      z-index: 999;
-      white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
-    .tc-copy-toast.show {
-      opacity: 1;
-    }
-    .copy-btn {
-      background: transparent;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      padding: 5px;
-      font-size: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      border-radius: 5px;
-      flex-shrink: 0;
-      width: 100%;
-      letter-spacing: 0.5px;
-      opacity: 0.7;
-      transition: all 0.15s;
-    }
-    .copy-btn:active {
-      opacity: 1;
-      border-color: var(--accent-cyan);
-      color: var(--accent-cyan);
-      background: var(--copy-btn-hover-bg);
-    }
-    .action-section {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
-      flex-shrink: 0;
-    }
-    .action-card {
-      background: var(--bg-secondary);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 6px;
-      cursor: pointer;
-      min-width: 0;
-      transition: opacity 0.3s, border-color 0.15s, background 0.3s;
-    }
-    .action-card.stale {
-      opacity: 0.4;
-    }
-    .action-card:active {
-      border-color: var(--accent-gold);
-    }
-    .action-header {
-      font-size: 8px;
-      font-weight: 600;
-      color: var(--text-tertiary);
-      margin-bottom: 4px;
-      letter-spacing: 0.3px;
-    }
-    .action-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2px;
-      gap: 4px;
-    }
-    .action-label {
-      font-size: 7px;
-      color: var(--text-secondary);
-      white-space: nowrap;
-    }
-    .action-value {
-      font-size: 9px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .action-value.entry {
-      color: var(--accent-gold);
-    }
-    .action-value.sl {
-      color: var(--accent-red);
-    }
-    .action-value.tp {
-      color: var(--accent-blue);
-    }
-    .stale-notice {
-      font-size: 8px;
-      color: var(--accent-orange);
-      text-align: center;
-      display: none;
-      margin-top: 1px;
-      padding: 3px;
-      background: var(--stale-notice-bg);
-      border-radius: 4px;
-      font-weight: 700;
-    }
-    .stale-notice.show {
-      display: block;
-    }
-    .session-warning {
-      font-size: 8px;
-      color: var(--accent-gold);
-      text-align: center;
-      display: none;
-      margin-top: 1px;
-      padding: 3px;
-      background: var(--session-warn-bg);
-      border-radius: 4px;
-      font-weight: 700;
-    }
-    .session-warning.show {
-      display: block;
-    }
-    .anomali-badge {
-      font-size: 8px;
-      color: var(--accent-red);
-      background: var(--anomali-bg);
-      padding: 2px 6px;
-      border-radius: 10px;
-      font-weight: 700;
-      display: none;
-      margin-left: 4px;
-    }
-    .anomali-badge.show {
-      display: inline-block;
-      animation: pulse 1s infinite;
-    }
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 5px 0;
-      border-top: 1px solid var(--border-subtle);
-      font-size: 9px;
-      color: var(--text-secondary);
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
-    @media (max-width: 380px) {
-      .app-container {
-        padding: 3px 4px;
-        padding-bottom: calc(3px + var(--safe-bottom));
-        gap: 2px;
-      }
-      .price-main {
-        font-size: 20px;
-      }
-      .price-decimal {
-        font-size: 13px;
-      }
-      .signal-text {
-        font-size: 11px;
-      }
-      .signal-badge {
-        font-size: 9px;
-      }
-      .tf-btn {
-        font-size: 8px;
-        padding: 5px 1px;
-      }
-      .tf-bias-symbol {
-        font-size: 8px;
-      }
-      .action-value {
-        font-size: 8px;
-      }
-      .metric-value {
-        font-size: 10px;
-      }
-      .tc-value {
-        font-size: 9px;
-      }
-      .pair-btn {
-        font-size: 10px;
-        padding: 5px 8px;
-        min-width: 36px;
-      }
-    }
-    @media (max-width: 340px) {
-      .fusion-details {
-        font-size: 8px;
-        gap: 4px;
-      }
-      .signal-left {
-        gap: 4px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>URA v5.0 – DUAL ENGINE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        
+        :root,
+        [data-theme="dark"]{
+            --bg-primary:#0A0E15;--bg-secondary:#11161E;--bg-tertiary:#1A2330;--border-subtle:#2A3646;
+            --text-primary:#EDF2F7;--text-secondary:#9CA3AF;--text-tertiary:#6B7280;
+            --accent-green:#10B981;--accent-red:#EF4444;--accent-blue:#3B82F6;--accent-gold:#F59E0B;
+            --accent-cyan:#06B6D4;--accent-purple:#8B5CF6;--accent-orange:#F97316;--accent-pink:#EC4899;
+            --safe-bottom:env(safe-area-inset-bottom,0px);
+            --conf-high-bg:rgba(16,185,129,0.2);--conf-med-bg:rgba(245,158,11,0.2);--conf-low-bg:rgba(239,68,68,0.2);
+            --rr-good-bg:rgba(16,185,129,0.2);--rr-ok-bg:rgba(245,158,11,0.2);--rr-bad-bg:rgba(239,68,68,0.2);
+            --tc-key-bg:rgba(245,158,11,0.1);--stale-notice-bg:rgba(249,115,22,0.1);--session-warn-bg:rgba(245,158,11,0.1);
+            --version-tag-bg:rgba(245,158,11,0.15);--tc-bias-neutral-bg:var(--bg-tertiary);
+            --copy-btn-hover-bg:rgba(6,182,212,0.1);--fusion-bg:linear-gradient(135deg,var(--bg-secondary),var(--bg-tertiary));
+            --scalp-bg:rgba(249,115,22,0.15);
+        }
+        
+        [data-theme="light"]{
+            --bg-primary:#F7F8FA;--bg-secondary:#FFFFFF;--bg-tertiary:#EEF1F5;--border-subtle:#D1D5DB;
+            --text-primary:#1F2937;--text-secondary:#4B5563;--text-tertiary:#6B7280;
+            --accent-green:#059669;--accent-red:#DC2626;--accent-blue:#2563EB;--accent-gold:#D97706;
+            --accent-cyan:#0891B2;--accent-purple:#7C3AED;--accent-orange:#EA580C;--accent-pink:#DB2777;
+            --safe-bottom:env(safe-area-inset-bottom,0px);
+            --conf-high-bg:rgba(5,150,105,0.12);--conf-med-bg:rgba(217,119,6,0.12);--conf-low-bg:rgba(220,38,38,0.12);
+            --rr-good-bg:rgba(5,150,105,0.12);--rr-ok-bg:rgba(217,119,6,0.12);--rr-bad-bg:rgba(220,38,38,0.12);
+            --tc-key-bg:rgba(217,119,6,0.08);--stale-notice-bg:rgba(234,88,12,0.08);--session-warn-bg:rgba(217,119,6,0.08);
+            --version-tag-bg:rgba(217,119,6,0.12);--tc-bias-neutral-bg:#E5E7EB;
+            --copy-btn-hover-bg:rgba(8,145,178,0.08);--fusion-bg:linear-gradient(135deg,var(--bg-secondary),var(--bg-tertiary));
+            --scalp-bg:rgba(234,88,12,0.12);
+        }
+        
+        body{
+            font-family:'Inter',-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);
+            height:100vh;height:100dvh;width:100vw;overflow:hidden;position:fixed;top:0;left:0;display:flex;justify-content:center;
+            -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;
+            transition:background 0.3s,color 0.3s;
+        }
+        .app-container{
+            display:flex;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:500px;padding:6px 8px;padding-bottom:calc(6px + var(--safe-bottom));gap:3px;
+            overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+        }
+        .header{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border-subtle);flex-shrink:0}
+        .logo-section{display:flex;align-items:center;gap:6px;flex-shrink:0}
+        .logo{font-weight:800;font-size:clamp(12px,3.5vw,14px);background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .version-tag{font-size:9px;color:var(--accent-gold);background:var(--version-tag-bg);padding:2px 6px;border-radius:10px;font-weight:700}
+        .mode-tag{font-size:9px;color:var(--accent-orange);background:var(--scalp-bg);padding:2px 6px;border-radius:10px;font-weight:700;display:none;animation:pulse 1.5s infinite}
+        .header-right-group{display:flex;align-items:center;gap:8px;flex-shrink:0}
+        .connection-badge{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text-secondary);flex-shrink:0}
+        .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+        .status-dot.live{background:var(--accent-green);animation:pulse 2s infinite}
+        .status-dot.connecting{background:var(--accent-gold);animation:pulse 1s infinite}
+        .status-dot.reconnect{background:var(--accent-orange);animation:pulse 1s infinite}
+        .status-dot.fallback{background:var(--accent-blue);animation:pulse 1.5s infinite}
+        .status-dot.stale{background:var(--accent-red)}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        .theme-toggle-btn{background:var(--bg-tertiary);border:1px solid var(--border-subtle);color:var(--text-secondary);width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;padding:0;line-height:1}
+        .theme-toggle-btn:active{transform:scale(0.9);border-color:var(--accent-gold);color:var(--accent-gold)}
+        .price-row{display:flex;justify-content:space-between;align-items:center;flex-shrink:0;padding:6px 0}
+        .price-left{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+        .price-main{font-size:clamp(22px,6vw,28px);font-weight:700;line-height:1}
+        .price-decimal{font-size:clamp(14px,4vw,18px);opacity:0.6}
+        .price-change{font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border-subtle)}
+        .pair-group{display:flex;gap:2px;background:var(--bg-secondary);padding:2px;border-radius:4px;border:1px solid var(--border-subtle);flex-shrink:0}
+        .pair-btn{background:transparent;border:none;color:var(--text-tertiary);padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;border-radius:3px;min-width:42px;transition:all 0.15s}
+        .pair-btn.active{color:var(--text-primary);background:var(--bg-tertiary)}
+        .fusion-bar{background:var(--fusion-bg);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 10px;flex-shrink:0;cursor:pointer;position:relative;transition:opacity 0.3s,background 0.3s}
+        .fusion-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple));border-radius:8px 8px 0 0}
+        .fusion-bar.stale-signal{opacity:0.55}
+        .fusion-bar.scalp-mode::before{background:linear-gradient(90deg,var(--accent-orange),var(--accent-pink))}
+        .signal-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px}
+        .signal-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+        .signal-badge{font-size:10px;font-weight:800;background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .signal-badge.scalp{background:linear-gradient(135deg,var(--accent-orange),var(--accent-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .signal-text{font-size:clamp(12px,3.5vw,14px);font-weight:700}
+        .conf-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+        .conf-badge.high{background:var(--conf-high-bg);color:var(--accent-green);border:1px solid var(--accent-green)}
+        .conf-badge.medium{background:var(--conf-med-bg);color:var(--accent-gold);border:1px solid var(--accent-gold)}
+        .conf-badge.low{background:var(--conf-low-bg);color:var(--accent-red);border:1px solid var(--accent-red)}
+        .signal-arrow{font-size:15px}
+        .fusion-details{display:flex;gap:6px;margin-top:5px;font-size:9px;color:var(--text-secondary);flex-wrap:wrap;align-items:center}
+        .fusion-details span{white-space:nowrap}
+        .rr-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;white-space:nowrap;margin-left:4px}
+        .rr-badge.good{background:var(--rr-good-bg);color:var(--accent-green)}
+        .rr-badge.ok{background:var(--rr-ok-bg);color:var(--accent-gold)}
+        .rr-badge.bad{background:var(--rr-bad-bg);color:var(--accent-red)}
+        .cooldown-bar{width:100%;height:3px;background:var(--bg-tertiary);border-radius:2px;margin-top:4px;overflow:hidden;display:none;transition:background 0.3s}
+        .cooldown-bar.active{display:block}
+        .cooldown-fill{height:100%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-gold));border-radius:2px;transition:width 1s linear}
+        .metrics-trio{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;flex-shrink:0}
+        .metric-card{background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:6px;padding:6px 6px;cursor:pointer;min-width:0;transition:border-color 0.15s,background 0.3s}
+        .metric-card:active{border-color:var(--accent-cyan)}
+        .metric-header{display:flex;justify-content:space-between;align-items:center;font-size:8px;color:var(--text-tertiary);margin-bottom:3px;min-height:14px}
+        .metric-value{font-size:11px;font-weight:600;color:var(--text-primary);min-height:16px;display:flex;align-items:center}
+        .metric-sub{font-size:7px;color:var(--text-secondary);margin-top:1px;min-height:12px}
+        .smc-panel{background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:6px;padding:6px 6px;flex-shrink:0;transition:background 0.3s}
+        .smc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;min-height:16px}
+        .smc-title{font-size:10px;font-weight:600;color:var(--accent-purple)}
+        .smc-items{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+        .smc-item{background:var(--bg-tertiary);border-radius:5px;padding:5px 5px;cursor:pointer;text-align:center;min-width:0;transition:border-color 0.15s,background 0.3s;min-height:58px;display:flex;flex-direction:column;justify-content:center}
+        .smc-item:active{border:1px solid var(--accent-purple)}
+        .smc-item-icon{font-size:8px;margin-bottom:2px;min-height:12px;display:flex;align-items:center;justify-content:center}
+        .smc-item-value{font-size:8.5px;font-weight:500;color:var(--text-primary);line-height:1.3;min-height:20px;display:flex;align-items:center;justify-content:center;word-break:break-all}
+        .smc-item-detail{font-size:7px;color:var(--text-secondary);min-height:12px;display:flex;align-items:center;justify-content:center}
+        .tf-row{flex-shrink:0}
+        .tf-group{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:var(--bg-secondary);padding:3px;border-radius:6px;border:1px solid var(--border-subtle);transition:background 0.3s}
+        .tf-btn{background:transparent;border:none;color:var(--text-tertiary);padding:7px 2px;font-size:9px;font-weight:600;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;gap:2px;position:relative;min-width:0;transition:all 0.15s}
+        .tf-btn.active{color:var(--text-primary);background:var(--bg-tertiary)}
+        .tf-btn.scalp-active{color:var(--accent-orange);background:rgba(249,115,22,0.1)}
+        .tf-bias-symbol{font-size:9px}.tf-bias-symbol.bullish{color:var(--accent-green)}.tf-bias-symbol.bearish{color:var(--accent-red)}.tf-bias-symbol.neutral{color:var(--text-tertiary)}
+        .tf-mtf-dot{position:absolute;top:3px;right:3px;width:4px;height:4px;border-radius:50%;opacity:0;transition:opacity 0.2s}
+        .tf-btn.aligned .tf-mtf-dot{opacity:1;background:var(--accent-green);box-shadow:0 0 4px var(--accent-green)}
+        .tf-btn.conflict .tf-mtf-dot{opacity:1;background:var(--accent-red);box-shadow:0 0 4px var(--accent-red)}
+        .tf-btn.warning .tf-mtf-dot{opacity:1;background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange)}
+        .tc-dashboard{background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:6px;padding:6px 6px;flex-shrink:0;transition:background 0.3s}
+        .tc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid var(--border-subtle);flex-wrap:wrap;gap:4px}
+        .tc-title{font-size:11px;font-weight:600;color:var(--accent-cyan)}
+        .tc-update{font-size:8px;color:var(--text-tertiary)}
+        .tc-update.active-session{color:var(--accent-gold);font-weight:700}
+        .tc-bias{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap}
+        .tc-bias.bullish{background:var(--conf-high-bg);color:var(--accent-green);border:1px solid var(--accent-green)}
+        .tc-bias.bearish{background:var(--conf-low-bg);color:var(--accent-red);border:1px solid var(--accent-red)}
+        .tc-bias.neutral{background:var(--tc-bias-neutral-bg);color:var(--text-secondary);border:1px solid var(--border-subtle)}
+        .tc-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px 8px}
+        .tc-row{display:flex;justify-content:space-between;align-items:center;padding:3px 4px;cursor:pointer;border-bottom:1px dotted var(--border-subtle);min-height:20px;transition:background 0.15s;border-radius:3px}
+        .tc-row:hover{background:var(--bg-tertiary)}
+        .tc-row:active{background:var(--bg-tertiary)}
+        .tc-label{font-size:8px;font-weight:700;color:var(--text-tertiary)}
+        .tc-value{font-size:10px;font-weight:700;font-family:'SF Mono','Consolas',monospace}
+        .tc-value.res{color:var(--accent-red)}.tc-value.sup{color:var(--accent-green)}.tc-value.piv{color:var(--accent-gold)}.tc-value.bb{color:var(--accent-cyan)}
+        .tc-row.key{background:var(--tc-key-bg);border-left:3px solid var(--accent-gold);border-radius:0 3px 3px 0}
+        .tc-row.key .tc-label{color:var(--accent-gold);font-weight:800}
+        .tc-copy-toast{position:fixed;background:var(--accent-cyan);color:#fff;font-size:10px;font-weight:700;padding:5px 12px;border-radius:15px;pointer-events:none;opacity:0;transition:opacity 0.25s;z-index:999;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+        .tc-copy-toast.show{opacity:1}
+        .copy-btn{background:transparent;border:1px solid var(--border-subtle);color:var(--text-secondary);padding:5px;font-size:8px;font-weight:600;cursor:pointer;border-radius:5px;flex-shrink:0;width:100%;letter-spacing:0.5px;opacity:0.7;transition:all 0.15s}
+        .copy-btn:active{opacity:1;border-color:var(--accent-cyan);color:var(--accent-cyan);background:var(--copy-btn-hover-bg)}
+        .action-section{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;flex-shrink:0}
+        .action-card{background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:6px;padding:6px;cursor:pointer;min-width:0;transition:opacity 0.3s,border-color 0.15s,background 0.3s}
+        .action-card.stale{opacity:0.4}
+        .action-card:active{border-color:var(--accent-gold)}
+        .action-header{font-size:8px;font-weight:600;color:var(--text-tertiary);margin-bottom:4px;letter-spacing:0.3px}
+        .action-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;gap:4px}
+        .action-label{font-size:7px;color:var(--text-secondary);white-space:nowrap}.action-value{font-size:9px;font-weight:700;white-space:nowrap}
+        .action-value.entry{color:var(--accent-gold)}.action-value.sl{color:var(--accent-red)}.action-value.tp{color:var(--accent-blue)}
+        .stale-notice{font-size:8px;color:var(--accent-orange);text-align:center;display:none;margin-top:1px;padding:3px;background:var(--stale-notice-bg);border-radius:4px;font-weight:700}
+        .stale-notice.show{display:block}
+        .session-warning{font-size:8px;color:var(--accent-gold);text-align:center;display:none;margin-top:1px;padding:3px;background:var(--session-warn-bg);border-radius:4px;font-weight:700}
+        .session-warning.show{display:block}
+        .footer{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border-subtle);font-size:9px;color:var(--text-secondary);flex-shrink:0;margin-top:2px}
+        @media (max-width:380px){
+            .app-container{padding:3px 4px;padding-bottom:calc(3px + var(--safe-bottom));gap:2px}
+            .price-main{font-size:20px}.price-decimal{font-size:13px}
+            .signal-text{font-size:11px}.signal-badge{font-size:9px}
+            .tf-btn{font-size:8px;padding:5px 1px}.tf-bias-symbol{font-size:8px}
+            .action-value{font-size:8px}.metric-value{font-size:10px}
+            .tc-value{font-size:9px}.pair-btn{font-size:10px;padding:5px 8px;min-width:36px}
+        }
+        @media (max-width:340px){
+            .fusion-details{font-size:8px;gap:4px}
+            .signal-left{gap:4px}
+        }
+    </style>
 </head>
 <body data-theme="dark">
 <div class="app-container" id="app">
-  <header class="header">
-    <div class="logo-section"><span class="logo">URA · ADVISOR</span><span class="version-tag">v5.1</span><span class="mode-tag" id="mode-tag">⚡SCALP</span></div>
-    <div class="header-right-group">
-      <div class="connection-badge"><span class="status-dot connecting" id="status-dot"></span><span id="status-text">CONNECT</span></div>
-      <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">☀️</button>
+    <header class="header">
+        <div class="logo-section"><span class="logo">URA · ADVISOR</span><span class="version-tag">v5.0</span><span class="mode-tag" id="mode-tag">⚡SCALP</span></div>
+        <div class="header-right-group">
+            <div class="connection-badge"><span class="status-dot connecting" id="status-dot"></span><span id="status-text">CONNECT</span></div>
+            <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">☀️</button>
+        </div>
+    </header>
+    <div class="price-row">
+        <div class="price-left"><div class="price-main" id="price-display">0.00</div><div class="price-change" id="price-change">0.00</div></div>
+        <div class="pair-group"><button class="pair-btn active" data-pair="XAUUSDT">XAU</button><button class="pair-btn" data-pair="BTCUSDT">BTC</button></div>
     </div>
-  </header>
-  <div class="price-row">
-    <div class="price-left"><div class="price-main" id="price-display">0.00</div><div class="price-change" id="price-change">0.00</div></div>
-    <div class="pair-group"><button class="pair-btn active" data-pair="XAUUSDT">XAU</button><button class="pair-btn" data-pair="BTCUSDT">BTC</button></div>
-  </div>
-  <div class="fusion-bar" id="fusion-bar">
-    <div class="signal-row">
-      <div class="signal-left"><span class="signal-badge" id="signal-badge">FUSION</span><span class="signal-text" id="sig-status">INIT</span><span class="conf-badge low" id="sig-conf">--</span><span class="anomali-badge" id="anomali-badge">⚠️ ANOMALI H4</span></div>
-      <span class="signal-arrow" id="sig-arrow">—</span>
+    <div class="fusion-bar" id="fusion-bar">
+        <div class="signal-row">
+            <div class="signal-left"><span class="signal-badge" id="signal-badge">FUSION</span><span class="signal-text" id="sig-status">INIT</span><span class="conf-badge low" id="sig-conf">--</span></div>
+            <span class="signal-arrow" id="sig-arrow">—</span>
+        </div>
+        <div class="fusion-details"><span style="color:var(--accent-cyan)">⚡</span><span id="sig-decision">FUSION: --</span><span id="sig-strength">Conf: --%</span><span id="sig-rr"></span><span style="margin-left:auto" id="sig-reason">—</span></div>
+        <div class="cooldown-bar" id="cooldown-bar"><div class="cooldown-fill" id="cooldown-fill" style="width:0%"></div></div>
     </div>
-    <div class="fusion-details"><span id="sig-decision">FUSION: --</span><span id="sig-strength">Conf: --%</span><span id="sig-rr"></span><span style="margin-left:auto" id="sig-reason">—</span></div>
-    <div class="cooldown-bar" id="cooldown-bar"><div class="cooldown-fill" id="cooldown-fill" style="width:0%"></div></div>
-  </div>
-  <div class="metrics-trio">
-    <div class="metric-card" id="card-ma"><div class="metric-header"><span>MA20/50</span><span id="ma-trend" style="font-size:10px">●</span></div><div class="metric-value" id="ma20-val">—</div><div class="metric-sub" id="ma50-val">MA50: —</div></div>
-    <div class="metric-card" id="card-adx"><div class="metric-header"><span>ADX/DI</span><span id="adx-trend" style="font-size:10px">●</span></div><div class="metric-value" id="adx-val">—</div><div class="metric-sub" id="di-val">—</div></div>
-    <div class="metric-card" id="card-rsi"><div class="metric-header"><span>RSI</span><span id="rsi-trend" style="font-size:10px">●</span></div><div class="metric-value" id="rsi-val">—</div><div class="metric-sub" id="atr-val">ATR: —</div></div>
-  </div>
-  <div class="smc-panel">
-    <div class="smc-header"><span class="smc-title">💎 SMC</span><span style="font-size:8px;color:var(--text-tertiary)" id="smc-upd">--</span></div>
-    <div class="smc-items">
-      <div class="smc-item" id="smc-fvg"><div class="smc-item-icon" style="color:var(--accent-purple)">📐 FVG</div><div class="smc-item-value" id="fvg-val">—</div><div class="smc-item-detail" id="fvg-det">—</div></div>
-      <div class="smc-item" id="smc-ob"><div class="smc-item-icon" style="color:var(--accent-pink)">📦 OB</div><div class="smc-item-value" id="ob-val">—</div><div class="smc-item-detail" id="ob-det">—</div></div>
-      <div class="smc-item" id="smc-sw"><div class="smc-item-icon" style="color:var(--accent-orange)">💧 SWEEP</div><div class="smc-item-value" id="sw-val">—</div><div class="smc-item-detail" id="sw-det">—</div></div>
+    <div class="metrics-trio">
+        <div class="metric-card" id="card-ma"><div class="metric-header"><span>MA20/50</span><span id="ma-trend" style="font-size:10px">●</span></div><div class="metric-value" id="ma20-val">—</div><div class="metric-sub" id="ma50-val">MA50: —</div></div>
+        <div class="metric-card" id="card-adx"><div class="metric-header"><span>ADX/DI</span><span id="adx-trend" style="font-size:10px">●</span></div><div class="metric-value" id="adx-val">—</div><div class="metric-sub" id="di-val">—</div></div>
+        <div class="metric-card" id="card-rsi"><div class="metric-header"><span>RSI</span><span id="rsi-trend" style="font-size:10px">●</span></div><div class="metric-value" id="rsi-val">—</div><div class="metric-sub" id="atr-val">ATR: —</div></div>
     </div>
-  </div>
-  <div class="tf-row"><div class="tf-group" id="tf-group">
-    <button class="tf-btn" data-tf="4h"><span>H4</span><span class="tf-bias-symbol" id="sym-h4">●</span><span class="tf-mtf-dot"></span></button>
-    <button class="tf-btn" data-tf="1h"><span>H1</span><span class="tf-bias-symbol" id="sym-h1">●</span><span class="tf-mtf-dot"></span></button>
-    <button class="tf-btn active" data-tf="30m"><span>M30</span><span class="tf-bias-symbol" id="sym-m30">●</span><span class="tf-mtf-dot"></span></button>
-    <button class="tf-btn" data-tf="15m"><span>M15</span><span class="tf-bias-symbol" id="sym-m15">●</span><span class="tf-mtf-dot"></span></button>
-    <button class="tf-btn" data-tf="5m"><span>M5</span><span class="tf-bias-symbol" id="sym-m5">●</span><span class="tf-mtf-dot"></span></button>
-  </div></div>
-  <div class="tc-dashboard">
-    <div class="tc-header"><span class="tc-title">📊 TC SESSION</span><span class="tc-update active-session" id="tc-upd">--</span><span class="tc-bias neutral" id="tc-bias-val">NEUTRAL</span></div>
-    <div class="tc-grid" id="tc-grid">
-      <div class="tc-row"><span class="tc-label">R3</span><span class="tc-value res" id="r3v">—</span></div><div class="tc-row"><span class="tc-label">S3</span><span class="tc-value sup" id="s3v">—</span></div>
-      <div class="tc-row"><span class="tc-label">R2</span><span class="tc-value res" id="r2v">—</span></div><div class="tc-row"><span class="tc-label">S2</span><span class="tc-value sup" id="s2v">—</span></div>
-      <div class="tc-row"><span class="tc-label">R1</span><span class="tc-value res" id="r1v">—</span></div><div class="tc-row"><span class="tc-label">S1</span><span class="tc-value sup" id="s1v">—</span></div>
-      <div class="tc-row key"><span class="tc-label">⚡PIVOT</span><span class="tc-value piv" id="pivotv">—</span></div><div class="tc-row"><span class="tc-label">LAST</span><span class="tc-value" id="lastv">—</span></div>
-      <div class="tc-row"><span class="tc-label">BB UP</span><span class="tc-value bb" id="bbuv">—</span></div><div class="tc-row"><span class="tc-label">BB LO</span><span class="tc-value bb" id="bblv">—</span></div><div class="tc-row"><span class="tc-label">BB MID</span><span class="tc-value bb" id="bbmv">—</span></div>
+    <div class="smc-panel">
+        <div class="smc-header"><span class="smc-title">💎 SMC</span><span style="font-size:8px;color:var(--text-tertiary)" id="smc-upd">--</span></div>
+        <div class="smc-items">
+            <div class="smc-item" id="smc-fvg"><div class="smc-item-icon" style="color:var(--accent-purple)">📐 FVG</div><div class="smc-item-value" id="fvg-val">—</div><div class="smc-item-detail" id="fvg-det">—</div></div>
+            <div class="smc-item" id="smc-ob"><div class="smc-item-icon" style="color:var(--accent-pink)">📦 OB</div><div class="smc-item-value" id="ob-val">—</div><div class="smc-item-detail" id="ob-det">—</div></div>
+            <div class="smc-item" id="smc-sw"><div class="smc-item-icon" style="color:var(--accent-orange)">💧 SWEEP</div><div class="smc-item-value" id="sw-val">—</div><div class="smc-item-detail" id="sw-det">—</div></div>
+        </div>
     </div>
-  </div>
-  <div class="action-section" id="action-section">
-    <div class="action-card" id="card-entry"><div class="action-header">🎯 ENTRY</div><div class="action-row"><span class="action-label">BUY</span><span class="action-value entry" id="entry-lo">—</span></div><div class="action-row"><span class="action-label">SELL</span><span class="action-value entry" id="entry-hi">—</span></div></div>
-    <div class="action-card" id="card-sl"><div class="action-header">🛑 SL</div><div class="action-row"><span class="action-label">SL</span><span class="action-value sl" id="sl-val">—</span></div><div class="action-row"><span class="action-label">INVAL</span><span class="action-value sl" id="inv-val">—</span></div></div>
-    <div class="action-card" id="card-tp"><div class="action-header">🎯 TP</div><div class="action-row"><span class="action-label">TP1</span><span class="action-value tp" id="tp1-val">—</span></div><div class="action-row"><span class="action-label">TP2</span><span class="action-value tp" id="tp2-val">—</span></div></div>
-  </div>
-  <div class="stale-notice" id="stale-notice">⚠ DATA DARI SINYAL SEBELUMNYA (TIDAK AKTIF)</div>
-  <div class="session-warning" id="session-warning">⏳ SESI AKAN BERGANTI — LEVEL TC SEGERA BERUBAH</div>
-  <button class="copy-btn" id="copy-btn">📋 COPY TRADE SETUP</button>
-  <footer class="footer"><span><span id="session">NY</span> · <span id="date">—</span></span><span id="clock">00:00:00</span></footer>
+    <div class="tf-row"><div class="tf-group" id="tf-group">
+        <button class="tf-btn" data-tf="4h"><span>H4</span><span class="tf-bias-symbol" id="sym-h4">●</span><span class="tf-mtf-dot"></span></button>
+        <button class="tf-btn" data-tf="1h"><span>H1</span><span class="tf-bias-symbol" id="sym-h1">●</span><span class="tf-mtf-dot"></span></button>
+        <button class="tf-btn active" data-tf="30m"><span>M30</span><span class="tf-bias-symbol" id="sym-m30">●</span><span class="tf-mtf-dot"></span></button>
+        <button class="tf-btn" data-tf="15m"><span>M15</span><span class="tf-bias-symbol" id="sym-m15">●</span><span class="tf-mtf-dot"></span></button>
+        <button class="tf-btn" data-tf="5m"><span>M5</span><span class="tf-bias-symbol" id="sym-m5">●</span><span class="tf-mtf-dot"></span></button>
+    </div></div>
+    <div class="tc-dashboard">
+        <div class="tc-header"><span class="tc-title">📊 TC SESSION</span><span class="tc-update active-session" id="tc-upd">--</span><span class="tc-bias neutral" id="tc-bias-val">NEUTRAL</span></div>
+        <div class="tc-grid" id="tc-grid">
+            <div class="tc-row"><span class="tc-label">R3</span><span class="tc-value res" id="r3v">—</span></div><div class="tc-row"><span class="tc-label">S3</span><span class="tc-value sup" id="s3v">—</span></div>
+            <div class="tc-row"><span class="tc-label">R2</span><span class="tc-value res" id="r2v">—</span></div><div class="tc-row"><span class="tc-label">S2</span><span class="tc-value sup" id="s2v">—</span></div>
+            <div class="tc-row"><span class="tc-label">R1</span><span class="tc-value res" id="r1v">—</span></div><div class="tc-row"><span class="tc-label">S1</span><span class="tc-value sup" id="s1v">—</span></div>
+            <div class="tc-row key"><span class="tc-label">⚡PIVOT</span><span class="tc-value piv" id="pivotv">—</span></div><div class="tc-row"><span class="tc-label">LAST</span><span class="tc-value" id="lastv">—</span></div>
+            <div class="tc-row"><span class="tc-label">BB UP</span><span class="tc-value bb" id="bbuv">—</span></div><div class="tc-row"><span class="tc-label">BB LO</span><span class="tc-value bb" id="bblv">—</span></div><div class="tc-row"><span class="tc-label">BB MID</span><span class="tc-value bb" id="bbmv">—</span></div>
+        </div>
+    </div>
+    <div class="action-section" id="action-section">
+        <div class="action-card" id="card-entry"><div class="action-header">🎯 ENTRY</div><div class="action-row"><span class="action-label">BUY</span><span class="action-value entry" id="entry-lo">—</span></div><div class="action-row"><span class="action-label">SELL</span><span class="action-value entry" id="entry-hi">—</span></div></div>
+        <div class="action-card" id="card-sl"><div class="action-header">🛑 SL</div><div class="action-row"><span class="action-label">SL</span><span class="action-value sl" id="sl-val">—</span></div><div class="action-row"><span class="action-label">INVAL</span><span class="action-value sl" id="inv-val">—</span></div></div>
+        <div class="action-card" id="card-tp"><div class="action-header">🎯 TP</div><div class="action-row"><span class="action-label">TP1</span><span class="action-value tp" id="tp1-val">—</span></div><div class="action-row"><span class="action-label">TP2</span><span class="action-value tp" id="tp2-val">—</span></div></div>
+    </div>
+    <div class="stale-notice" id="stale-notice">⚠ DATA DARI SINYAL SEBELUMNYA (TIDAK AKTIF)</div>
+    <div class="session-warning" id="session-warning">⏳ SESI AKAN BERGANTI — LEVEL TC SEGERA BERUBAH</div>
+    <button class="copy-btn" id="copy-btn">📋 COPY TRADE SETUP</button>
+    <footer class="footer"><span><span id="session">NY</span> · <span id="date">—</span></span><span id="clock">00:00:00</span></footer>
 </div>
 <div class="tc-copy-toast" id="tc-copy-toast"></div>
 
 <script>
 (function(){
-  var CFG = {
-    XAUUSDT: { adxTh:22, rsiHi:65, rsiLo:35, atrP:14, maF:20, maS:50, bbP:20, bbS:2, prec:2, smcW:0.4, tcW:0.35, mtfW:0.25, h4Pen:0.55, h1Pen:0.65, m15m5Pen:0.75, minConf:55, minRR:1.3, slBufL:1.003, slBufS:0.997, tpNear:0.006, maxSMC:3, signalCooldownLg:180000, signalCooldownSm:90000 },
-    BTCUSDT: { adxTh:20, rsiHi:65, rsiLo:35, atrP:14, maF:20, maS:50, bbP:20, bbS:2, prec:1, smcW:0.4, tcW:0.35, mtfW:0.25, h4Pen:0.55, h1Pen:0.65, m15m5Pen:0.75, minConf:55, minRR:1.3, slBufL:1.003, slBufS:0.997, tpNear:0.006, maxSMC:3, signalCooldownLg:180000, signalCooldownSm:90000 }
-  };
-  var SCALP_CFG = { minConf:30, minRR:0.8, slATR:0.35, tpATR1:0.8, tpATR2:1.5, entryWidth:0.20, maxSMC:1.0, momW:0.50, smcW:0.30, paW:0.20, adxTh:12, cooldown:25000 };
-  var MTF_MAP = { '4h':'h4', '1h':'h1', '30m':'m30', '15m':'m15', '5m':'m5' };
-  var LARGE_TF = ['h4','h1'];
-  var SCALPING_TF = ['15m','5m'];
-  var SESSION_NAMES = { ASIA:'ASIA SESSION INTRADAY', LONDON:'LONDON SESSION INTRADAY', NY:'NEW YORK SESSION INTRADAY', WEEKEND:'WEEKEND — 24H RANGE' };
-  var SYM = { BULLISH:'▲', BEARISH:'▼', NEUTRAL:'●' };
-  var pair = getSavedPair(), tf = getSavedTF(), price = 0, prevPrice = 0, sessionHigh = 0, sessionLow = 0;
-  var activeSignal = null, lastGeneratedSignal = null;
-  var ws = null, wsRT = null, hbT = null, fbT = null, recDelay = 1500, lastMsg = 0, lastUpd = 0;
-  var manualOff = false, isFB = false, isStale = false, isLoading = false, lastSignalTimestamp = 0;
-  var cooldownRemaining = 0, cooldownTotal = 0, isScalpingMode = false, staleSince = 0, reconnectAttempts = 0;
-  var mtf = { h4:'NEUTRAL', h1:'NEUTRAL', m30:'NEUTRAL', m15:'NEUTRAL', m5:'NEUTRAL' };
-  var buf = [], currentATR = 0, sessionData = null;
-  var currentTheme = 'dark';
-  var h4AnomaliActive = false; // Flag anomali H4
+var CFG={
+ XAUUSDT:{adxTh:22,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:2,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000},
+ BTCUSDT:{adxTh:20,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:1,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000}
+};
+var SCALP_CFG={minConf:30,minRR:0.8,slATR:0.35,tpATR1:0.8,tpATR2:1.5,entryWidth:0.20,maxSMC:1.0,momW:0.50,smcW:0.30,paW:0.20,adxTh:12,cooldown:25000};
+var MTF_MAP={'4h':'h4','1h':'h1','30m':'m30','15m':'m15','5m':'m5'};
+var LARGE_TF=['h4','h1'];
+var SCALPING_TF=['15m','5m'];
+var SESSION_NAMES={ASIA:'ASIA SESSION INTRADAY',LONDON:'LONDON SESSION INTRADAY',NY:'NEW YORK SESSION INTRADAY',WEEKEND:'WEEKEND — 24H RANGE'};
+var SYM={BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
+var pair=getSavedPair(),tf=getSavedTF(),price=0,prevPrice=0,sessionHigh=0,sessionLow=0,activeSignal=null,lastGeneratedSignal=null;
+var ws=null,wsRT=null,hbT=null,fbT=null,recDelay=1500,lastMsg=0,lastUpd=0,manualOff=false,isFB=false,isStale=false,isLoading=false,lastSignalTimestamp=0;
+var cooldownRemaining=0,cooldownTotal=0,isScalpingMode=false,staleSince=0,reconnectAttempts=0;
+var mtf={h4:'NEUTRAL',h1:'NEUTRAL',m30:'NEUTRAL',m15:'NEUTRAL',m5:'NEUTRAL'};
+var buf=[],currentATR=0,sessionData=null;
+var currentTheme='dark';
 
-  function getSavedTF() {
-    try { var s = localStorage.getItem('ura-tf'); if (s && ['4h','1h','30m','15m','5m'].indexOf(s) >= 0) return s; } catch(e) {}
+// ===== PAIR & TF SAVE/LOAD =====
+function getSavedTF(){
+    try{var s=localStorage.getItem('ura-tf');if(s&&['4h','1h','30m','15m','5m'].indexOf(s)>=0)return s;}catch(e){}
     return '30m';
-  }
-  function saveTF(v) { try { localStorage.setItem('ura-tf', v); } catch(e) {} }
-  function getSavedPair() {
-    try { var s = localStorage.getItem('ura-pair'); if (s === 'XAUUSDT' || s === 'BTCUSDT') return s; } catch(e) {}
+}
+function saveTF(v){try{localStorage.setItem('ura-tf',v);}catch(e){}}
+
+function getSavedPair(){
+    try{var s=localStorage.getItem('ura-pair');if(s&&(s==='XAUUSDT'||s==='BTCUSDT'))return s;}catch(e){}
     return 'XAUUSDT';
-  }
-  function savePair(v) { try { localStorage.setItem('ura-pair', v); } catch(e) {} }
+}
+function savePair(v){try{localStorage.setItem('ura-pair',v);}catch(e){}}
+// ===============================
 
-  function pushCandle(k) { var idx = buf.findIndex(function(c) { return c.t === k.t; }); if (idx >= 0) { buf[idx] = k; return; } buf.push(k); if (buf.length > 300) buf.shift(); }
-  function getCandles() { return buf; }
-  function $(id) { return document.getElementById(id); }
-  function setT(id, t) { var e = $(id); if (e && e.textContent !== t) e.textContent = t; }
-  function setH(id, h) { var e = $(id); if (e) e.innerHTML = h; }
-  function setC(id, c) { var e = $(id); if (e && e.className !== c) e.className = c; }
+function pushCandle(k){var idx=buf.findIndex(function(c){return c.t===k.t});if(idx>=0){buf[idx]=k;return}buf.push(k);if(buf.length>300)buf.shift()}
+function getCandles(){return buf}
+function $(id){return document.getElementById(id)}
+function setT(id,t){var e=$(id);if(e&&e.textContent!==t)e.textContent=t}
+function setH(id,h){var e=$(id);if(e)e.innerHTML=h}
+function setC(id,c){var e=$(id);if(e&&e.className!==c)e.className=c}
 
-  function MA(d, p) { if (d.length < p) return d[d.length-1].c; var s = 0; for (var i = d.length-p; i < d.length; i++) s += d[i].c; return s/p; }
-  function ATR(d, p) { if (d.length < p+1) return 0; var s = 0; for (var i = d.length-p; i < d.length; i++) { var a = d[i], b = d[i-1]; s += Math.max(a.h-a.l, Math.abs(a.h-b.c), Math.abs(a.l-b.c)); } return s/p; }
-  function ADX(d) { if (d.length < 28) return { adx:15, pDI:25, mDI:25 }; var p = 14, tr = [], pDM = [], mDM = []; for (var i = 1; i < d.length; i++) { var a = d[i], b = d[i-1]; tr.push(Math.max(a.h-a.l, Math.abs(a.h-b.c), Math.abs(a.l-b.c))); var u = a.h-b.h, dw = b.l-a.l; pDM.push(u > dw && u > 0 ? u : 0); mDM.push(dw > u && dw > 0 ? dw : 0); } var at = 0, pd = 0, md = 0; for (i = 0; i < p; i++) { at += tr[i]; pd += pDM[i]; md += mDM[i]; } at /= p; pd /= p; md /= p; var dx = []; for (i = p; i < tr.length; i++) { at = (at*(p-1)+tr[i])/p; pd = (pd*(p-1)+pDM[i])/p; md = (md*(p-1)+mDM[i])/p; var pdi = at ? pd/at*100 : 0, mdi = at ? md/at*100 : 0; dx.push((pdi+mdi) ? Math.abs(pdi-mdi)/(pdi+mdi)*100 : 0); } if (dx.length < p) return { adx:15, pDI:pd/at*100, mDI:md/at*100 }; var ax = 0; for (i = 0; i < p; i++) ax += dx[i]; ax /= p; for (i = p; i < dx.length; i++) ax = (ax*(p-1)+dx[i])/p; return { adx: Math.max(5, Math.min(100, ax)), pDI: pd/at*100, mDI: md/at*100 }; }
-  function RSI(d) { if (d.length < 15) return 50; var p = 14, g = 0, l = 0; for (var i = 1; i <= p; i++) { var df = d[i].c - d[i-1].c; if (df > 0) g += df; else l -= df; } var ag = g/p, al = l/p; for (i = p+1; i < d.length; i++) { df = d[i].c - d[i-1].c; ag = (ag*(p-1) + (df > 0 ? df : 0))/p; al = (al*(p-1) + (df < 0 ? -df : 0))/p; } return al === 0 ? 100 : 100 - (100/(1+ag/al)); }
-  function BB(d, p, s) { if (d.length < p) return { mid: d[d.length-1].c, up: d[d.length-1].c*1.02, lo: d[d.length-1].c*0.98 }; var sm = 0; for (var i = d.length-p; i < d.length; i++) sm += d[i].c; var ma = sm/p, vr = 0; for (i = d.length-p; i < d.length; i++) vr += (d[i].c - ma)**2; var std = Math.sqrt(vr/p); return { mid: ma, up: ma + s*std, lo: ma - s*std }; }
+function MA(d,p){if(d.length<p)return d[d.length-1].c;var s=0;for(var i=d.length-p;i<d.length;i++)s+=d[i].c;return s/p}
+function ATR(d,p){if(d.length<p+1)return 0;var s=0;for(var i=d.length-p;i<d.length;i++){var a=d[i],b=d[i-1];s+=Math.max(a.h-a.l,Math.abs(a.h-b.c),Math.abs(a.l-b.c))}return s/p}
+function ADX(d){if(d.length<28)return{adx:15,pDI:25,mDI:25};var p=14,tr=[],pDM=[],mDM=[];for(var i=1;i<d.length;i++){var a=d[i],b=d[i-1];tr.push(Math.max(a.h-a.l,Math.abs(a.h-b.c),Math.abs(a.l-b.c)));var u=a.h-b.h,dw=b.l-a.l;pDM.push(u>dw&&u>0?u:0);mDM.push(dw>u&&dw>0?dw:0)}var at=0,pd=0,md=0;for(i=0;i<p;i++){at+=tr[i];pd+=pDM[i];md+=mDM[i]}at/=p;pd/=p;md/=p;var dx=[];for(i=p;i<tr.length;i++){at=(at*(p-1)+tr[i])/p;pd=(pd*(p-1)+pDM[i])/p;md=(md*(p-1)+mDM[i])/p;var pdi=at?pd/at*100:0,mdi=at?md/at*100:0;dx.push((pdi+mdi)?Math.abs(pdi-mdi)/(pdi+mdi)*100:0)}if(dx.length<p)return{adx:15,pDI:pd/at*100,mDI:md/at*100};var ax=0;for(i=0;i<p;i++)ax+=dx[i];ax/=p;for(i=p;i<dx.length;i++)ax=(ax*(p-1)+dx[i])/p;return{adx:Math.max(5,Math.min(100,ax)),pDI:pd/at*100,mDI:md/at*100}}
+function RSI(d){if(d.length<15)return 50;var p=14,g=0,l=0;for(var i=1;i<=p;i++){var df=d[i].c-d[i-1].c;if(df>0)g+=df;else l-=df}var ag=g/p,al=l/p;for(i=p+1;i<d.length;i++){df=d[i].c-d[i-1].c;ag=(ag*(p-1)+(df>0?df:0))/p;al=(al*(p-1)+(df<0?-df:0))/p}return al===0?100:100-(100/(1+ag/al))}
+function BB(d,p,s){if(d.length<p)return{mid:d[d.length-1].c,up:d[d.length-1].c*1.02,lo:d[d.length-1].c*0.98};var sm=0;for(var i=d.length-p;i<d.length;i++)sm+=d[i].c;var ma=sm/p,vr=0;for(i=d.length-p;i<d.length;i++)vr+=(d[i].c-ma)**2;var std=Math.sqrt(vr/p);return{mid:ma,up:ma+s*std,lo:ma-s*std}}
 
-  function getCurrentSession() {
-    var now = new Date(), h = now.getUTCHours(), d = now.getUTCDay();
-    if (d === 0 || d === 6) return { name:'WEEKEND', startHour:22, endHour:22, label:'WEEKEND' };
-    if (h >= 22 || h < 8) return { name:'ASIA', startHour:22, endHour:8, label:'ASIA' };
-    if (h >= 8 && h < 16) return { name:'LONDON', startHour:8, endHour:16, label:'LONDON' };
-    return { name:'NY', startHour:16, endHour:22, label:'NEW YORK' };
-  }
-  function getSessionStartTime(session) {
-    var now = new Date();
-    var startHour = session.startHour;
-    var startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), startHour, 0, 0));
-    if (startDate > now && session.name === 'ASIA') startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()-1, 22, 0, 0));
-    return startDate.getTime();
-  }
-  function getSessionData(d) {
-    var session = getCurrentSession();
-    if (session.name === 'WEEKEND') {
-      var now = Date.now(), startTS = now - 86400000, sessionCandles = [];
-      for (var i = 0; i < d.length; i++) { if (d[i].t >= startTS) sessionCandles.push(d[i]); }
-      if (sessionCandles.length < 2) return null;
-      var sHigh = -Infinity, sLow = Infinity, sOpen = sessionCandles[0].o, sClose = d[d.length-1].c;
-      for (i = 0; i < sessionCandles.length; i++) { sHigh = Math.max(sHigh, sessionCandles[i].h); sLow = Math.min(sLow, sessionCandles[i].l); }
-      var sPivot = (sHigh + sLow + sClose)/3; sessionHigh = sHigh; sessionLow = sLow;
-      return { name:'WEEKEND', label:'WEEKEND', start:startTS, high:sHigh, low:sLow, open:sOpen, close:sClose, pivot:sPivot, r1:2*sPivot-sLow, r2:sPivot+(sHigh-sLow), r3:sHigh+2*(sPivot-sLow), s1:2*sPivot-sHigh, s2:sPivot-(sHigh-sLow), s3:sLow-2*(sHigh-sPivot) };
-    }
-    var startTS = getSessionStartTime(session), sessionCandles = [];
-    for (var i = 0; i < d.length; i++) { if (d[i].t >= startTS) sessionCandles.push(d[i]); }
-    if (sessionCandles.length < 2) return null;
-    var sHigh = -Infinity, sLow = Infinity, sOpen = sessionCandles[0].o, sClose = d[d.length-1].c;
-    for (i = 0; i < sessionCandles.length; i++) { sHigh = Math.max(sHigh, sessionCandles[i].h); sLow = Math.min(sLow, sessionCandles[i].l); }
-    var sPivot = (sHigh + sLow + sClose)/3; sessionHigh = sHigh; sessionLow = sLow;
-    return { name:session.name, label:session.label, start:startTS, high:sHigh, low:sLow, open:sOpen, close:sClose, pivot:sPivot, r1:2*sPivot-sLow, r2:sPivot+(sHigh-sLow), r3:sHigh+2*(sPivot-sLow), s1:2*sPivot-sHigh, s2:sPivot-(sHigh-sLow), s3:sLow-2*(sHigh-sPivot) };
-  }
-  function sBi(sd) { var p = price; if (!sd) return 'NEUTRAL'; if (p > sd.r1) return 'BULLISH'; if (p < sd.s1) return 'BEARISH'; if (p > sd.pivot) return 'BULLISH'; return 'BEARISH'; }
+function getCurrentSession(){
+ var now=new Date(),h=now.getUTCHours(),d=now.getUTCDay();
+ if(d===0||d===6)return{name:'WEEKEND',startHour:22,endHour:22,label:'WEEKEND'};
+ if(h>=22||h<8)return{name:'ASIA',startHour:22,endHour:8,label:'ASIA'};
+ if(h>=8&&h<16)return{name:'LONDON',startHour:8,endHour:16,label:'LONDON'};
+ return{name:'NY',startHour:16,endHour:22,label:'NEW YORK'};
+}
+function getSessionStartTime(session){
+ var now=new Date();
+ var startHour=session.startHour;
+ var startDate=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),startHour,0,0));
+ if(startDate>now){if(session.name==='ASIA'){startDate=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-1,22,0,0));}}
+ return startDate.getTime();
+}
+function getSessionData(d){
+ var session=getCurrentSession();
+ if(session.name==='WEEKEND'){
+  var now=Date.now();var startTS=now-86400000;var sessionCandles=[];
+  for(var i=0;i<d.length;i++){if(d[i].t>=startTS)sessionCandles.push(d[i])}
+  if(sessionCandles.length<2)return null;
+  var sHigh=-Infinity,sLow=Infinity,sOpen=sessionCandles[0].o,sClose=d[d.length-1].c;
+  for(i=0;i<sessionCandles.length;i++){sHigh=Math.max(sHigh,sessionCandles[i].h);sLow=Math.min(sLow,sessionCandles[i].l)}
+  var sPivot=(sHigh+sLow+sClose)/3;sessionHigh=sHigh;sessionLow=sLow;
+  return{name:'WEEKEND',label:'WEEKEND',start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)};
+ }
+ var startTS=getSessionStartTime(session);var sessionCandles=[];
+ for(var i=0;i<d.length;i++){if(d[i].t>=startTS)sessionCandles.push(d[i])}
+ if(sessionCandles.length<2)return null;
+ var sHigh=-Infinity,sLow=Infinity,sOpen=sessionCandles[0].o,sClose=d[d.length-1].c;
+ for(i=0;i<sessionCandles.length;i++){sHigh=Math.max(sHigh,sessionCandles[i].h);sLow=Math.min(sLow,sessionCandles[i].l)}
+ var sPivot=(sHigh+sLow+sClose)/3;sessionHigh=sHigh;sessionLow=sLow;
+ return{name:session.name,label:session.label,start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)};
+}
+function sBi(sd){var p=price;if(!sd)return'NEUTRAL';if(p>sd.r1)return'BULLISH';if(p<sd.s1)return'BEARISH';if(p>sd.pivot)return'BULLISH';return'BEARISH'}
+function detectSMC(d,atrVal){
+ var fvgs=[],obs=[],swps=[],maxDist=atrVal*CFG[pair].maxSMC;
+ for(var i=2;i<d.length;i++){var a=d[i-2],c=d[i];if(a.l>c.h){var fl=false;for(var j=i+1;j<Math.min(i+20,d.length);j++)if(d[j].l<=a.l&&d[j].l>=c.h){fl=true;break}fvgs.push({t:'BULL',top:a.l,bot:c.h,filled:fl,idx:i})}if(a.h<c.l){fl=false;for(j=i+1;j<Math.min(i+20,d.length);j++)if(d[j].h>=a.h&&d[j].h<=c.l){fl=true;break}fvgs.push({t:'BEAR',top:c.l,bot:a.h,filled:fl,idx:i})}}
+ for(i=5;i<d.length-1;i++){c=d[i];var n=d[i+1],cs=Math.abs(c.c-c.o),ns=Math.abs(n.c-n.o);if(c.c<c.o&&n.c>n.o&&n.c>c.h&&ns>cs*1.5){var td=false;for(j=i+2;j<Math.min(i+20,d.length);j++)if(d[j].l<=c.o&&d[j].l>=c.l){td=true;break}obs.push({t:'BULL',h:c.h,l:c.l,o:c.o,tested:td,idx:i})}if(c.c>c.o&&n.c<n.o&&n.c<c.l&&ns>cs*1.5){td=false;for(j=i+2;j<Math.min(i+20,d.length);j++)if(d[j].h>=c.l&&d[j].h<=c.h){td=true;break}obs.push({t:'BEAR',h:c.h,l:c.l,o:c.o,tested:td,idx:i})}}
+ for(i=3;i<d.length-1;i++){if(d[i].h>d[i-1].h&&d[i].h>d[i+1].h){for(j=i+1;j<Math.min(i+5,d.length);j++){if(d[j].h>d[i].h*1.0008&&d[j].c<d[j].o){swps.push({t:'SW_H',lvl:d[i].h,idx:i});break}}}if(d[i].l<d[i-1].l&&d[i].l<d[i+1].l){for(j=i+1;j<Math.min(i+5,d.length);j++){if(d[j].l<d[i].l*0.9992&&d[j].c>d[j].o){swps.push({t:'SW_L',lvl:d[i].l,idx:i});break}}}}
+ return{fvgs:fvgs,obs:obs,swps:swps,lastSw:swps.length?swps[swps.length-1]:null,nearFVG:function(prc){var n=null,md=maxDist;for(var fi=0;fi<fvgs.length;fi++){var f=fvgs[fi];if(f.filled)continue;var dt=Math.min(Math.abs(f.top-prc),Math.abs(f.bot-prc));if(dt<md){md=dt;n=f}}return n},nearOB:function(prc){var n=null,md=maxDist;for(var oi=0;oi<obs.length;oi++){var o=obs[oi];if(o.tested)continue;var dt=Math.abs(o.l-prc);if(dt<md){md=dt;n=o}}return n}};
+}
+function genSMC(p,smc){
+ var s={bias:'NEUTRAL',str:0,entry:null,inv:null};
+ var f=smc.nearFVG(p),o=smc.nearOB(p),sw=smc.lastSw;
+ if(f&&f.bot!=null&&f.top!=null){if(f.t==='BULL'&&f.bot<p){s.bias='BULLISH';s.entry={lo:f.bot,hi:(f.top+f.bot)/2};s.inv=f.bot*0.9985;s.str+=35}else if(f.t==='BEAR'&&f.top>p){s.bias='BEARISH';s.entry={lo:(f.top+f.bot)/2,hi:f.top};s.inv=f.top*1.0015;s.str+=35}}
+ if(o&&o.l!=null&&o.h!=null){if(o.t==='BULL'&&s.bias!=='BEARISH'){s.bias='BULLISH';s.entry={lo:(o.l+o.o)/2,hi:o.o};s.inv=o.l*0.9985;s.str+=30}else if(o.t==='BEAR'&&s.bias!=='BULLISH'){s.bias='BEARISH';s.entry={lo:o.o,hi:(o.h+o.o)/2};s.inv=o.h*1.0015;s.str+=30}}
+ if(sw&&sw.lvl!=null){if(sw.t==='SW_L'&&s.bias!=='BEARISH'){s.bias='BULLISH';s.str+=20}else if(sw.t==='SW_H'&&s.bias!=='BULLISH'){s.bias='BEARISH';s.str+=20}}
+ s.str=Math.min(100,s.str);return s;
+}
+
+function updateScalpingMode(){isScalpingMode=SCALPING_TF.indexOf(tf)>=0;updateModeUI();}
+function updateModeUI(){
+ var tag=$('mode-tag');if(tag)tag.style.display=isScalpingMode?'inline':'none';
+ var fb=$('fusion-bar');if(fb){if(isScalpingMode)fb.classList.add('scalp-mode');else fb.classList.remove('scalp-mode');}
+ var badge=$('signal-badge');if(badge){if(isScalpingMode){badge.textContent='⚡SCALP';badge.classList.add('scalp');}else{badge.textContent='FUSION';badge.classList.remove('scalp');}}
+ document.querySelectorAll('.tf-btn').forEach(function(b){var tff=b.dataset.tf;if(isScalpingMode&&SCALPING_TF.indexOf(tff)>=0&&b.classList.contains('active'))b.classList.add('scalp-active');else b.classList.remove('scalp-active');});
+}
+
+function getCooldownForTF(tfKey){var cf=CFG[pair];return LARGE_TF.indexOf(tfKey)>=0?cf.signalCooldownLg:cf.signalCooldownSm;}
+
+// ============ ENGINE INTRADAY (TC + SMC + MTF) ============
+function genFusionIntraday(tcB,tcS,tcE,tcSL,smcS,p,lv,sd){
+ var s={action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
+ var cf=CFG[pair];var bullScore=0,bearScore=0;
+ if(tcB==='BULLISH')bullScore+=tcS*cf.tcW;else if(tcB==='BEARISH')bearScore+=tcS*cf.tcW;
+ if(smcS.bias==='BULLISH')bullScore+=smcS.str*cf.smcW;else if(smcS.bias==='BEARISH')bearScore+=smcS.str*cf.smcW;
+ var mtfBull=0,mtfBear=0;
+ Object.keys(MTF_MAP).forEach(function(tfStr){var key=MTF_MAP[tfStr];var pts=LARGE_TF.indexOf(key)>=0?18:8;if(mtf[key]==='BULLISH'){bullScore+=pts;mtfBull++;}else if(mtf[key]==='BEARISH'){bearScore+=pts;mtfBear++;}});
+ if(sd){var sB=sBi(sd);if(sB==='BULLISH')bullScore+=18;else if(sB==='BEARISH')bearScore+=18;}
+ var arr=getCandles();if(arr.length>=28){var adx=ADX(arr);if(adx.adx>=cf.adxTh){if(adx.pDI>adx.mDI)bullScore+=15;else bearScore+=15;}}
+ var isBullDominant=bullScore>bearScore;
+ if(smcS.entry&&smcS.entry.lo!=null)s.entry=smcS.entry;else if(isBullDominant)s.entry={lo:lv.s1||(p*0.997),hi:lv.pivot||(p*0.999)};else s.entry={lo:lv.pivot||(p*1.001),hi:lv.r1||(p*1.003)};
+ if(smcS.inv){s.sl=smcS.inv;}
+ else if(isBullDominant){s.sl=(lv.s2&&lv.s2<p*0.995)?lv.s2:(p*0.99);}
+ else{s.sl=(lv.r2&&lv.r2>p*1.005)?lv.r2:(p*1.01);}
+ if(s.entry&&s.sl){if(isBullDominant&&s.sl>=s.entry.lo){s.sl=s.entry.lo*0.993;}else if(!isBullDominant&&s.sl<=s.entry.hi){s.sl=s.entry.hi*1.007;}}
+ if(isBullDominant){s.tp=[lv.r1,lv.r2].filter(function(v){return v>p});if(s.tp.length===0)s.tp=[p*1.008,p*1.015];}else{s.tp=[lv.s1,lv.s2].filter(function(v){return v<p});if(s.tp.length===0)s.tp=[p*0.992,p*0.985];}
+ var h1B=mtf.h1,htfB=mtf.h4,m15B=mtf.m15,m5B=mtf.m5;
+ if(isBullDominant&&bullScore>=cf.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Bullish ('+mtfBull+'/'+((mtfBull+mtfBear)||1)+' MTF)';}
+ else if(!isBullDominant&&bearScore>=cf.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Bearish ('+mtfBear+'/'+((mtfBull+mtfBear)||1)+' MTF)';}
+ else{s.bias=isBullDominant?'BULLISH':'BEARISH';s.conf=Math.round(Math.max(bullScore,bearScore));s.reason='Low conf ('+s.conf+'<'+cf.minConf+')';}
+ if(s.action!=='WAIT'){
+  var blocked=false,conflictMsgs=[];
+  if(htfB!=='NEUTRAL'&&((s.bias==='BULLISH'&&htfB==='BEARISH')||(s.bias==='BEARISH'&&htfB==='BULLISH'))){blocked=true;conflictMsgs.push('H4 conflict');}
+  if(h1B!=='NEUTRAL'&&m15B!=='NEUTRAL'&&m5B!=='NEUTRAL'&&h1B===m15B&&m15B===m5B&&((s.bias==='BULLISH'&&h1B==='BEARISH')||(s.bias==='BEARISH'&&h1B==='BULLISH'))){blocked=true;conflictMsgs.push('H1+M15+M5 conflict');}
+  if(blocked){s.action='WAIT';s.reason=conflictMsgs.join(' | ');s.conf=0;return s;}
+  if(h1B!=='NEUTRAL'&&((s.bias==='BULLISH'&&h1B==='BEARISH')||(s.bias==='BEARISH'&&h1B==='BULLISH'))){s.conf=Math.round(s.conf*cf.h1Pen);s.reason+=' | H1!';}
+  if(m15B!=='NEUTRAL'&&m5B!=='NEUTRAL'&&m15B===m5B&&((s.bias==='BULLISH'&&m15B==='BEARISH')||(s.bias==='BEARISH'&&m15B==='BULLISH'))){s.conf=Math.round(s.conf*cf.m15m5Pen);s.reason+=' | M15+M5!';}
+  if(s.conf<cf.minConf){s.action='WAIT';s.reason+=' - Low confidence';}
+ }
+ if(s.entry&&s.sl&&s.tp.length>0&&s.tp[0]!=null&&!isNaN(s.tp[0])&&s.action!=='WAIT'){
+  var entryMid,risk,reward;
+  if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}
+  if(risk>0&&reward>0){var rr=reward/risk;s.rr=rr;if(rr<cf.minRR){s.action='WAIT';s.reason='Bad RR ('+rr.toFixed(2)+'<'+cf.minRR+')';s.conf=0;}}
+ }
+ var now=Date.now();var cd=getCooldownForTF(MTF_MAP[tf]||'m30');
+ if(now-lastSignalTimestamp<cd&&activeSignal&&activeSignal.action!=='WAIT'&&s.action!=='WAIT'){s.action='WAIT';s.reason='Cooldown ('+Math.round((cd-(now-lastSignalTimestamp))/1000)+'s)';s.conf=0;}
+ s.conf=Math.min(100,Math.max(0,s.conf));return s;
+}
+
+// ============ ENGINE SCALPING (Momentum + SMC + Price Action, NO TC) ============
+function genFusionScalping(smcS,p,lv){
+ var s={action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
+ var sc=SCALP_CFG;var bullScore=0,bearScore=0;var arr=getCandles();if(arr.length<15)return s;
+ 
+ // 1. Momentum Candle (50%)
+ var latest=arr[arr.length-1],prev=arr[arr.length-2];
+ var body=Math.abs(latest.c-latest.o),range=latest.h-latest.l;
+ var bodyRatio=range>0?body/range:0;var direction=latest.c>latest.o?'BULL':'BEAR';
+ var momScore=Math.round(bodyRatio*50*sc.momW);
+ if(direction==='BULL'&&bodyRatio>0.3)bullScore+=momScore;
+ else if(direction==='BEAR'&&bodyRatio>0.3)bearScore+=momScore;
+ 
+ // 2. SMC Proximity (30%)
+ if(smcS.bias==='BULLISH')bullScore+=Math.round(smcS.str*sc.smcW);
+ else if(smcS.bias==='BEARISH')bearScore+=Math.round(smcS.str*sc.smcW);
+ 
+ // 3. Price Action: HH/HL vs LH/LL (20%)
+ var highs=[],lows=[];
+ for(var i=arr.length-8;i<arr.length-1;i++){if(i>0&&i<arr.length-1){if(arr[i].h>arr[i-1].h&&arr[i].h>arr[i+1].h)highs.push(arr[i].h);if(arr[i].l<arr[i-1].l&&arr[i].l<arr[i+1].l)lows.push(arr[i].l);}}
+ if(highs.length>=2&&highs[highs.length-1]>highs[highs.length-2])bullScore+=Math.round(20*sc.paW);
+ if(lows.length>=2&&lows[lows.length-1]<lows[lows.length-2])bearScore+=Math.round(20*sc.paW);
+ 
+ // 4. ADX Quick Check
+ if(arr.length>=28){var adx=ADX(arr);if(adx.adx>=sc.adxTh){if(adx.pDI>adx.mDI)bullScore+=10;else bearScore+=10;}}
+ 
+ var isBullDominant=bullScore>bearScore;
+ 
+ // 5. Entry Zone Sempit
+ var atr=(currentATR && currentATR > 0) ? currentATR : (p*0.002);
+ if(isScalpingMode && atr > p*0.008) atr = p*0.008;
+ if(smcS.entry&&smcS.entry.lo!=null){var mid=(smcS.entry.lo+smcS.entry.hi)/2;var hw=(smcS.entry.hi-smcS.entry.lo)*sc.entryWidth;s.entry={lo:mid-hw,hi:mid+hw};}
+ else if(isBullDominant)s.entry={lo:p-atr*0.15,hi:p};else s.entry={lo:p,hi:p+atr*0.15};
+ 
+ // 6. SL Ketat (0.5x ATR)
+ if(isBullDominant)s.sl=s.entry.lo-atr*sc.slATR;else s.sl=s.entry.hi+atr*sc.slATR;
+ 
+ // 7. TP Dekat (1x & 2x ATR)
+ if(isBullDominant)s.tp=[p+atr*sc.tpATR1,p+atr*sc.tpATR2];else s.tp=[p-atr*sc.tpATR1,p-atr*sc.tpATR2];
+ 
+ // 8. Decision
+ if(isBullDominant&&bullScore>=sc.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
+ else if(!isBullDominant&&bearScore>=sc.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
+ else{s.bias=isBullDominant?'BULLISH':'BEARISH';s.conf=Math.round(Math.max(bullScore,bearScore));s.reason='Low ('+s.conf+'<'+sc.minConf+')';}
+ 
+ // 9. RR Validation
+ if(s.entry&&s.sl&&s.tp[0]&&s.action!=='WAIT'){var entryMid,risk,reward;if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}if(risk>0&&reward>0){var rr=reward/risk;s.rr=rr;if(rr<sc.minRR){s.action='WAIT';s.reason='Bad RR ('+rr.toFixed(2)+')';}}}
+ 
+ // 10. Cooldown
+ var now=Date.now();if(now-lastSignalTimestamp<sc.cooldown&&activeSignal&&activeSignal.action!=='WAIT'&&s.action!=='WAIT'){s.action='WAIT';s.reason='Scalp Cooldown ('+Math.round((sc.cooldown-(now-lastSignalTimestamp))/1000)+'s)';}
+ s.conf=Math.min(100,Math.max(0,s.conf));return s;
+}
+
+function updateCooldownUI(){
+ var now=Date.now(),elapsed=now-lastSignalTimestamp;
+ var cd=isScalpingMode?SCALP_CFG.cooldown:getCooldownForTF(MTF_MAP[tf]||'m30');
+ cooldownTotal=cd;cooldownRemaining=Math.max(0,cd-elapsed);
+ var bar=$('cooldown-bar'),fill=$('cooldown-fill');
+ if(cooldownRemaining>0&&activeSignal&&activeSignal.action!=='WAIT'){if(bar)bar.classList.add('active');var pct=((cd-cooldownRemaining)/cd)*100;if(fill)fill.style.width=Math.min(100,pct)+'%';}
+ else{if(bar)bar.classList.remove('active');if(fill)fill.style.width='0%';cooldownRemaining=0;}
+}
+
+function setTheme(theme){
+ currentTheme=theme;document.body.setAttribute('data-theme',theme);
+ try{localStorage.setItem('ura-theme',theme)}catch(e){}
+ var btn=$('theme-toggle-btn');if(btn){btn.textContent=theme==='dark'?'☀️':'🌙';btn.title=theme==='dark'?'Switch to Light Mode':'Switch to Dark Mode';}
+}
+function toggleTheme(){setTheme(currentTheme==='dark'?'light':'dark');}
+
+function tcCopyRow(rowEl,toastEl){
+ var label=rowEl.querySelector('.tc-label').textContent.replace('⚡','').trim();
+ var value=rowEl.querySelector('.tc-value').textContent;if(value==='—')return;
+ var txt=label+': '+value;
+ if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){showTCToast(toastEl,'✅ '+label+' disalin!');}).catch(function(){showTCToast(toastEl,'❌ Gagal menyalin');});}
+ else{var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showTCToast(toastEl,'✅ '+label+' disalin!');}catch(e){showTCToast(toastEl,'❌ Gagal menyalin');}document.body.removeChild(ta);}
+}
+function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTimeout(el._timeout);el._timeout=setTimeout(function(){el.classList.remove('show')},1400);}
+
+function analyze(){
+ var arr=getCandles();if(arr.length<30)return;
+ var p=price,cf=CFG[pair],pr=cf.prec;
+ 
+ // ===== AUTO-INVALIDATE SINYAL LAMA =====
+ var justReset=false;
+ if(activeSignal&&activeSignal.action!=='WAIT'){
+  var shouldReset=false;
   
-  function detectSMC(d, atrVal) {
-    var fvgs = [], obs = [], swps = [], maxDist = atrVal * CFG[pair].maxSMC;
-    for (var i = 2; i < d.length; i++) {
-      var a = d[i-2], c = d[i];
-      if (a.l > c.h) { var fl = false; for (var j = i+1; j < Math.min(i+20, d.length); j++) if (d[j].l <= a.l && d[j].l >= c.h) { fl = true; break; } fvgs.push({ t:'BULL', top:a.l, bot:c.h, filled:fl, idx:i }); }
-      if (a.h < c.l) { fl = false; for (j = i+1; j < Math.min(i+20, d.length); j++) if (d[j].h >= a.h && d[j].h <= c.l) { fl = true; break; } fvgs.push({ t:'BEAR', top:c.l, bot:a.h, filled:fl, idx:i }); }
-    }
-    for (i = 5; i < d.length-1; i++) {
-      c = d[i]; var n = d[i+1], cs = Math.abs(c.c-c.o), ns = Math.abs(n.c-n.o);
-      if (c.c < c.o && n.c > n.o && n.c > c.h && ns > cs*1.5) { var td = false; for (j = i+2; j < Math.min(i+20, d.length); j++) if (d[j].l <= c.o && d[j].l >= c.l) { td = true; break; } obs.push({ t:'BULL', h:c.h, l:c.l, o:c.o, tested:td, idx:i }); }
-      if (c.c > c.o && n.c < n.o && n.c < c.l && ns > cs*1.5) { td = false; for (j = i+2; j < Math.min(i+20, d.length); j++) if (d[j].h >= c.l && d[j].h <= c.h) { td = true; break; } obs.push({ t:'BEAR', h:c.h, l:c.l, o:c.o, tested:td, idx:i }); }
-    }
-    for (i = 3; i < d.length-1; i++) {
-      if (d[i].h > d[i-1].h && d[i].h > d[i+1].h) { for (j = i+1; j < Math.min(i+5, d.length); j++) { if (d[j].h > d[i].h*1.0008 && d[j].c < d[j].o) { swps.push({ t:'SW_H', lvl:d[i].h, idx:i }); break; } } }
-      if (d[i].l < d[i-1].l && d[i].l < d[i+1].l) { for (j = i+1; j < Math.min(i+5, d.length); j++) { if (d[j].l < d[i].l*0.9992 && d[j].c > d[j].o) { swps.push({ t:'SW_L', lvl:d[i].l, idx:i }); break; } } }
-    }
-    return {
-      fvgs: fvgs, obs: obs, swps: swps, lastSw: swps.length ? swps[swps.length-1] : null,
-      nearFVG: function(prc) { var n = null, md = maxDist; for (var fi = 0; fi < fvgs.length; fi++) { var f = fvgs[fi]; if (f.filled) continue; var dt = Math.min(Math.abs(f.top-prc), Math.abs(f.bot-prc)); if (dt < md) { md = dt; n = f; } } return n; },
-      nearOB: function(prc) { var n = null, md = maxDist; for (var oi = 0; oi < obs.length; oi++) { var o = obs[oi]; if (o.tested) continue; var dt = Math.abs(o.l-prc); if (dt < md) { md = dt; n = o; } } return n; }
-    };
+  if(activeSignal.sl){
+   if((activeSignal.bias==='BULLISH'&&p<=activeSignal.sl)||
+      (activeSignal.bias==='BEARISH'&&p>=activeSignal.sl)){
+    shouldReset=true;
+   }
   }
   
-  function genSMC(p, smc) {
-    var s = { bias:'NEUTRAL', str:0, entry:null, inv:null };
-    var f = smc.nearFVG(p), o = smc.nearOB(p), sw = smc.lastSw;
-    if (f && f.bot != null && f.top != null) { if (f.t === 'BULL' && f.bot < p) { s.bias = 'BULLISH'; s.entry = { lo:f.bot, hi:(f.top+f.bot)/2 }; s.inv = f.bot*0.9985; s.str += 35; } else if (f.t === 'BEAR' && f.top > p) { s.bias = 'BEARISH'; s.entry = { lo:(f.top+f.bot)/2, hi:f.top }; s.inv = f.top*1.0015; s.str += 35; } }
-    if (o && o.l != null && o.h != null) { if (o.t === 'BULL' && s.bias !== 'BEARISH') { s.bias = 'BULLISH'; s.entry = { lo:(o.l+o.o)/2, hi:o.o }; s.inv = o.l*0.9985; s.str += 30; } else if (o.t === 'BEAR' && s.bias !== 'BULLISH') { s.bias = 'BEARISH'; s.entry = { lo:o.o, hi:(o.h+o.o)/2 }; s.inv = o.h*1.0015; s.str += 30; } }
-    if (sw && sw.lvl != null) { if (sw.t === 'SW_L' && s.bias !== 'BEARISH') { s.bias = 'BULLISH'; s.str += 20; } else if (sw.t === 'SW_H' && s.bias !== 'BULLISH') { s.bias = 'BEARISH'; s.str += 20; } }
-    s.str = Math.min(100, s.str); return s;
+  if(!shouldReset&&activeSignal.tp&&activeSignal.tp[0]){
+   if((activeSignal.bias==='BULLISH'&&p>=activeSignal.tp[0])||
+      (activeSignal.bias==='BEARISH'&&p<=activeSignal.tp[0])){
+    shouldReset=true;
+   }
   }
-
-  function updateScalpingMode() { isScalpingMode = SCALPING_TF.indexOf(tf) >= 0; updateModeUI(); }
-  function updateModeUI() {
-    var tag = $('mode-tag'); if (tag) tag.style.display = isScalpingMode ? 'inline' : 'none';
-    var fb = $('fusion-bar'); if (fb) { if (isScalpingMode) fb.classList.add('scalp-mode'); else fb.classList.remove('scalp-mode'); }
-    var badge = $('signal-badge'); if (badge) { if (isScalpingMode) { badge.textContent = '⚡SCALP'; badge.classList.add('scalp'); } else { badge.textContent = 'FUSION'; badge.classList.remove('scalp'); } }
-    document.querySelectorAll('.tf-btn').forEach(function(b) { var tff = b.dataset.tf; if (isScalpingMode && SCALPING_TF.indexOf(tff) >= 0 && b.classList.contains('active')) b.classList.add('scalp-active'); else b.classList.remove('scalp-active'); });
+  
+  if(!shouldReset&&currentATR>0&&activeSignal.entry){
+   var entryMid=activeSignal.bias==='BULLISH'?
+    activeSignal.entry.lo:activeSignal.entry.hi;
+   if(Math.abs(p-entryMid)>currentATR*2.0){
+    shouldReset=true;
+   }
   }
-
-  function getCooldownForTF(tfKey) { var cf = CFG[pair]; return LARGE_TF.indexOf(tfKey) >= 0 ? cf.signalCooldownLg : cf.signalCooldownSm; }
-
-  // === DETEKSI ANOMALI H4 ===
-  function detectH4Anomaly() {
-    if (!sessionData || mtf.h4 === 'NEUTRAL') {
-      h4AnomaliActive = false;
-      return false;
+  
+  if(!shouldReset&&lastSignalTimestamp>0){
+   var signalAge=Date.now()-lastSignalTimestamp;
+   if(signalAge>45000){
+    var lc=arr[arr.length-1],pc=arr[arr.length-2];
+    if((activeSignal.bias==='BULLISH'&&lc.c<lc.o&&lc.c<pc.c)||
+       (activeSignal.bias==='BEARISH'&&lc.c>lc.o&&lc.c>pc.c)){
+     shouldReset=true;
     }
-    var h4Bias = mtf.h4;
-    var priceVsPivot = price > sessionData.pivot ? 'BULLISH' : 'BEARISH';
-    // Anomali jika H4 bias berlawanan dengan posisi harga terhadap pivot, DAN harga dekat pivot (dalam 0.3% range)
-    var rangePct = Math.abs(price - sessionData.pivot) / sessionData.pivot;
-    if (h4Bias !== priceVsPivot && rangePct < 0.003) {
-      h4AnomaliActive = true;
-      return true;
-    }
-    // Tambahan: anomali jika H4 BULLISH tapi harga di bawah S1, atau BEARISH tapi di atas R1
-    if ((h4Bias === 'BULLISH' && price < sessionData.s1) || (h4Bias === 'BEARISH' && price > sessionData.r1)) {
-      h4AnomaliActive = true;
-      return true;
-    }
-    h4AnomaliActive = false;
-    return false;
+   }
   }
-
-  // ============ ENGINE INTRADAY (DENGAN ANOMALI CHECK) ============
-  function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
-    var s = { action:'WAIT', bias:'NEUTRAL', conf:0, entry:null, sl:null, tp:[], reason:'', rr:null };
-    var cf = CFG[pair]; var bullScore = 0, bearScore = 0;
-    if (tcB === 'BULLISH') bullScore += tcS * cf.tcW; else if (tcB === 'BEARISH') bearScore += tcS * cf.tcW;
-    if (smcS.bias === 'BULLISH') bullScore += smcS.str * cf.smcW; else if (smcS.bias === 'BEARISH') bearScore += smcS.str * cf.smcW;
-    var mtfBull = 0, mtfBear = 0;
-    Object.keys(MTF_MAP).forEach(function(tfStr) { var key = MTF_MAP[tfStr]; var pts = LARGE_TF.indexOf(key) >= 0 ? 18 : 8; if (mtf[key] === 'BULLISH') { bullScore += pts; mtfBull++; } else if (mtf[key] === 'BEARISH') { bearScore += pts; mtfBear++; } });
-    if (sd) { var sB = sBi(sd); if (sB === 'BULLISH') bullScore += 18; else if (sB === 'BEARISH') bearScore += 18; }
-    var arr = getCandles(); if (arr.length >= 28) { var adx = ADX(arr); if (adx.adx >= cf.adxTh) { if (adx.pDI > adx.mDI) bullScore += 15; else bearScore += 15; } }
-    var isBullDominant = bullScore > bearScore;
-    if (smcS.entry && smcS.entry.lo != null) s.entry = smcS.entry; else if (isBullDominant) s.entry = { lo: lv.s1 || (p*0.997), hi: lv.pivot || (p*0.999) }; else s.entry = { lo: lv.pivot || (p*1.001), hi: lv.r1 || (p*1.003) };
-    if (smcS.inv) { s.sl = smcS.inv; } else if (isBullDominant) { s.sl = (lv.s2 && lv.s2 < p*0.995) ? lv.s2 : (p*0.99); } else { s.sl = (lv.r2 && lv.r2 > p*1.005) ? lv.r2 : (p*1.01); }
-    if (s.entry && s.sl) { if (isBullDominant && s.sl >= s.entry.lo) { s.sl = s.entry.lo * 0.993; } else if (!isBullDominant && s.sl <= s.entry.hi) { s.sl = s.entry.hi * 1.007; } }
-    if (isBullDominant) { s.tp = [lv.r1, lv.r2].filter(function(v) { return v > p; }); if (s.tp.length === 0) s.tp = [p*1.008, p*1.015]; } else { s.tp = [lv.s1, lv.s2].filter(function(v) { return v < p; }); if (s.tp.length === 0) s.tp = [p*0.992, p*0.985]; }
-    var h1B = mtf.h1, htfB = mtf.h4, m15B = mtf.m15, m5B = mtf.m5;
-    if (isBullDominant && bullScore >= cf.minConf) { s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.round(bullScore); s.reason = 'Bullish ('+mtfBull+'/'+((mtfBull+mtfBear)||1)+' MTF)'; }
-    else if (!isBullDominant && bearScore >= cf.minConf) { s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.round(bearScore); s.reason = 'Bearish ('+mtfBear+'/'+((mtfBull+mtfBear)||1)+' MTF)'; }
-    else { s.bias = isBullDominant ? 'BULLISH' : 'BEARISH'; s.conf = Math.round(Math.max(bullScore, bearScore)); s.reason = 'Low conf ('+s.conf+'<'+cf.minConf+')'; }
-    
-    // === ANOMALI H4: OVERRIDE SINYAL JIKA TERDETEKSI ===
-    if (h4AnomaliActive && s.action !== 'WAIT') {
-      s.action = 'WAIT';
-      s.conf = 0;
-      s.reason = '⚠️ ANOMALI H4: Bias H4 vs Sesi';
-    }
-    
-    if (s.action !== 'WAIT') {
-      var blocked = false, conflictMsgs = [];
-      if (htfB !== 'NEUTRAL' && ((s.bias === 'BULLISH' && htfB === 'BEARISH') || (s.bias === 'BEARISH' && htfB === 'BULLISH'))) { blocked = true; conflictMsgs.push('H4 conflict'); }
-      if (h1B !== 'NEUTRAL' && m15B !== 'NEUTRAL' && m5B !== 'NEUTRAL' && h1B === m15B && m15B === m5B && ((s.bias === 'BULLISH' && h1B === 'BEARISH') || (s.bias === 'BEARISH' && h1B === 'BULLISH'))) { blocked = true; conflictMsgs.push('H1+M15+M5 conflict'); }
-      if (blocked) { s.action = 'WAIT'; s.reason = conflictMsgs.join(' | '); s.conf = 0; return s; }
-      if (h1B !== 'NEUTRAL' && ((s.bias === 'BULLISH' && h1B === 'BEARISH') || (s.bias === 'BEARISH' && h1B === 'BULLISH'))) { s.conf = Math.round(s.conf * cf.h1Pen); s.reason += ' | H1!'; }
-      if (m15B !== 'NEUTRAL' && m5B !== 'NEUTRAL' && m15B === m5B && ((s.bias === 'BULLISH' && m15B === 'BEARISH') || (s.bias === 'BEARISH' && m15B === 'BULLISH'))) { s.conf = Math.round(s.conf * cf.m15m5Pen); s.reason += ' | M15+M5!'; }
-      if (s.conf < cf.minConf) { s.action = 'WAIT'; s.reason += ' - Low confidence'; }
-    }
-    if (s.entry && s.sl && s.tp.length > 0 && s.tp[0] != null && !isNaN(s.tp[0]) && s.action !== 'WAIT') {
-      var entryMid, risk, reward;
-      if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid - s.sl; reward = s.tp[0] - entryMid; } else { entryMid = s.entry.hi; risk = s.sl - entryMid; reward = entryMid - s.tp[0]; }
-      if (risk > 0 && reward > 0) { var rr = reward/risk; s.rr = rr; if (rr < cf.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR ('+rr.toFixed(2)+'<'+cf.minRR+')'; s.conf = 0; } }
-    }
-    var now = Date.now(); var cd = getCooldownForTF(MTF_MAP[tf] || 'm30');
-    if (now - lastSignalTimestamp < cd && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') { s.action = 'WAIT'; s.reason = 'Cooldown ('+Math.round((cd-(now-lastSignalTimestamp))/1000)+'s)'; s.conf = 0; }
-    s.conf = Math.min(100, Math.max(0, s.conf)); return s;
+  
+  if(shouldReset){
+   activeSignal=null;
+   lastSignalTimestamp=0;
+   justReset=true;
   }
-
-  // ============ ENGINE SCALPING ============
-  function genFusionScalping(smcS, p, lv) {
-    var s = { action:'WAIT', bias:'NEUTRAL', conf:0, entry:null, sl:null, tp:[], reason:'', rr:null };
-    var sc = SCALP_CFG; var bullScore = 0, bearScore = 0; var arr = getCandles(); if (arr.length < 15) return s;
-    var latest = arr[arr.length-1], prev = arr[arr.length-2];
-    var body = Math.abs(latest.c-latest.o), range = latest.h-latest.l;
-    var bodyRatio = range > 0 ? body/range : 0; var direction = latest.c > latest.o ? 'BULL' : 'BEAR';
-    var momScore = Math.round(bodyRatio * 50 * sc.momW);
-    if (direction === 'BULL' && bodyRatio > 0.3) bullScore += momScore;
-    else if (direction === 'BEAR' && bodyRatio > 0.3) bearScore += momScore;
-    if (smcS.bias === 'BULLISH') bullScore += Math.round(smcS.str * sc.smcW);
-    else if (smcS.bias === 'BEARISH') bearScore += Math.round(smcS.str * sc.smcW);
-    var highs = [], lows = [];
-    for (var i = arr.length-8; i < arr.length-1; i++) { if (i > 0 && i < arr.length-1) { if (arr[i].h > arr[i-1].h && arr[i].h > arr[i+1].h) highs.push(arr[i].h); if (arr[i].l < arr[i-1].l && arr[i].l < arr[i+1].l) lows.push(arr[i].l); } }
-    if (highs.length >= 2 && highs[highs.length-1] > highs[highs.length-2]) bullScore += Math.round(20 * sc.paW);
-    if (lows.length >= 2 && lows[lows.length-1] < lows[lows.length-2]) bearScore += Math.round(20 * sc.paW);
-    if (arr.length >= 28) { var adx = ADX(arr); if (adx.adx >= sc.adxTh) { if (adx.pDI > adx.mDI) bullScore += 10; else bearScore += 10; } }
-    var isBullDominant = bullScore > bearScore;
-    var atr = (currentATR && currentATR > 0) ? currentATR : (p*0.002);
-    if (isScalpingMode && atr > p*0.008) atr = p*0.008;
-    if (smcS.entry && smcS.entry.lo != null) { var mid = (smcS.entry.lo+smcS.entry.hi)/2; var hw = (smcS.entry.hi-smcS.entry.lo)*sc.entryWidth; s.entry = { lo:mid-hw, hi:mid+hw }; }
-    else if (isBullDominant) s.entry = { lo:p-atr*0.15, hi:p }; else s.entry = { lo:p, hi:p+atr*0.15 };
-    if (isBullDominant) s.sl = s.entry.lo - atr*sc.slATR; else s.sl = s.entry.hi + atr*sc.slATR;
-    if (isBullDominant) s.tp = [p+atr*sc.tpATR1, p+atr*sc.tpATR2]; else s.tp = [p-atr*sc.tpATR1, p-atr*sc.tpATR2];
-    if (isBullDominant && bullScore >= sc.minConf) { s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.round(bullScore); s.reason = 'Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')'; }
-    else if (!isBullDominant && bearScore >= sc.minConf) { s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.round(bearScore); s.reason = 'Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')'; }
-    else { s.bias = isBullDominant ? 'BULLISH' : 'BEARISH'; s.conf = Math.round(Math.max(bullScore, bearScore)); s.reason = 'Low ('+s.conf+'<'+sc.minConf+')'; }
-    if (s.entry && s.sl && s.tp[0] && s.action !== 'WAIT') { var entryMid, risk, reward; if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid - s.sl; reward = s.tp[0] - entryMid; } else { entryMid = s.entry.hi; risk = s.sl - entryMid; reward = entryMid - s.tp[0]; } if (risk > 0 && reward > 0) { var rr = reward/risk; s.rr = rr; if (rr < sc.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR ('+rr.toFixed(2)+')'; } } }
-    var now = Date.now(); if (now - lastSignalTimestamp < sc.cooldown && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') { s.action = 'WAIT'; s.reason = 'Scalp Cooldown ('+Math.round((sc.cooldown-(now-lastSignalTimestamp))/1000)+'s)'; }
-    s.conf = Math.min(100, Math.max(0, s.conf)); return s;
+ }
+ // =======================================
+ 
+ var ma20=MA(arr,cf.maF),ma50=MA(arr,cf.maS),adx=ADX(arr),rsi=RSI(arr),atr=ATR(arr,cf.atrP);
+ currentATR=atr;var bb=BB(arr,cf.bbP,cf.bbS);
+ sessionData=getSessionData(arr);
+ var usePv=sessionData||{pivot:p,r1:p*1.005,r2:p*1.01,r3:p*1.015,s1:p*0.995,s2:p*0.99,s3:p*0.985};
+ 
+ var tcB='NEUTRAL',tcS=50;
+ if(p>usePv.pivot){tcB='BULLISH';tcS+=25;}else if(p<usePv.pivot){tcB='BEARISH';tcS+=25;}
+ if(adx.adx>=cf.adxTh){tcS+=15;if(tcB==='BULLISH'&&adx.pDI>adx.mDI)tcS+=12;else if(tcB==='BEARISH'&&adx.mDI>adx.pDI)tcS+=12;}
+ if(tcB==='BULLISH'&&rsi>cf.rsiLo&&rsi<cf.rsiHi)tcS+=10;else if(tcB==='BEARISH'&&rsi>(100-cf.rsiHi)&&rsi<(100-cf.rsiLo))tcS+=10;
+ if(sessionData)tcS+=12;tcS=Math.min(100,Math.max(0,tcS));
+ var tcE,tcSL;
+ if(tcB==='BULLISH'){tcE={lo:usePv.pivot,hi:Math.min(usePv.r1,p*0.999)};tcSL=usePv.s1||p*0.99;}
+ else if(tcB==='BEARISH'){tcE={lo:Math.max(usePv.s1,p*1.001),hi:usePv.pivot};tcSL=usePv.r1||p*1.01;}
+ else{tcE={lo:p*0.997,hi:p*1.003};tcSL=p*0.995;}
+ 
+ var smc=detectSMC(arr,atr),smcS=genSMC(p,smc);
+ 
+ // === DUAL ENGINE ROUTING ===
+ var newSignal;
+ if(!justReset){
+  if(isScalpingMode){newSignal=genFusionScalping(smcS,p,usePv);if(newSignal.action!=='WAIT')newSignal.reason='⚡'+newSignal.reason;}
+  else{newSignal=genFusionIntraday(tcB,tcS,tcE,tcSL,smcS,p,usePv,sessionData);}
+ }else{
+  newSignal={action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'Reset',rr:null};
+ }
+ 
+ lastGeneratedSignal=newSignal;
+ if(newSignal.action!=='WAIT'){if(!activeSignal||activeSignal.action==='WAIT'||newSignal.bias!==activeSignal.bias){activeSignal=newSignal;lastSignalTimestamp=Date.now();}}
+ var displaySignal=activeSignal||lastGeneratedSignal;
+ var isStaleSignal=!!(!activeSignal&&lastGeneratedSignal&&lastGeneratedSignal.action==='WAIT');
+ 
+ // RENDER PRICE
+ var f=p.toFixed(pr),pt=f.split('.');setH('price-display',pt[0]+'<span class="price-decimal">.'+(pt[1]||'00')+'</span>');
+ $('price-display').style.color=p>prevPrice?'var(--accent-green)':(p<prevPrice?'var(--accent-red)':'var(--text-primary)');
+ if(prevPrice>0){var ch=p-prevPrice,pct=(ch/prevPrice)*100;setT('price-change',(ch>0?'+':'')+ch.toFixed(pr)+' ('+pct.toFixed(2)+'%)');$('price-change').style.color=ch>0?'var(--accent-green)':(ch<0?'var(--accent-red)':'var(--text-secondary)');}
+ 
+ // TC Levels
+ setT('r3v',usePv.r3.toFixed(pr));setT('r2v',usePv.r2.toFixed(pr));setT('r1v',usePv.r1.toFixed(pr));
+ setT('pivotv',usePv.pivot.toFixed(pr));setT('s1v',usePv.s1.toFixed(pr));setT('s2v',usePv.s2.toFixed(pr));setT('s3v',usePv.s3.toFixed(pr));
+ setT('lastv',p.toFixed(pr));setT('bbuv',bb.up.toFixed(pr));setT('bblv',bb.lo.toFixed(pr));setT('bbmv',bb.mid.toFixed(pr));
+ setT('tc-bias-val',tcB);setC('tc-bias-val','tc-bias '+tcB.toLowerCase());
+ var activeSessionName=sessionData?SESSION_NAMES[sessionData.name]||(sessionData.label+' SESSION INTRADAY'):'INTRADAY';
+ setT('tc-upd',activeSessionName);setC('tc-upd','tc-update active-session');
+ var sessionWarn=$('session-warning');
+ if(sessionData&&sessionData.name!=='WEEKEND'){var sessDur=getSessionDuration(sessionData);var remaining=sessionData.start+sessDur-Date.now();if(remaining>0&&remaining<900000)sessionWarn.classList.add('show');else sessionWarn.classList.remove('show');}
+ else sessionWarn.classList.remove('show');
+ 
+ // Metrics
+ setT('ma20-val',ma20.toFixed(pr));setT('ma50-val','MA50: '+ma50.toFixed(pr));
+ setT('ma-trend',p>ma20?'▲':'▼');$('ma-trend').style.color=p>ma20?'var(--accent-green)':'var(--accent-red)';
+ setT('adx-val',Math.round(adx.adx)+'');setT('di-val','+'+Math.round(adx.pDI)+' | -'+Math.round(adx.mDI));
+ setT('adx-trend',adx.pDI>adx.mDI?'▲':'▼');$('adx-trend').style.color=adx.pDI>adx.mDI?'var(--accent-green)':'var(--accent-red)';
+ setT('rsi-val',Math.round(rsi)+'');setT('atr-val','ATR: '+atr.toFixed(pr));
+ setT('rsi-trend',rsi>50?'▲':'▼');$('rsi-trend').style.color=rsi>50?'var(--accent-green)':'var(--accent-red)';
+ 
+ // SMC
+ var nf=smc.nearFVG(p),no=smc.nearOB(p),sw=smc.lastSw;
+ if(nf&&nf.bot!=null){setT('fvg-val',nf.t+' '+nf.bot.toFixed(pr)+'-'+nf.top.toFixed(pr));setT('fvg-det','Gap:'+(nf.top-nf.bot).toFixed(pr));}else{setT('fvg-val','—');setT('fvg-det','—');}
+ if(no&&no.l!=null){setT('ob-val',no.t+' '+no.l.toFixed(pr)+'-'+no.h.toFixed(pr));setT('ob-det','Ent:'+no.o.toFixed(pr));}else{setT('ob-val','—');setT('ob-det','—');}
+ if(sw&&sw.lvl!=null){setT('sw-val',sw.t);setT('sw-det','Lvl:'+sw.lvl.toFixed(pr));}else{setT('sw-val','—');setT('sw-det','—');}
+ setT('smc-upd','Upd: '+new Date().toLocaleTimeString('id-ID'));
+ 
+ // SIGNAL RENDER
+ if(displaySignal){
+  var isB=displaySignal.bias==='BULLISH',sc=isB?'var(--accent-green)':'var(--accent-red)';
+  if(activeSignal&&activeSignal.action!=='WAIT'){
+   setT('sig-status',activeSignal.bias+' SIGNAL');$('sig-status').style.color=sc;
+   setT('sig-arrow',isB?'▲▲':'▼▼');$('sig-arrow').style.color=sc;
+   var ct='LOW',cc='low';if(activeSignal.conf>=75)ct='HIGH',cc='high';else if(activeSignal.conf>=60)ct='MED',cc='medium';
+   setT('sig-conf',ct);setC('sig-conf','conf-badge '+cc);$('fusion-bar').classList.remove('stale-signal');
+  }else{
+   setT('sig-status',isStaleSignal?'WAITING (STALE)':'WAITING');$('sig-status').style.color='var(--text-tertiary)';
+   setT('sig-arrow','—');setT('sig-conf','WAIT');setC('sig-conf','conf-badge low');
+   if(isStaleSignal&&isStale&&!isFB){
+    $('fusion-bar').classList.add('stale-signal');
+   }else if(!isFB){
+    $('fusion-bar').classList.remove('stale-signal');
+   }
   }
+  setT('sig-decision','FUSION: '+displaySignal.bias);setT('sig-strength','Conf: '+displaySignal.conf+'%');setT('sig-reason',displaySignal.reason||'—');
+  if(displaySignal.rr!=null){var rrClass=displaySignal.rr>=2?'good':(displaySignal.rr>=(isScalpingMode?SCALP_CFG.minRR:CFG[pair].minRR)?'ok':'bad');setT('sig-rr','RR: '+displaySignal.rr.toFixed(2));setC('sig-rr','rr-badge '+rrClass);}else{setT('sig-rr','');setC('sig-rr','');}
+  if(displaySignal.entry){setT('entry-lo',displaySignal.entry.lo!=null?displaySignal.entry.lo.toFixed(pr):'—');setT('entry-hi',displaySignal.entry.hi!=null?displaySignal.entry.hi.toFixed(pr):'—');}else{setT('entry-lo','—');setT('entry-hi','—');}
+  setT('sl-val',displaySignal.sl!=null?displaySignal.sl.toFixed(pr):'—');setT('inv-val',displaySignal.sl!=null?displaySignal.sl.toFixed(pr):'—');
+  setT('tp1-val',displaySignal.tp[0]!=null?displaySignal.tp[0].toFixed(pr):'—');setT('tp2-val',displaySignal.tp[1]!=null?displaySignal.tp[1].toFixed(pr):'—');
+ }else{
+  setT('sig-status','INIT');$('sig-status').style.color='var(--text-tertiary)';setT('sig-arrow','—');setT('sig-conf','--');setC('sig-conf','conf-badge low');
+  setT('sig-decision','FUSION: --');setT('sig-strength','Conf: --%');setT('sig-reason','—');setT('sig-rr','');
+  setT('entry-lo','—');setT('entry-hi','—');setT('sl-val','—');setT('inv-val','—');setT('tp1-val','—');setT('tp2-val','—');
+  $('fusion-bar').classList.remove('stale-signal');
+ }
+ var actionCards=document.querySelectorAll('.action-card');var staleNotice=$('stale-notice');
+ if(isStaleSignal&&!activeSignal){actionCards.forEach(function(c){c.classList.add('stale');});if(staleNotice)staleNotice.classList.add('show');}
+ else{actionCards.forEach(function(c){c.classList.remove('stale');});if(staleNotice)staleNotice.classList.remove('show');}
+ prevPrice=p;updateMTF();updateCooldownUI();
+}
 
-  function updateCooldownUI() {
-    var now = Date.now(), elapsed = now - lastSignalTimestamp;
-    var cd = isScalpingMode ? SCALP_CFG.cooldown : getCooldownForTF(MTF_MAP[tf] || 'm30');
-    cooldownTotal = cd; cooldownRemaining = Math.max(0, cd - elapsed);
-    var bar = $('cooldown-bar'), fill = $('cooldown-fill');
-    if (cooldownRemaining > 0 && activeSignal && activeSignal.action !== 'WAIT') { if (bar) bar.classList.add('active'); var pct = ((cd-cooldownRemaining)/cd)*100; if (fill) fill.style.width = Math.min(100, pct)+'%'; }
-    else { if (bar) bar.classList.remove('active'); if (fill) fill.style.width = '0%'; cooldownRemaining = 0; }
-  }
+function getSessionDuration(session){
+ if(session.name==='ASIA'){var sd=new Date(session.start),ed=new Date(sd);ed.setUTCHours(8,0,0,0);if(ed<=sd)ed.setUTCDate(ed.getUTCDate()+1);return ed.getTime()-sd.getTime();}
+ if(session.name==='LONDON'){var sd=new Date(session.start),ed=new Date(sd);ed.setUTCHours(16,0,0,0);if(ed<=sd)ed.setUTCDate(ed.getUTCDate()+1);return ed.getTime()-sd.getTime();}
+ if(session.name==='NY'){var sd=new Date(session.start),ed=new Date(sd);ed.setUTCHours(22,0,0,0);if(ed<=sd)ed.setUTCDate(ed.getUTCDate()+1);return ed.getTime()-sd.getTime();}
+ return 28800000;
+}
 
-  function setTheme(theme) {
-    currentTheme = theme; document.body.setAttribute('data-theme', theme);
-    try { localStorage.setItem('ura-theme', theme); } catch(e) {}
-    var btn = $('theme-toggle-btn'); if (btn) { btn.textContent = theme === 'dark' ? '☀️' : '🌙'; btn.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'; }
-  }
-  function toggleTheme() { setTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+function updateMTF(){
+ var cb=activeSignal&&activeSignal.bias?activeSignal.bias:'NEUTRAL';
+ ['h4','h1','m30','m15','m5'].forEach(function(key){var sym=document.getElementById('sym-'+key);if(sym){sym.textContent=SYM[mtf[key]]||'●';sym.className='tf-bias-symbol '+mtf[key].toLowerCase();}});
+ document.querySelectorAll('.tf-btn').forEach(function(btn){var tff=btn.dataset.tf,key=MTF_MAP[tff],cached=mtf[key];btn.classList.remove('aligned','conflict','warning');if(cb!=='NEUTRAL'&&cached&&cached!=='NEUTRAL'){if(cached===cb)btn.classList.add('aligned');else if(LARGE_TF.indexOf(key)>=0)btn.classList.add('conflict');else btn.classList.add('warning');}});
+}
 
-  function tcCopyRow(rowEl, toastEl) {
-    var label = rowEl.querySelector('.tc-label').textContent.replace('⚡','').trim();
-    var value = rowEl.querySelector('.tc-value').textContent; if (value === '—') return;
-    var txt = label + ': ' + value;
-    if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(function() { showTCToast(toastEl, '✅ '+label+' disalin!'); }).catch(function() { showTCToast(toastEl, '❌ Gagal menyalin'); }); }
-    else { var ta = document.createElement('textarea'); ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); showTCToast(toastEl, '✅ '+label+' disalin!'); } catch(e) { showTCToast(toastEl, '❌ Gagal menyalin'); } document.body.removeChild(ta); }
-  }
-  function showTCToast(el, msg) { el.textContent = msg; el.classList.add('show'); clearTimeout(el._timeout); el._timeout = setTimeout(function() { el.classList.remove('show'); }, 1400); }
+function cleanWS(){if(ws){manualOff=true;try{ws.onopen=ws.onmessage=ws.onclose=ws.onerror=null;if(ws.readyState<2)ws.close();}catch(e){}ws=null;}if(hbT){clearInterval(hbT);hbT=null;}if(fbT){clearInterval(fbT);fbT=null;}}
+function scheduleReconnect(){if(wsRT)clearTimeout(wsRT);if(manualOff||isLoading)return;wsRT=setTimeout(function(){if(!manualOff&&!isLoading){recDelay=Math.min(recDelay*1.5,30000);connectWS();}},recDelay);}
+function setStatus(s,m){setC('status-dot','status-dot '+s);setT('status-text',m);if(s==='live'){isFB=false;isStale=false;recDelay=1500;}else if(s==='fallback')isFB=true;else if(s==='stale')isStale=true;}
+function startFB(){
+    if(fbT)clearInterval(fbT);
+    fbT=setInterval(async function(){
+        try{
+            var r=await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair);
+            if(!r.ok)return;
+            var d=await r.json();
+            if(d&&d.price){
+                var prc=+d.price;
+                if(prc>0&&(Date.now()-lastMsg>1000||isFB)){
+                    lastUpd=Date.now();
+                    price=prc;
+                    analyze();
+                }
+            }
+        }catch(e){}
+    },1000);
+}
 
-  function analyze() {
-    var arr = getCandles(); if (arr.length < 30) return;
-    var p = price, cf = CFG[pair], pr = cf.prec;
+async function fetchKL(){
+ try{var r=await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval='+tf+'&limit=300');if(!r.ok)return false;var d=await r.json();if(Array.isArray(d)&&d.length>0){buf=[];d.forEach(function(k){pushCandle({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]});});var lst=buf[buf.length-1];if(lst){price=lst.c;prevPrice=lst.c;lastUpd=Date.now();}activeSignal=null;lastGeneratedSignal=null;lastSignalTimestamp=0;analyze();return true;}}catch(e){}return false;
+}
+
+function connectWS(){
+ cleanWS();if(wsRT){clearTimeout(wsRT);wsRT=null;}setStatus('connecting','CONNECT');
+ try{ws=new WebSocket('wss://fstream.binance.com/ws/'+pair.toLowerCase()+'@kline_'+tf);ws.onopen=function(){recDelay=1500;lastMsg=lastUpd=Date.now();isFB=false;isStale=false;reconnectAttempts=0;setStatus('live','LIVE');if(fbT){clearInterval(fbT);fbT=null;}hbT=setInterval(function(){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({method:'ping'}));},25000);};ws.onmessage=function(e){try{var m=JSON.parse(e.data);if(m&&m.k){var k=m.k,prc=+k.c;if(prc>0){lastMsg=lastUpd=Date.now();if(isFB)setStatus('live','LIVE');if(isStale)setStatus('live','LIVE');pushCandle({t:k.t,o:+k.o,h:+k.h,l:+k.l,c:prc,v:+k.v});price=prc;analyze();}}}catch(e){}};ws.onclose=function(){if(hbT){clearInterval(hbT);hbT=null;}if(!isLoading&&!manualOff){setStatus('reconnect','RECON');scheduleReconnect();}};ws.onerror=function(){if(!isLoading&&!manualOff)setStatus('reconnect','ERROR');};}catch(e){setStatus('fallback','FALLBACK');isFB=true;startFB();}
+}
+
+setInterval(function(){
+    var n=Date.now();
     
-    var justReset = false;
-    if (activeSignal && activeSignal.action !== 'WAIT') {
-      var shouldReset = false;
-      if (activeSignal.sl) { if ((activeSignal.bias === 'BULLISH' && p <= activeSignal.sl) || (activeSignal.bias === 'BEARISH' && p >= activeSignal.sl)) shouldReset = true; }
-      if (!shouldReset && activeSignal.tp && activeSignal.tp[0]) { if ((activeSignal.bias === 'BULLISH' && p >= activeSignal.tp[0]) || (activeSignal.bias === 'BEARISH' && p <= activeSignal.tp[0])) shouldReset = true; }
-      if (!shouldReset && currentATR > 0 && activeSignal.entry) { var entryMid = activeSignal.bias === 'BULLISH' ? activeSignal.entry.lo : activeSignal.entry.hi; if (Math.abs(p-entryMid) > currentATR*2.0) shouldReset = true; }
-      if (!shouldReset && lastSignalTimestamp > 0) { var signalAge = Date.now() - lastSignalTimestamp; if (signalAge > 45000) { var lc = arr[arr.length-1], pc = arr[arr.length-2]; if ((activeSignal.bias === 'BULLISH' && lc.c < lc.o && lc.c < pc.c) || (activeSignal.bias === 'BEARISH' && lc.c > lc.o && lc.c > pc.c)) shouldReset = true; } }
-      if (shouldReset) { activeSignal = null; lastSignalTimestamp = 0; justReset = true; }
-    }
-    
-    var ma20 = MA(arr, cf.maF), ma50 = MA(arr, cf.maS), adx = ADX(arr), rsi = RSI(arr), atr = ATR(arr, cf.atrP);
-    currentATR = atr; var bb = BB(arr, cf.bbP, cf.bbS);
-    sessionData = getSessionData(arr);
-    var usePv = sessionData || { pivot:p, r1:p*1.005, r2:p*1.01, r3:p*1.015, s1:p*0.995, s2:p*0.99, s3:p*0.985 };
-    
-    // Deteksi anomali H4 sebelum generate sinyal
-    detectH4Anomaly();
-    
-    var tcB = 'NEUTRAL', tcS = 50;
-    if (p > usePv.pivot) { tcB = 'BULLISH'; tcS += 25; } else if (p < usePv.pivot) { tcB = 'BEARISH'; tcS += 25; }
-    if (adx.adx >= cf.adxTh) { tcS += 15; if (tcB === 'BULLISH' && adx.pDI > adx.mDI) tcS += 12; else if (tcB === 'BEARISH' && adx.mDI > adx.pDI) tcS += 12; }
-    if (tcB === 'BULLISH' && rsi > cf.rsiLo && rsi < cf.rsiHi) tcS += 10; else if (tcB === 'BEARISH' && rsi > (100-cf.rsiHi) && rsi < (100-cf.rsiLo)) tcS += 10;
-    if (sessionData) tcS += 12; tcS = Math.min(100, Math.max(0, tcS));
-    var tcE, tcSL;
-    if (tcB === 'BULLISH') { tcE = { lo:usePv.pivot, hi:Math.min(usePv.r1, p*0.999) }; tcSL = usePv.s1 || p*0.99; }
-    else if (tcB === 'BEARISH') { tcE = { lo:Math.max(usePv.s1, p*1.001), hi:usePv.pivot }; tcSL = usePv.r1 || p*1.01; }
-    else { tcE = { lo:p*0.997, hi:p*1.003 }; tcSL = p*0.995; }
-    
-    var smc = detectSMC(arr, atr), smcS = genSMC(p, smc);
-    
-    var newSignal;
-    if (!justReset) {
-      if (isScalpingMode) { newSignal = genFusionScalping(smcS, p, usePv); if (newSignal.action !== 'WAIT') newSignal.reason = '⚡'+newSignal.reason; }
-      else { newSignal = genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, usePv, sessionData); }
-    } else {
-      newSignal = { action:'WAIT', bias:'NEUTRAL', conf:0, entry:null, sl:null, tp:[], reason:'Reset', rr:null };
+    if(n-lastUpd>5000&&price>0&&!isStale&&!isFB){
+        setStatus('stale','STALE');
+        isStale=true;
+        staleSince=n;
     }
     
-    lastGeneratedSignal = newSignal;
-    if (newSignal.action !== 'WAIT') { if (!activeSignal || activeSignal.action === 'WAIT' || newSignal.bias !== activeSignal.bias) { activeSignal = newSignal; lastSignalTimestamp = Date.now(); } }
-    var displaySignal = activeSignal || lastGeneratedSignal;
-    var isStaleSignal = !!(!activeSignal && lastGeneratedSignal && lastGeneratedSignal.action === 'WAIT');
-    
-    // Render UI
-    var f = p.toFixed(pr), pt = f.split('.'); setH('price-display', pt[0]+'<span class="price-decimal">.'+(pt[1]||'00')+'</span>');
-    $('price-display').style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
-    if (prevPrice > 0) { var ch = p-prevPrice, pct = (ch/prevPrice)*100; setT('price-change', (ch>0?'+':'')+ch.toFixed(pr)+' ('+pct.toFixed(2)+'%)'); $('price-change').style.color = ch > 0 ? 'var(--accent-green)' : (ch < 0 ? 'var(--accent-red)' : 'var(--text-secondary)'); }
-    
-    setT('r3v', usePv.r3.toFixed(pr)); setT('r2v', usePv.r2.toFixed(pr)); setT('r1v', usePv.r1.toFixed(pr));
-    setT('pivotv', usePv.pivot.toFixed(pr)); setT('s1v', usePv.s1.toFixed(pr)); setT('s2v', usePv.s2.toFixed(pr)); setT('s3v', usePv.s3.toFixed(pr));
-    setT('lastv', p.toFixed(pr)); setT('bbuv', bb.up.toFixed(pr)); setT('bblv', bb.lo.toFixed(pr)); setT('bbmv', bb.mid.toFixed(pr));
-    setT('tc-bias-val', tcB); setC('tc-bias-val', 'tc-bias '+tcB.toLowerCase());
-    var activeSessionName = sessionData ? SESSION_NAMES[sessionData.name] || (sessionData.label+' SESSION INTRADAY') : 'INTRADAY';
-    setT('tc-upd', activeSessionName); setC('tc-upd', 'tc-update active-session');
-    
-    setT('ma20-val', ma20.toFixed(pr)); setT('ma50-val', 'MA50: '+ma50.toFixed(pr));
-    setT('ma-trend', p > ma20 ? '▲' : '▼'); $('ma-trend').style.color = p > ma20 ? 'var(--accent-green)' : 'var(--accent-red)';
-    setT('adx-val', Math.round(adx.adx)+''); setT('di-val', '+'+Math.round(adx.pDI)+' | -'+Math.round(adx.mDI));
-    setT('adx-trend', adx.pDI > adx.mDI ? '▲' : '▼'); $('adx-trend').style.color = adx.pDI > adx.mDI ? 'var(--accent-green)' : 'var(--accent-red)';
-    setT('rsi-val', Math.round(rsi)+''); setT('atr-val', 'ATR: '+atr.toFixed(pr));
-    setT('rsi-trend', rsi > 50 ? '▲' : '▼'); $('rsi-trend').style.color = rsi > 50 ? 'var(--accent-green)' : 'var(--accent-red)';
-    
-    var nf = smc.nearFVG(p), no = smc.nearOB(p), sw = smc.lastSw;
-    if (nf && nf.bot != null) { setT('fvg-val', nf.t+' '+nf.bot.toFixed(pr)+'-'+nf.top.toFixed(pr)); setT('fvg-det', 'Gap:'+(nf.top-nf.bot).toFixed(pr)); } else { setT('fvg-val', '—'); setT('fvg-det', '—'); }
-    if (no && no.l != null) { setT('ob-val', no.t+' '+no.l.toFixed(pr)+'-'+no.h.toFixed(pr)); setT('ob-det', 'Ent:'+no.o.toFixed(pr)); } else { setT('ob-val', '—'); setT('ob-det', '—'); }
-    if (sw && sw.lvl != null) { setT('sw-val', sw.t); setT('sw-det', 'Lvl:'+sw.lvl.toFixed(pr)); } else { setT('sw-val', '—'); setT('sw-det', '—'); }
-    setT('smc-upd', 'Upd: '+new Date().toLocaleTimeString('id-ID'));
-    
-    // Update UI Anomali
-    var anomaliBadge = $('anomali-badge');
-    var fusionBar = $('fusion-bar');
-    if (h4AnomaliActive) {
-      if (anomaliBadge) anomaliBadge.classList.add('show');
-      if (fusionBar) fusionBar.classList.add('anomali');
-    } else {
-      if (anomaliBadge) anomaliBadge.classList.remove('show');
-      if (fusionBar) fusionBar.classList.remove('anomali');
+    if(isStale&&n-lastUpd<2000){
+        setStatus('live','LIVE');
+        isStale=false;
+        staleSince=0;
     }
     
-    if (displaySignal) {
-      var isB = displaySignal.bias === 'BULLISH', sc = isB ? 'var(--accent-green)' : 'var(--accent-red)';
-      if (activeSignal && activeSignal.action !== 'WAIT') {
-        setT('sig-status', activeSignal.bias+' SIGNAL'); $('sig-status').style.color = sc;
-        setT('sig-arrow', isB ? '▲▲' : '▼▼'); $('sig-arrow').style.color = sc;
-        var ct = 'LOW', cc = 'low'; if (activeSignal.conf >= 75) { ct = 'HIGH'; cc = 'high'; } else if (activeSignal.conf >= 60) { ct = 'MED'; cc = 'medium'; }
-        setT('sig-conf', ct); setC('sig-conf', 'conf-badge '+cc); $('fusion-bar').classList.remove('stale-signal');
-      } else {
-        setT('sig-status', isStaleSignal ? 'WAITING (STALE)' : 'WAITING'); $('sig-status').style.color = 'var(--text-tertiary)';
-        setT('sig-arrow', '—'); setT('sig-conf', 'WAIT'); setC('sig-conf', 'conf-badge low');
-        if (isStaleSignal && isStale && !isFB) $('fusion-bar').classList.add('stale-signal');
-        else if (!isFB) $('fusion-bar').classList.remove('stale-signal');
-      }
-      setT('sig-decision', 'FUSION: '+displaySignal.bias); setT('sig-strength', 'Conf: '+displaySignal.conf+'%'); setT('sig-reason', displaySignal.reason || '—');
-      if (displaySignal.rr != null) { var rrClass = displaySignal.rr >= 2 ? 'good' : (displaySignal.rr >= (isScalpingMode ? SCALP_CFG.minRR : CFG[pair].minRR) ? 'ok' : 'bad'); setT('sig-rr', 'RR: '+displaySignal.rr.toFixed(2)); setC('sig-rr', 'rr-badge '+rrClass); } else { setT('sig-rr', ''); setC('sig-rr', ''); }
-      if (displaySignal.entry) { setT('entry-lo', displaySignal.entry.lo != null ? displaySignal.entry.lo.toFixed(pr) : '—'); setT('entry-hi', displaySignal.entry.hi != null ? displaySignal.entry.hi.toFixed(pr) : '—'); } else { setT('entry-lo', '—'); setT('entry-hi', '—'); }
-      setT('sl-val', displaySignal.sl != null ? displaySignal.sl.toFixed(pr) : '—'); setT('inv-val', displaySignal.sl != null ? displaySignal.sl.toFixed(pr) : '—');
-      setT('tp1-val', displaySignal.tp[0] != null ? displaySignal.tp[0].toFixed(pr) : '—'); setT('tp2-val', displaySignal.tp[1] != null ? displaySignal.tp[1].toFixed(pr) : '—');
-    } else {
-      setT('sig-status', 'INIT'); $('sig-status').style.color = 'var(--text-tertiary)'; setT('sig-arrow', '—'); setT('sig-conf', '--'); setC('sig-conf', 'conf-badge low');
-      setT('sig-decision', 'FUSION: --'); setT('sig-strength', 'Conf: --%'); setT('sig-reason', '—'); setT('sig-rr', '');
-      setT('entry-lo', '—'); setT('entry-hi', '—'); setT('sl-val', '—'); setT('inv-val', '—'); setT('tp1-val', '—'); setT('tp2-val', '—');
-      $('fusion-bar').classList.remove('stale-signal');
+    if(isStale&&!isFB&&staleSince>0&&n-staleSince>8000){
+        setStatus('fallback','FALLBACK');
+        isFB=true;
+        isStale=false;
+        staleSince=0;
+        reconnectAttempts=0;
+        startFB();
     }
-    var actionCards = document.querySelectorAll('.action-card'); var staleNotice = $('stale-notice');
-    if (isStaleSignal && !activeSignal) { actionCards.forEach(function(c) { c.classList.add('stale'); }); if (staleNotice) staleNotice.classList.add('show'); }
-    else { actionCards.forEach(function(c) { c.classList.remove('stale'); }); if (staleNotice) staleNotice.classList.remove('show'); }
-    prevPrice = p; updateMTF(); updateCooldownUI();
-  }
+    
+    if(isFB&&n-lastUpd>15000&&reconnectAttempts<5){
+        reconnectAttempts++;
+        connectWS();
+    }
+    
+    if(isFB&&ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg<2000){
+        setStatus('live','LIVE');
+        isFB=false;
+        reconnectAttempts=0;
+        if(fbT){clearInterval(fbT);fbT=null;}
+    }
+    
+    if(ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg>5000&&!isFB&&!isLoading){
+        setStatus('fallback','FALLBACK');
+        isFB=true;
+        reconnectAttempts=0;
+        startFB();
+    }
+},1000);
 
-  function updateMTF() {
-    var cb = activeSignal && activeSignal.bias ? activeSignal.bias : 'NEUTRAL';
-    ['h4','h1','m30','m15','m5'].forEach(function(key) { var sym = document.getElementById('sym-'+key); if (sym) { sym.textContent = SYM[mtf[key]] || '●'; sym.className = 'tf-bias-symbol '+mtf[key].toLowerCase(); } });
-    document.querySelectorAll('.tf-btn').forEach(function(btn) { var tff = btn.dataset.tf, key = MTF_MAP[tff], cached = mtf[key]; btn.classList.remove('aligned','conflict','warning'); if (cb !== 'NEUTRAL' && cached && cached !== 'NEUTRAL') { if (cached === cb) btn.classList.add('aligned'); else if (LARGE_TF.indexOf(key) >= 0) btn.classList.add('conflict'); else btn.classList.add('warning'); } });
-  }
+async function reload(){
+ if(isLoading)return;isLoading=true;manualOff=true;cleanWS();if(fbT){clearInterval(fbT);fbT=null;}if(wsRT){clearTimeout(wsRT);wsRT=null;}sessionHigh=0;sessionLow=0;activeSignal=null;lastGeneratedSignal=null;lastSignalTimestamp=0;
+ updateScalpingMode();
+ document.querySelectorAll('[data-pair]').forEach(function(b){b.classList.toggle('active',b.dataset.pair===pair);});
+ document.querySelectorAll('.tf-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tf===tf);b.classList.remove('scalp-active');if(isScalpingMode&&SCALPING_TF.indexOf(b.dataset.tf)>=0&&b.classList.contains('active'))b.classList.add('scalp-active');});
+ await fetchKL();manualOff=false;connectWS();updateAllMTF();isLoading=false;
+}
 
-  function cleanWS() { if (ws) { manualOff = true; try { ws.onopen = ws.onmessage = ws.onclose = ws.onerror = null; if (ws.readyState < 2) ws.close(); } catch(e) {} ws = null; } if (hbT) { clearInterval(hbT); hbT = null; } if (fbT) { clearInterval(fbT); fbT = null; } }
-  function scheduleReconnect() { if (wsRT) clearTimeout(wsRT); if (manualOff || isLoading) return; wsRT = setTimeout(function() { if (!manualOff && !isLoading) { recDelay = Math.min(recDelay*1.5, 30000); connectWS(); } }, recDelay); }
-  function setStatus(s, m) { setC('status-dot', 'status-dot '+s); setT('status-text', m); if (s === 'live') { isFB = false; isStale = false; recDelay = 1500; } else if (s === 'fallback') isFB = true; else if (s === 'stale') isStale = true; }
-  function startFB() { if (fbT) clearInterval(fbT); fbT = setInterval(async function() { try { var r = await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair); if (!r.ok) return; var d = await r.json(); if (d && d.price) { var prc = +d.price; if (prc > 0 && (Date.now()-lastMsg > 1000 || isFB)) { lastUpd = Date.now(); price = prc; analyze(); } } } catch(e) {} }, 1000); }
-  async function fetchKL() { try { var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval='+tf+'&limit=300'); if (!r.ok) return false; var d = await r.json(); if (Array.isArray(d) && d.length > 0) { buf = []; d.forEach(function(k) { pushCandle({ t:k[0], o:+k[1], h:+k[2], l:+k[3], c:+k[4], v:+k[5] }); }); var lst = buf[buf.length-1]; if (lst) { price = lst.c; prevPrice = lst.c; lastUpd = Date.now(); } activeSignal = null; lastGeneratedSignal = null; lastSignalTimestamp = 0; analyze(); return true; } } catch(e) {} return false; }
+async function fetchMTF(pr,tff,key){
+ try{var r=await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pr+'&interval='+tff+'&limit=150');if(!r.ok)return;var d=await r.json();if(Array.isArray(d)&&d.length>=50){var fd=d.map(function(k){return{t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]};});var cf=CFG[pr],p2=fd[fd.length-1].c;var ma20=MA(fd,cf.maF),ma50=MA(fd,cf.maS),adx=ADX(fd);var bias='NEUTRAL';if(adx.adx>=cf.adxTh){if(p2>ma20&&p2>ma50&&adx.pDI>adx.mDI)bias='BULLISH';else if(p2<ma20&&p2<ma50&&adx.mDI>adx.pDI)bias='BEARISH';}mtf[key]=bias;}}catch(e){}
+}
 
-  function connectWS() {
-    cleanWS(); if (wsRT) { clearTimeout(wsRT); wsRT = null; } setStatus('connecting','CONNECT');
-    try { ws = new WebSocket('wss://fstream.binance.com/ws/'+pair.toLowerCase()+'@kline_'+tf); ws.onopen = function() { recDelay = 1500; lastMsg = lastUpd = Date.now(); isFB = false; isStale = false; reconnectAttempts = 0; setStatus('live','LIVE'); if (fbT) { clearInterval(fbT); fbT = null; } hbT = setInterval(function() { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ method:'ping' })); }, 25000); }; ws.onmessage = function(e) { try { var m = JSON.parse(e.data); if (m && m.k) { var k = m.k, prc = +k.c; if (prc > 0) { lastMsg = lastUpd = Date.now(); if (isFB) setStatus('live','LIVE'); if (isStale) setStatus('live','LIVE'); pushCandle({ t:k.t, o:+k.o, h:+k.h, l:+k.l, c:prc, v:+k.v }); price = prc; analyze(); } } } catch(e) {} }; ws.onclose = function() { if (hbT) { clearInterval(hbT); hbT = null; } if (!isLoading && !manualOff) { setStatus('reconnect','RECON'); scheduleReconnect(); } }; ws.onerror = function() { if (!isLoading && !manualOff) setStatus('reconnect','ERROR'); }; } catch(e) { setStatus('fallback','FALLBACK'); isFB = true; startFB(); }
-  }
+async function updateAllMTF(){var tasks=Object.entries(MTF_MAP).map(function(e){return fetchMTF(pair,e[0],e[1]);});await Promise.allSettled(tasks);updateMTF();}
 
-  setInterval(function() {
-    var n = Date.now();
-    if (n - lastUpd > 5000 && price > 0 && !isStale && !isFB) { setStatus('stale','STALE'); isStale = true; staleSince = n; }
-    if (isStale && n - lastUpd < 2000) { setStatus('live','LIVE'); isStale = false; staleSince = 0; }
-    if (isStale && !isFB && staleSince > 0 && n - staleSince > 8000) { setStatus('fallback','FALLBACK'); isFB = true; isStale = false; staleSince = 0; reconnectAttempts = 0; startFB(); }
-    if (isFB && n - lastUpd > 15000 && reconnectAttempts < 5) { reconnectAttempts++; connectWS(); }
-    if (isFB && ws && ws.readyState === WebSocket.OPEN && n - lastMsg < 2000) { setStatus('live','LIVE'); isFB = false; reconnectAttempts = 0; if (fbT) { clearInterval(fbT); fbT = null; } }
-    if (ws && ws.readyState === WebSocket.OPEN && n - lastMsg > 5000 && !isFB && !isLoading) { setStatus('fallback','FALLBACK'); isFB = true; reconnectAttempts = 0; startFB(); }
-  }, 1000);
+var switchTimeout=null;
+document.querySelectorAll('[data-pair]').forEach(function(b){
+    b.addEventListener('click',function(){
+        if(isLoading)return;
+        pair=this.dataset.pair;
+        savePair(pair);
+        if(switchTimeout)clearTimeout(switchTimeout);
+        switchTimeout=setTimeout(function(){reload();},150);
+    });
+});
+document.querySelectorAll('.tf-btn').forEach(function(b){
+    b.addEventListener('click',function(){
+        if(isLoading)return;
+        tf=this.dataset.tf;
+        saveTF(tf);
+        updateScalpingMode();
+        if(switchTimeout)clearTimeout(switchTimeout);
+        switchTimeout=setTimeout(function(){reload();},150);
+    });
+});
+document.getElementById('fusion-bar').addEventListener('click',copySetup);
+document.getElementById('copy-btn').addEventListener('click',copySetup);
 
-  async function reload() {
-    if (isLoading) return; isLoading = true; manualOff = true; cleanWS(); if (fbT) { clearInterval(fbT); fbT = null; } if (wsRT) { clearTimeout(wsRT); wsRT = null; } sessionHigh = 0; sessionLow = 0; activeSignal = null; lastGeneratedSignal = null; lastSignalTimestamp = 0;
-    updateScalpingMode();
-    document.querySelectorAll('[data-pair]').forEach(function(b) { b.classList.toggle('active', b.dataset.pair === pair); });
-    document.querySelectorAll('.tf-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.tf === tf); b.classList.remove('scalp-active'); if (isScalpingMode && SCALPING_TF.indexOf(b.dataset.tf) >= 0 && b.classList.contains('active')) b.classList.add('scalp-active'); });
-    await fetchKL(); manualOff = false; connectWS(); updateAllMTF(); isLoading = false;
-  }
+function copySetup(){
+ var sig=activeSignal||lastGeneratedSignal;if(!sig){alert('Tidak ada sinyal untuk disalin.');return;}
+ var pr=CFG[pair].prec;var entryRange=sig.entry?(sig.entry.lo.toFixed(pr)+'-'+sig.entry.hi.toFixed(pr)):'—';var rrText=sig.rr!=null?' | RR: '+sig.rr.toFixed(2):'';
+ var txt='URA v5.0 | '+pair+' '+tf+' | '+(isScalpingMode?'SCALP':'INTRADAY')+'\n'+'Bias: '+sig.bias+' | Conf: '+sig.conf+'%'+rrText+'\n'+'Status: '+(sig.action||'N/A')+'\n'+'Entry: '+entryRange+'\n'+'SL: '+(sig.sl?sig.sl.toFixed(pr):'—')+'\n'+'TP1: '+(sig.tp[0]?sig.tp[0].toFixed(pr):'—')+'\n'+'TP2: '+(sig.tp[1]?sig.tp[1].toFixed(pr):'—');
+ if(navigator.clipboard){navigator.clipboard.writeText(txt).catch(function(){alert('Gagal menyalin.');});}else{alert('Clipboard API tidak didukung.');}
+}
 
-  async function fetchMTF(pr, tff, key) { try { var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pr+'&interval='+tff+'&limit=150'); if (!r.ok) return; var d = await r.json(); if (Array.isArray(d) && d.length >= 50) { var fd = d.map(function(k) { return { t:k[0], o:+k[1], h:+k[2], l:+k[3], c:+k[4], v:+k[5] }; }); var cf = CFG[pr], p2 = fd[fd.length-1].c; var ma20 = MA(fd, cf.maF), ma50 = MA(fd, cf.maS), adx = ADX(fd); var bias = 'NEUTRAL'; if (adx.adx >= cf.adxTh) { if (p2 > ma20 && p2 > ma50 && adx.pDI > adx.mDI) bias = 'BULLISH'; else if (p2 < ma20 && p2 < ma50 && adx.mDI > adx.pDI) bias = 'BEARISH'; } mtf[key] = bias; } } catch(e) {} }
-  async function updateAllMTF() { var tasks = Object.entries(MTF_MAP).map(function(e) { return fetchMTF(pair, e[0], e[1]); }); await Promise.allSettled(tasks); updateMTF(); }
-
-  var switchTimeout = null;
-  document.querySelectorAll('[data-pair]').forEach(function(b) { b.addEventListener('click', function() { if (isLoading) return; pair = this.dataset.pair; savePair(pair); if (switchTimeout) clearTimeout(switchTimeout); switchTimeout = setTimeout(function() { reload(); }, 150); }); });
-  document.querySelectorAll('.tf-btn').forEach(function(b) { b.addEventListener('click', function() { if (isLoading) return; tf = this.dataset.tf; saveTF(tf); updateScalpingMode(); if (switchTimeout) clearTimeout(switchTimeout); switchTimeout = setTimeout(function() { reload(); }, 150); }); });
-  document.getElementById('fusion-bar').addEventListener('click', copySetup);
-  document.getElementById('copy-btn').addEventListener('click', copySetup);
-
-  function copySetup() {
-    var sig = activeSignal || lastGeneratedSignal; if (!sig) { alert('Tidak ada sinyal untuk disalin.'); return; }
-    var pr = CFG[pair].prec; var entryRange = sig.entry ? (sig.entry.lo.toFixed(pr)+'-'+sig.entry.hi.toFixed(pr)) : '—'; var rrText = sig.rr != null ? ' | RR: '+sig.rr.toFixed(2) : '';
-    var txt = 'URA v5.1 | '+pair+' '+tf+' | '+(isScalpingMode?'SCALP':'INTRADAY')+'\n'+'Bias: '+sig.bias+' | Conf: '+sig.conf+'%'+rrText+'\n'+'Status: '+(sig.action||'N/A')+'\n'+'Entry: '+entryRange+'\n'+'SL: '+(sig.sl?sig.sl.toFixed(pr):'—')+'\n'+'TP1: '+(sig.tp[0]?sig.tp[0].toFixed(pr):'—')+'\n'+'TP2: '+(sig.tp[1]?sig.tp[1].toFixed(pr):'—');
-    if (navigator.clipboard) { navigator.clipboard.writeText(txt).catch(function() { alert('Gagal menyalin.'); }); } else { alert('Clipboard API tidak didukung.'); }
-  }
-
-  function init() {
-    try { var saved = localStorage.getItem('ura-theme'); if (saved === 'dark' || saved === 'light') currentTheme = saved; } catch(e) {} setTheme(currentTheme);
-    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-    var tcGrid = $('tc-grid'), tcToast = $('tc-copy-toast'); tcGrid.addEventListener('click', function(e) { var row = e.target.closest('.tc-row'); if (!row) return; tcCopyRow(row, tcToast); });
-    updateScalpingMode();
-    setInterval(function() { var n = new Date(); setT('clock', n.toLocaleTimeString('id-ID')); setT('date', ('0'+n.getDate()).slice(-2)+'/'+('0'+(n.getMonth()+1)).slice(-2)+'/'+n.getFullYear()); var sess = getCurrentSession(); setT('session', sess.name); }, 1000);
-    setInterval(function() { if (!isLoading) updateAllMTF(); }, 45000);
-    reload();
-  }
-  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+function init(){
+ try{var saved=localStorage.getItem('ura-theme');if(saved==='dark'||saved==='light')currentTheme=saved;}catch(e){}setTheme(currentTheme);
+ document.getElementById('theme-toggle-btn').addEventListener('click',toggleTheme);
+ var tcGrid=$('tc-grid'),tcToast=$('tc-copy-toast');tcGrid.addEventListener('click',function(e){var row=e.target.closest('.tc-row');if(!row)return;tcCopyRow(row,tcToast);});
+ updateScalpingMode();
+ setInterval(function(){var n=new Date();setT('clock',n.toLocaleTimeString('id-ID'));setT('date',('0'+n.getDate()).slice(-2)+'/'+('0'+(n.getMonth()+1)).slice(-2)+'/'+n.getFullYear());var sess=getCurrentSession();setT('session',sess.name);},1000);
+ setInterval(function(){if(!isLoading)updateAllMTF();},45000);
+ reload();
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
 })();
 </script>
 </body>
