@@ -673,16 +673,10 @@ function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
         if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid - s.sl; reward = s.tp[0] - entryMid; }
         else { entryMid = s.entry.hi; risk = s.sl - entryMid; reward = entryMid - s.tp[0]; }
         if (risk > 0 && reward > 0) {
-    const rr = reward / risk;
-    s.rr = parseFloat(rr.toFixed(2)); // Memastikan s.rr disimpan sebagai angka dengan 2 desimal
-
-    if (rr < cf.minRR) {
-        s.action = 'WAIT';
-        s.reason = `Bad RR (${s.rr} < ${cf.minRR})`; // Menggunakan Template Literals agar lebih rapi
-        s.conf = 0;}
-          }
-      }
-      
+            var rr = reward/risk; s.rr = rr;
+            if (rr < cf.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR ('+rr.toFixed(2)+'<'+cf.minRR+')'; s.conf = 0; }
+        }
+    }
     var now = Date.now();
     var cd = getCooldownForTF(MTF_MAP[tf]||'m30');
     if (now-lastSignalTimestamp < cd && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') {
@@ -1470,7 +1464,7 @@ function init() {
     
     setInterval(function() {
         if (!isLoading) updateAllMTF();
-    }, 30000);
+    }, 45000);
     
     reload();
 }
