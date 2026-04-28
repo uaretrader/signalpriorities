@@ -541,7 +541,7 @@ function analyze(){
    setT('sig-arrow','—');setT('sig-conf','WAIT');setC('sig-conf','conf-badge low');
    if(isStaleSignal)$('fusion-bar').classList.add('stale-signal');else $('fusion-bar').classList.remove('stale-signal');
   }
-  setT('sig-decision','FUSION: '+displaySignal.bias);setT('sig-strength','Conf: '+displaySignal.conf+'%');setT('sig-reason',displaySignal.reason||'—');
+  setT('sig-decision','FUSION: '+displaySignal.bias);setT('sig-strength',''+displaySignal.conf+'%');setT('sig-reason',displaySignal.reason||'—');
   if(displaySignal.rr!=null){var rrClass=displaySignal.rr>=2?'good':(displaySignal.rr>=(isScalpingMode?SCALP_CFG.minRR:CFG[pair].minRR)?'ok':'bad');setT('sig-rr','RR: '+displaySignal.rr.toFixed(2));setC('sig-rr','rr-badge '+rrClass);}else{setT('sig-rr','');setC('sig-rr','');}
   if(displaySignal.entry){setT('entry-lo',displaySignal.entry.lo!=null?displaySignal.entry.lo.toFixed(pr):'—');setT('entry-hi',displaySignal.entry.hi!=null?displaySignal.entry.hi.toFixed(pr):'—');}else{setT('entry-lo','—');setT('entry-hi','—');}
   setT('sl-val',displaySignal.sl!=null?displaySignal.sl.toFixed(pr):'—');setT('inv-val',displaySignal.sl!=null?displaySignal.sl.toFixed(pr):'—');
