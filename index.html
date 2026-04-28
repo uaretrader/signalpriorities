@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v5.2 — PERFECTED DUAL ENGINE</title>
+    <title>URA v5.2.3 — AUDITED PRODUCTION</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         *{margin:0;padding:0;box-sizing:border-box}
@@ -37,6 +37,8 @@
             --scalp-bg:rgba(234,88,12,0.12);--scalp-active-bg:rgba(234,88,12,0.08);
         }
 
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
         body{
             font-family:'Inter',-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);
             height:100vh;height:100dvh;width:100vw;overflow:hidden;position:fixed;top:0;left:0;display:flex;justify-content:center;
@@ -61,7 +63,6 @@
         .status-dot.fallback{background:var(--accent-blue);animation:pulse 1.5s infinite}
         .status-dot.stale{background:var(--accent-red)}
         .status-dot.offline{background:var(--text-tertiary)}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
         .theme-toggle-btn{background:var(--bg-tertiary);border:1px solid var(--border-subtle);color:var(--text-secondary);width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;padding:0;line-height:1}
         .theme-toggle-btn:active{transform:scale(0.9);border-color:var(--accent-gold);color:var(--accent-gold)}
         .price-row{display:flex;justify-content:space-between;align-items:center;flex-shrink:0;padding:6px 0}
@@ -172,7 +173,7 @@
 <body data-theme="dark">
 <div class="app-container" id="app">
     <header class="header">
-        <div class="logo-section"><span class="logo">URA · ADVISOR</span><span class="version-tag">v5.2</span><span class="mode-tag" id="mode-tag">⚡SCALP</span></div>
+        <div class="logo-section"><span class="logo">URA · ADVISOR</span><span class="version-tag">v5.2.3</span><span class="mode-tag" id="mode-tag">⚡SCALP</span></div>
         <div class="header-right-group">
             <div class="connection-badge"><span class="status-dot offline" id="status-dot"></span><span id="status-text">OFFLINE</span></div>
             <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">☀️</button>
@@ -245,13 +246,14 @@ var CFG = {
 };
 var SCALP_CFG = {minConf:45,minRR:1.0,slATR:0.5,tpATR1:1.0,tpATR2:2.0,entryWidth:0.25,maxSMC:1.5,momW:0.40,smcW:0.35,paW:0.25,adxTh:15,cooldown:60000};
 var MTF_MAP = {'4h':'h4','1h':'h1','30m':'m30','15m':'m15','5m':'m5'};
+var MTF_KEYS = ['h4','h1','m30','m15','m5'];
 var LARGE_TF = ['h4','h1'];
 var SCALPING_TF = ['15m','5m'];
 var SESSION_NAMES = {ASIA:'ASIA SESSION INTRADAY',LONDON:'LONDON SESSION INTRADAY',NY:'NEW YORK SESSION INTRADAY',WEEKEND:'WEEKEND — 24H RANGE'};
 var SYM = {BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
 
 // ===========================
-// CONNECTION STATE MACHINE (v5.2 - Atomic & Robust)
+// CONNECTION STATE MACHINE (v5.2.3)
 // ===========================
 var ConnState = {
     DISCONNECTED: 'disconnected',
@@ -279,6 +281,10 @@ var reconnectAttempts = 0;
 var MAX_RECONNECT_ATTEMPTS = 5;
 var FALLBACK_THRESHOLD = 15000;
 var sessionWarningActive = false;
+var zombieClose = false;
+var lastFallbackFetch = 0;
+var mtfCache = {};
+var mtfFetching = false;
 
 // ===========================
 // UTILITY FUNCTIONS
@@ -294,6 +300,57 @@ function $(id) { return document.getElementById(id); }
 function setT(id, t) { var e = $(id); if (e && e.textContent !== t) e.textContent = t; }
 function setH(id, h) { var e = $(id); if (e) e.innerHTML = h; }
 function setC(id, c) { var e = $(id); if (e && e.className !== c) e.className = c; }
+
+// ===========================
+// LOCAL STORAGE PERSISTENCE
+// ===========================
+function saveUserState() {
+    try {
+        var state = { pair: pair, tf: tf, theme: currentTheme };
+        localStorage.setItem('ura-user-state', JSON.stringify(state));
+    } catch(e) {}
+}
+
+function loadUserState() {
+    try {
+        var raw = localStorage.getItem('ura-user-state');
+        if (raw) {
+            var state = JSON.parse(raw);
+            if (state.pair && CFG[state.pair]) pair = state.pair;
+            if (state.tf && MTF_MAP[state.tf]) tf = state.tf;
+            if (state.theme && (state.theme === 'dark' || state.theme === 'light')) currentTheme = state.theme;
+        }
+        var mtfRaw = localStorage.getItem('ura-mtf-cache');
+        if (mtfRaw) {
+            var parsed = JSON.parse(mtfRaw);
+            if (parsed && typeof parsed === 'object') mtfCache = parsed;
+        }
+    } catch(e) {}
+}
+
+function saveMTFCache() {
+    try {
+        var keys = Object.keys(mtfCache);
+        if (keys.length > 4) {
+            var oldest = keys.sort(function(a,b){ return (mtfCache[a].ts||0) - (mtfCache[b].ts||0); })[0];
+            delete mtfCache[oldest];
+        }
+        localStorage.setItem('ura-mtf-cache', JSON.stringify(mtfCache));
+    } catch(e) {}
+}
+
+function getCachedMTF(pr) {
+    var entry = mtfCache[pr];
+    if (entry && entry.ts && (Date.now() - entry.ts < 120000)) {
+        return entry.data;
+    }
+    return null;
+}
+
+function setCachedMTF(pr, data) {
+    mtfCache[pr] = { data: data, ts: Date.now() };
+    saveMTFCache();
+}
 
 // ===========================
 // INDIKATOR TEKNIKAL
@@ -359,7 +416,8 @@ function BB(d, p, s) {
     for (var i = d.length-p; i < d.length; i++) sm += d[i].c;
     var ma = sm/p, vr = 0;
     for (i = d.length-p; i < d.length; i++) vr += (d[i].c-ma)*(d[i].c-ma);
-    var std = Math.sqrt(vr/p);
+    var variance = vr/p;
+    var std = Math.sqrt(Math.max(0, variance));
     return {mid:ma,up:ma+s*std,lo:ma-s*std};
 }
 
@@ -673,8 +731,13 @@ function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
         if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid - s.sl; reward = s.tp[0] - entryMid; }
         else { entryMid = s.entry.hi; risk = s.sl - entryMid; reward = entryMid - s.tp[0]; }
         if (risk > 0 && reward > 0) {
-            var rr = reward/risk; s.rr = rr;
-            if (rr < cf.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR ('+rr.toFixed(2)+'<'+cf.minRR+')'; s.conf = 0; }
+            var rr = reward / risk;
+            s.rr = parseFloat(rr.toFixed(2));
+            if (rr < cf.minRR) {
+                s.action = 'WAIT';
+                s.reason = 'Bad RR (' + s.rr + '<' + cf.minRR + ')';
+                s.conf = 0;
+            }
         }
     }
     var now = Date.now();
@@ -687,7 +750,7 @@ function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
 }
 
 // ===========================
-// ENGINE 2: SCALPING (Momentum + SMC + Price Action)
+// ENGINE 2: SCALPING
 // ===========================
 function genFusionScalping(smcS, p, lv) {
     var s = {action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
@@ -758,12 +821,12 @@ function genFusionScalping(smcS, p, lv) {
     }
     
     if (s.entry && s.sl && s.tp[0] && s.action !== 'WAIT') {
-        var entryMid, risk, reward;
-        if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid-s.sl; reward = s.tp[0]-entryMid; }
-        else { entryMid = s.entry.hi; risk = s.sl-entryMid; reward = entryMid-s.tp[0]; }
-        if (risk > 0 && reward > 0) {
-            var rr = reward/risk; s.rr = rr;
-            if (rr < sc.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR'; }
+        var entryMid2, risk2, reward2;
+        if (s.bias === 'BULLISH') { entryMid2 = s.entry.lo; risk2 = entryMid2-s.sl; reward2 = s.tp[0]-entryMid2; }
+        else { entryMid2 = s.entry.hi; risk2 = s.sl-entryMid2; reward2 = entryMid2-s.tp[0]; }
+        if (risk2 > 0 && reward2 > 0) {
+            var rr2 = reward2/risk2; s.rr = rr2;
+            if (rr2 < sc.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR'; }
         }
     }
     
@@ -776,13 +839,13 @@ function genFusionScalping(smcS, p, lv) {
 }
 
 // ===========================
-// CONNECTION STATE MACHINE (v5.2)
+// CONNECTION STATE MACHINE
 // ===========================
 function transitionTo(newState) {
     var oldState = connectionState;
     if (oldState === newState) return;
     connectionState = newState;
-    console.log('[STATE] '+oldState+' → '+newState);
+    console.log('[STATE] '+oldState+' \u2192 '+newState);
     
     switch(newState) {
         case ConnState.LIVE:
@@ -790,6 +853,7 @@ function transitionTo(newState) {
             reconnectAttempts = 0;
             recDelay = 1500;
             isStale = false;
+            zombieClose = false;
             break;
         case ConnState.FALLBACK:
             startFallbackRoutine();
@@ -843,6 +907,10 @@ function stopFallbackRoutine() {
 }
 
 async function fetchPriceFallback() {
+    var now = Date.now();
+    if (now - lastFallbackFetch < 3000) return;
+    lastFallbackFetch = now;
+    
     try {
         var r = await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair);
         if (!r.ok) return;
@@ -853,7 +921,9 @@ async function fetchPriceFallback() {
                 price = prc;
                 lastUpd = Date.now();
                 lastMsg = Date.now();
-                analyze();
+                if (buf.length >= 30) {
+                    analyze();
+                }
             }
         }
     } catch(e) {
@@ -870,6 +940,7 @@ function cleanupWSResources() {
         ws = null;
     }
     if (hbT) { clearInterval(hbT); hbT = null; }
+    if (wsRT) { clearTimeout(wsRT); wsRT = null; }
 }
 
 function scheduleReconnect() {
@@ -904,6 +975,7 @@ function connectWS() {
     }
     
     if (!isLoading) manualOff = false;
+    zombieClose = false;
     
     transitionTo(ConnState.CONNECTING);
     
@@ -971,6 +1043,12 @@ function connectWS() {
             
             console.log('[WS] Closed (code: '+event.code+', reason: '+event.reason+')');
             
+            if (zombieClose) {
+                console.log('[WS] Zombie close detected, skipping reconnect');
+                zombieClose = false;
+                return;
+            }
+            
             if (!isLoading && !manualOff) {
                 scheduleReconnect();
             } else {
@@ -996,7 +1074,7 @@ function connectWS() {
 }
 
 // ===========================
-// WATCHDOG - Kesehatan Koneksi
+// WATCHDOG
 // ===========================
 setInterval(function() {
     var now = Date.now();
@@ -1016,9 +1094,16 @@ setInterval(function() {
         ws && ws.readyState === WebSocket.OPEN &&
         timeSinceLastMsg > FALLBACK_THRESHOLD) {
         console.warn('[WATCHDOG] WS zombie detected, switching to fallback');
+        zombieClose = true;
         try { ws.close(); } catch(e) {}
-        transitionTo(ConnState.FALLBACK);
-        scheduleReconnect();
+        setTimeout(function() {
+            if (connectionState === ConnState.LIVE || connectionState === ConnState.CONNECTING) {
+                console.warn('[WATCHDOG] Force transition to FALLBACK');
+                zombieClose = false;
+                transitionTo(ConnState.FALLBACK);
+                scheduleReconnect();
+            }
+        }, 2000);
     }
     
     if (connectionState === ConnState.FALLBACK &&
@@ -1064,6 +1149,7 @@ function setTheme(theme) {
         btn.textContent = theme === 'dark' ? '☀️' : '🌙';
         btn.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
     }
+    saveUserState();
 }
 function toggleTheme() {
     setTheme(currentTheme === 'dark' ? 'light' : 'dark');
@@ -1150,10 +1236,14 @@ function analyze() {
     }
     
     lastGeneratedSignal = newSignal;
+    // FIXED: Cooldown timestamp selalu diupdate untuk sinyal dengan bias sama
     if (newSignal.action !== 'WAIT') {
         if (!activeSignal || activeSignal.action === 'WAIT' || newSignal.bias !== activeSignal.bias) {
             activeSignal = newSignal;
             lastSignalTimestamp = Date.now();
+        } else if (activeSignal && newSignal.bias === activeSignal.bias) {
+            lastSignalTimestamp = Date.now();
+            activeSignal = newSignal;
         }
     }
     
@@ -1280,11 +1370,11 @@ function analyze() {
 
 function updateMTF() {
     var cb = activeSignal && activeSignal.bias ? activeSignal.bias : 'NEUTRAL';
-    ['h4','h1','m30','m15','m5'].forEach(function(key) {
+    MTF_KEYS.forEach(function(key) {
         var sym = document.getElementById('sym-'+key);
         if (sym) {
             sym.textContent = SYM[mtf[key]] || '●';
-            sym.className = 'tf-bias-symbol ' + mtf[key].toLowerCase();
+            sym.className = 'tf-bias-symbol ' + (mtf[key] || 'neutral').toLowerCase();
         }
     });
     document.querySelectorAll('.tf-btn').forEach(function(btn) {
@@ -1324,7 +1414,7 @@ async function fetchKL() {
 async function fetchMTF(pr, tff, key) {
     try {
         var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pr+'&interval='+tff+'&limit=150');
-        if (!r.ok) return;
+        if (!r.ok) return null;
         var d = await r.json();
         if (Array.isArray(d) && d.length >= 50) {
             var fd = d.map(function(k) {
@@ -1337,17 +1427,53 @@ async function fetchMTF(pr, tff, key) {
                 if (p2 > ma20 && p2 > ma50 && adx.pDI > adx.mDI) bias = 'BULLISH';
                 else if (p2 < ma20 && p2 < ma50 && adx.mDI > adx.pDI) bias = 'BEARISH';
             }
-            mtf[key] = bias;
+            return { key: key, bias: bias };
         }
     } catch(e) {}
+    return null;
 }
 
 async function updateAllMTF() {
+    if (mtfFetching) return;
+    mtfFetching = true;
+    
+    // Reset ke NEUTRAL dulu
+    MTF_KEYS.forEach(function(key) { mtf[key] = 'NEUTRAL'; });
+    updateMTF();
+    
+    var cached = getCachedMTF(pair);
+    if (cached) {
+        MTF_KEYS.forEach(function(key) {
+            mtf[key] = cached[key] || 'NEUTRAL';
+        });
+        updateMTF();
+        console.log('[MTF] Using cached MTF for '+pair);
+        mtfFetching = false;
+        return;
+    }
+    
     var tasks = Object.entries(MTF_MAP).map(function(e) {
         return fetchMTF(pair, e[0], e[1]);
     });
-    await Promise.allSettled(tasks);
+    
+    var results = await Promise.allSettled(tasks);
+    var mtfData = {};
+    
+    results.forEach(function(result) {
+        if (result.status === 'fulfilled' && result.value) {
+            var res = result.value;
+            mtf[res.key] = res.bias;
+            mtfData[res.key] = res.bias;
+        }
+    });
+    
+    if (Object.keys(mtfData).length > 0) {
+        setCachedMTF(pair, mtfData);
+    }
+    
     updateMTF();
+    console.log('[MTF] Fetched & cached MTF for '+pair);
+    mtfFetching = false;
 }
 
 // ===========================
@@ -1357,6 +1483,7 @@ async function reload() {
     if (isLoading) return;
     isLoading = true;
     manualOff = true;
+    zombieClose = false;
     
     stopFallbackRoutine();
     cleanupWSResources();
@@ -1365,6 +1492,8 @@ async function reload() {
     sessionHigh = 0; sessionLow = 0;
     activeSignal = null; lastGeneratedSignal = null; lastSignalTimestamp = 0;
     reconnectAttempts = 0;
+    
+    saveUserState();
     
     updateScalpingMode();
     
@@ -1419,7 +1548,7 @@ function copySetup() {
     var pr = CFG[pair].prec;
     var entryRange = sig.entry ? (sig.entry.lo.toFixed(pr)+'-'+sig.entry.hi.toFixed(pr)) : '—';
     var rrText = sig.rr != null ? ' | RR: '+sig.rr.toFixed(2) : '';
-    var txt = 'URA v5.2 | '+pair+' '+tf+' | '+(isScalpingMode?'SCALP':'INTRADAY')+'\n'+
+    var txt = 'URA v5.2.3 | '+pair+' '+tf+' | '+(isScalpingMode?'SCALP':'INTRADAY')+'\n'+
               'Bias: '+sig.bias+' | Conf: '+sig.conf+'%'+rrText+'\n'+
               'Status: '+(sig.action||'N/A')+'\n'+
               'Entry: '+entryRange+'\n'+
@@ -1437,11 +1566,16 @@ function copySetup() {
 // INIT
 // ===========================
 function init() {
-    try {
-        var saved = localStorage.getItem('ura-theme');
-        if (saved === 'dark' || saved === 'light') currentTheme = saved;
-    } catch(e) {}
+    loadUserState();
+    
     setTheme(currentTheme);
+    
+    document.querySelectorAll('[data-pair]').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.pair === pair);
+    });
+    document.querySelectorAll('.tf-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.tf === tf);
+    });
     
     document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
     
