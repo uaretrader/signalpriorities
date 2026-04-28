@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v5.1 — PERFECTED DUAL ENGINE</title>
+    <title>URA v5.2 — PERFECTED DUAL ENGINE</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         *{margin:0;padding:0;box-sizing:border-box}
@@ -60,6 +60,7 @@
         .status-dot.reconnect{background:var(--accent-orange);animation:pulse 1s infinite}
         .status-dot.fallback{background:var(--accent-blue);animation:pulse 1.5s infinite}
         .status-dot.stale{background:var(--accent-red)}
+        .status-dot.offline{background:var(--text-tertiary)}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
         .theme-toggle-btn{background:var(--bg-tertiary);border:1px solid var(--border-subtle);color:var(--text-secondary);width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;padding:0;line-height:1}
         .theme-toggle-btn:active{transform:scale(0.9);border-color:var(--accent-gold);color:var(--accent-gold)}
@@ -137,7 +138,7 @@
         .tc-value.res{color:var(--accent-red)}.tc-value.sup{color:var(--accent-green)}.tc-value.piv{color:var(--accent-gold)}.tc-value.bb{color:var(--accent-cyan)}
         .tc-row.key{background:var(--tc-key-bg);border-left:3px solid var(--accent-gold);border-radius:0 3px 3px 0}
         .tc-row.key .tc-label{color:var(--accent-gold);font-weight:800}
-        .tc-copy-toast{position:fixed;background:var(--accent-cyan);color:#fff;font-size:10px;font-weight:700;padding:5px 12px;border-radius:15px;pointer-events:none;opacity:0;transition:opacity 0.25s;z-index:999;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+        .tc-copy-toast{position:fixed;background:var(--accent-cyan);color:#fff;font-size:10px;font-weight:700;padding:5px 12px;border-radius:15px;pointer-events:none;opacity:0;transition:opacity 0.25s;z-index:10000;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
         .tc-copy-toast.show{opacity:1}
         .copy-btn{background:transparent;border:1px solid var(--border-subtle);color:var(--text-secondary);padding:6px;font-size:9px;font-weight:600;cursor:pointer;border-radius:5px;flex-shrink:0;width:100%;letter-spacing:0.5px;opacity:0.7;transition:all 0.15s}
         .copy-btn:active{opacity:1;border-color:var(--accent-cyan);color:var(--accent-cyan);background:var(--copy-btn-hover-bg)}
@@ -171,9 +172,9 @@
 <body data-theme="dark">
 <div class="app-container" id="app">
     <header class="header">
-        <div class="logo-section"><span class="logo">URA · ADVISOR</span><span class="version-tag">v5.1</span><span class="mode-tag" id="mode-tag">⚡SCALP</span></div>
+        <div class="logo-section"><span class="logo">URA · ADVISOR</span><span class="version-tag">v5.2</span><span class="mode-tag" id="mode-tag">⚡SCALP</span></div>
         <div class="header-right-group">
-            <div class="connection-badge"><span class="status-dot connecting" id="status-dot"></span><span id="status-text">CONNECT</span></div>
+            <div class="connection-badge"><span class="status-dot offline" id="status-dot"></span><span id="status-text">OFFLINE</span></div>
             <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">☀️</button>
         </div>
     </header>
@@ -233,404 +234,1253 @@
 
 <script>
 (function(){
+'use strict';
+
 // ===========================
 // KONFIGURASI PER PAIR
 // ===========================
-var CFG={
- XAUUSDT:{adxTh:22,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:2,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000},
- BTCUSDT:{adxTh:20,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:1,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000}
+var CFG = {
+    XAUUSDT: {adxTh:22,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:2,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000},
+    BTCUSDT: {adxTh:20,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:1,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000}
 };
-var SCALP_CFG={minConf:45,minRR:1.0,slATR:0.5,tpATR1:1.0,tpATR2:2.0,entryWidth:0.25,maxSMC:1.5,momW:0.40,smcW:0.35,paW:0.25,adxTh:15,cooldown:60000};
-var MTF_MAP={'4h':'h4','1h':'h1','30m':'m30','15m':'m15','5m':'m5'};
-var LARGE_TF=['h4','h1'];
-var SCALPING_TF=['15m','5m'];
-var SESSION_NAMES={ASIA:'ASIA SESSION INTRADAY',LONDON:'LONDON SESSION INTRADAY',NY:'NEW YORK SESSION INTRADAY',WEEKEND:'WEEKEND — 24H RANGE'};
-var SYM={BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
+var SCALP_CFG = {minConf:45,minRR:1.0,slATR:0.5,tpATR1:1.0,tpATR2:2.0,entryWidth:0.25,maxSMC:1.5,momW:0.40,smcW:0.35,paW:0.25,adxTh:15,cooldown:60000};
+var MTF_MAP = {'4h':'h4','1h':'h1','30m':'m30','15m':'m15','5m':'m5'};
+var LARGE_TF = ['h4','h1'];
+var SCALPING_TF = ['15m','5m'];
+var SESSION_NAMES = {ASIA:'ASIA SESSION INTRADAY',LONDON:'LONDON SESSION INTRADAY',NY:'NEW YORK SESSION INTRADAY',WEEKEND:'WEEKEND — 24H RANGE'};
+var SYM = {BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
+
+// ===========================
+// CONNECTION STATE MACHINE (v5.2 - Atomic & Robust)
+// ===========================
+var ConnState = {
+    DISCONNECTED: 'disconnected',
+    CONNECTING: 'connecting',
+    LIVE: 'live',
+    FALLBACK: 'fallback',
+    STALE: 'stale',
+    RECONNECTING: 'reconnecting'
+};
 
 // ===========================
 // STATE VARIABLES
 // ===========================
-var pair='XAUUSDT',tf='30m',price=0,prevPrice=0,sessionHigh=0,sessionLow=0,activeSignal=null,lastGeneratedSignal=null;
-var ws=null,wsRT=null,hbT=null,fbT=null,recDelay=1500,lastMsg=0,lastUpd=0,manualOff=false,isFB=false,isStale=false,isLoading=false,lastSignalTimestamp=0;
-var cooldownRemaining=0,cooldownTotal=0,isScalpingMode=false;
-var mtf={h4:'NEUTRAL',h1:'NEUTRAL',m30:'NEUTRAL',m15:'NEUTRAL',m5:'NEUTRAL'};
-var buf=[],currentATR=0,sessionData=null;
-var currentTheme='dark';
+var pair = 'XAUUSDT', tf = '30m', price = 0, prevPrice = 0, sessionHigh = 0, sessionLow = 0;
+var activeSignal = null, lastGeneratedSignal = null;
+var ws = null, hbT = null, fbT = null, wsRT = null;
+var recDelay = 1500, lastMsg = 0, lastUpd = 0, manualOff = false, isLoading = false;
+var isStale = false, lastSignalTimestamp = 0;
+var cooldownRemaining = 0, cooldownTotal = 0, isScalpingMode = false;
+var mtf = {h4:'NEUTRAL',h1:'NEUTRAL',m30:'NEUTRAL',m15:'NEUTRAL',m5:'NEUTRAL'};
+var buf = [], currentATR = 0, sessionData = null;
+var currentTheme = 'dark';
+var connectionState = ConnState.DISCONNECTED;
+var reconnectAttempts = 0;
+var MAX_RECONNECT_ATTEMPTS = 5;
+var FALLBACK_THRESHOLD = 15000;
+var sessionWarningActive = false;
 
 // ===========================
 // UTILITY FUNCTIONS
 // ===========================
-function pushCandle(k){var idx=buf.findIndex(function(c){return c.t===k.t});if(idx>=0){buf[idx]=k;return}buf.push(k);if(buf.length>300)buf.shift()}
-function getCandles(){return buf}
-function $(id){return document.getElementById(id)}
-function setT(id,t){var e=$(id);if(e&&e.textContent!==t)e.textContent=t}
-function setH(id,h){var e=$(id);if(e)e.innerHTML=h}
-function setC(id,c){var e=$(id);if(e&&e.className!==c)e.className=c}
+function pushCandle(k) {
+    var idx = buf.findIndex(function(c){ return c.t === k.t; });
+    if (idx >= 0) { buf[idx] = k; return; }
+    buf.push(k);
+    if (buf.length > 300) buf.shift();
+}
+function getCandles() { return buf; }
+function $(id) { return document.getElementById(id); }
+function setT(id, t) { var e = $(id); if (e && e.textContent !== t) e.textContent = t; }
+function setH(id, h) { var e = $(id); if (e) e.innerHTML = h; }
+function setC(id, c) { var e = $(id); if (e && e.className !== c) e.className = c; }
 
 // ===========================
 // INDIKATOR TEKNIKAL
 // ===========================
-function MA(d,p){if(d.length<p)return d[d.length-1].c;var s=0;for(var i=d.length-p;i<d.length;i++)s+=d[i].c;return s/p}
-function ATR(d,p){if(d.length<p+1)return 0;var s=0;for(var i=d.length-p;i<d.length;i++){var a=d[i],b=d[i-1];s+=Math.max(a.h-a.l,Math.abs(a.h-b.c),Math.abs(a.l-b.c))}return s/p}
-function ADX(d){if(d.length<28)return{adx:15,pDI:25,mDI:25};var p=14,tr=[],pDM=[],mDM=[];for(var i=1;i<d.length;i++){var a=d[i],b=d[i-1];tr.push(Math.max(a.h-a.l,Math.abs(a.h-b.c),Math.abs(a.l-b.c)));var u=a.h-b.h,dw=b.l-a.l;pDM.push(u>dw&&u>0?u:0);mDM.push(dw>u&&dw>0?dw:0)}var at=0,pd=0,md=0;for(i=0;i<p;i++){at+=tr[i];pd+=pDM[i];md+=mDM[i]}at/=p;pd/=p;md/=p;var dx=[];for(i=p;i<tr.length;i++){at=(at*(p-1)+tr[i])/p;pd=(pd*(p-1)+pDM[i])/p;md=(md*(p-1)+mDM[i])/p;var pdi=at?pd/at*100:0,mdi=at?md/at*100:0;dx.push((pdi+mdi)?Math.abs(pdi-mdi)/(pdi+mdi)*100:0)}if(dx.length<p)return{adx:15,pDI:pd/at*100,mDI:md/at*100};var ax=0;for(i=0;i<p;i++)ax+=dx[i];ax/=p;for(i=p;i<dx.length;i++)ax=(ax*(p-1)+dx[i])/p;return{adx:Math.max(5,Math.min(100,ax)),pDI:pd/at*100,mDI:md/at*100}}
-function RSI(d){if(d.length<15)return 50;var p=14,g=0,l=0;for(var i=1;i<=p;i++){var df=d[i].c-d[i-1].c;if(df>0)g+=df;else l-=df}var ag=g/p,al=l/p;for(i=p+1;i<d.length;i++){df=d[i].c-d[i-1].c;ag=(ag*(p-1)+(df>0?df:0))/p;al=(al*(p-1)+(df<0?-df:0))/p}return al===0?100:100-(100/(1+ag/al))}
-function BB(d,p,s){if(d.length<p)return{mid:d[d.length-1].c,up:d[d.length-1].c*1.02,lo:d[d.length-1].c*0.98};var sm=0;for(var i=d.length-p;i<d.length;i++)sm+=d[i].c;var ma=sm/p,vr=0;for(i=d.length-p;i<d.length;i++)vr+=(d[i].c-ma)**2;var std=Math.sqrt(vr/p);return{mid:ma,up:ma+s*std,lo:ma-s*std}}
+function MA(d, p) {
+    if (d.length < p) return d[d.length-1].c;
+    var s = 0;
+    for (var i = d.length-p; i < d.length; i++) s += d[i].c;
+    return s/p;
+}
+function ATR(d, p) {
+    if (d.length < p+1) return 0;
+    var s = 0;
+    for (var i = d.length-p; i < d.length; i++) {
+        var a = d[i], b = d[i-1];
+        s += Math.max(a.h-a.l, Math.abs(a.h-b.c), Math.abs(a.l-b.c));
+    }
+    return s/p;
+}
+function ADX(d) {
+    if (d.length < 28) return {adx:15,pDI:25,mDI:25};
+    var p = 14, tr = [], pDM = [], mDM = [];
+    for (var i = 1; i < d.length; i++) {
+        var a = d[i], b = d[i-1];
+        tr.push(Math.max(a.h-a.l, Math.abs(a.h-b.c), Math.abs(a.l-b.c)));
+        var u = a.h - b.h, dw = b.l - a.l;
+        pDM.push(u > dw && u > 0 ? u : 0);
+        mDM.push(dw > u && dw > 0 ? dw : 0);
+    }
+    var at = 0, pd = 0, md = 0;
+    for (i = 0; i < p; i++) { at += tr[i]; pd += pDM[i]; md += mDM[i]; }
+    at /= p; pd /= p; md /= p;
+    var dx = [];
+    for (i = p; i < tr.length; i++) {
+        at = (at*(p-1)+tr[i])/p;
+        pd = (pd*(p-1)+pDM[i])/p;
+        md = (md*(p-1)+mDM[i])/p;
+        var pdi = at ? pd/at*100 : 0, mdi = at ? md/at*100 : 0;
+        dx.push((pdi+mdi) ? Math.abs(pdi-mdi)/(pdi+mdi)*100 : 0);
+    }
+    if (dx.length < p) return {adx:15,pDI:pd/at*100,mDI:md/at*100};
+    var ax = 0;
+    for (i = 0; i < p; i++) ax += dx[i];
+    ax /= p;
+    for (i = p; i < dx.length; i++) ax = (ax*(p-1)+dx[i])/p;
+    return {adx:Math.max(5,Math.min(100,ax)),pDI:pd/at*100,mDI:md/at*100};
+}
+function RSI(d) {
+    if (d.length < 15) return 50;
+    var p = 14, g = 0, l = 0;
+    for (var i = 1; i <= p; i++) { var df = d[i].c-d[i-1].c; if (df>0) g+=df; else l-=df; }
+    var ag = g/p, al = l/p;
+    for (i = p+1; i < d.length; i++) {
+        df = d[i].c-d[i-1].c;
+        ag = (ag*(p-1)+(df>0?df:0))/p;
+        al = (al*(p-1)+(df<0?-df:0))/p;
+    }
+    return al === 0 ? 100 : 100-(100/(1+ag/al));
+}
+function BB(d, p, s) {
+    if (d.length < p) return {mid:d[d.length-1].c,up:d[d.length-1].c*1.02,lo:d[d.length-1].c*0.98};
+    var sm = 0;
+    for (var i = d.length-p; i < d.length; i++) sm += d[i].c;
+    var ma = sm/p, vr = 0;
+    for (i = d.length-p; i < d.length; i++) vr += (d[i].c-ma)*(d[i].c-ma);
+    var std = Math.sqrt(vr/p);
+    return {mid:ma,up:ma+s*std,lo:ma-s*std};
+}
 
 // ===========================
 // SESSION MANAGEMENT
 // ===========================
-function getCurrentSession(){
- var now=new Date(),h=now.getUTCHours(),d=now.getUTCDay();
- if(d===0||d===6)return{name:'WEEKEND',startHour:22,endHour:22,label:'WEEKEND'};
- if(h>=22||h<8)return{name:'ASIA',startHour:22,endHour:8,label:'ASIA'};
- if(h>=8&&h<16)return{name:'LONDON',startHour:8,endHour:16,label:'LONDON'};
- return{name:'NY',startHour:16,endHour:22,label:'NEW YORK'};
+function getCurrentSession() {
+    var now = new Date(), h = now.getUTCHours(), d = now.getUTCDay();
+    if (d === 0 || d === 6) return {name:'WEEKEND',startHour:22,endHour:22,label:'WEEKEND'};
+    if (h >= 22 || h < 8) return {name:'ASIA',startHour:22,endHour:8,label:'ASIA'};
+    if (h >= 8 && h < 16) return {name:'LONDON',startHour:8,endHour:16,label:'LONDON'};
+    return {name:'NY',startHour:16,endHour:22,label:'NEW YORK'};
 }
-function getSessionStartTime(session){
- var now=new Date();var startHour=session.startHour;
- var startDate=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),startHour,0,0));
- if(startDate>now){if(session.name==='ASIA'){startDate=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-1,22,0,0));}}
- return startDate.getTime();
+function getSessionStartTime(session) {
+    var now = new Date();
+    var startHour = session.startHour;
+    var startDate = new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),startHour,0,0));
+    if (startDate > now) {
+        if (session.name === 'ASIA') {
+            startDate = new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-1,22,0,0));
+        }
+    }
+    return startDate.getTime();
 }
-function getSessionData(d){
- var session=getCurrentSession();
- if(session.name==='WEEKEND'){
-  var now=Date.now();var startTS=now-86400000;var sessionCandles=[];
-  for(var i=0;i<d.length;i++){if(d[i].t>=startTS)sessionCandles.push(d[i])}
-  if(sessionCandles.length<2)return null;
-  var sHigh=-Infinity,sLow=Infinity,sOpen=sessionCandles[0].o,sClose=d[d.length-1].c;
-  for(i=0;i<sessionCandles.length;i++){sHigh=Math.max(sHigh,sessionCandles[i].h);sLow=Math.min(sLow,sessionCandles[i].l)}
-  var sPivot=(sHigh+sLow+sClose)/3;sessionHigh=sHigh;sessionLow=sLow;
-  return{name:'WEEKEND',label:'WEEKEND',start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)};
- }
- var startTS=getSessionStartTime(session);var sessionCandles=[];
- for(var i=0;i<d.length;i++){if(d[i].t>=startTS)sessionCandles.push(d[i])}
- if(sessionCandles.length<2)return null;
- var sHigh=-Infinity,sLow=Infinity,sOpen=sessionCandles[0].o,sClose=d[d.length-1].c;
- for(i=0;i<sessionCandles.length;i++){sHigh=Math.max(sHigh,sessionCandles[i].h);sLow=Math.min(sLow,sessionCandles[i].l)}
- var sPivot=(sHigh+sLow+sClose)/3;sessionHigh=sHigh;sessionLow=sLow;
- return{name:session.name,label:session.label,start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)};
+function getSessionData(d) {
+    var session = getCurrentSession();
+    if (session.name === 'WEEKEND') {
+        var now = Date.now(), startTS = now - 86400000;
+        var sessionCandles = [];
+        for (var i = 0; i < d.length; i++) { if (d[i].t >= startTS) sessionCandles.push(d[i]); }
+        if (sessionCandles.length < 2) return null;
+        var sHigh = -Infinity, sLow = Infinity, sOpen = sessionCandles[0].o, sClose = d[d.length-1].c;
+        for (i = 0; i < sessionCandles.length; i++) {
+            sHigh = Math.max(sHigh,sessionCandles[i].h);
+            sLow = Math.min(sLow,sessionCandles[i].l);
+        }
+        var sPivot = (sHigh+sLow+sClose)/3;
+        sessionHigh = sHigh; sessionLow = sLow;
+        return {name:'WEEKEND',label:'WEEKEND',start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)};
+    }
+    var startTS = getSessionStartTime(session);
+    var sessionCandles = [];
+    for (var i = 0; i < d.length; i++) { if (d[i].t >= startTS) sessionCandles.push(d[i]); }
+    if (sessionCandles.length < 2) return null;
+    var sHigh = -Infinity, sLow = Infinity, sOpen = sessionCandles[0].o, sClose = d[d.length-1].c;
+    for (i = 0; i < sessionCandles.length; i++) {
+        sHigh = Math.max(sHigh,sessionCandles[i].h);
+        sLow = Math.min(sLow,sessionCandles[i].l);
+    }
+    var sPivot = (sHigh+sLow+sClose)/3;
+    sessionHigh = sHigh; sessionLow = sLow;
+    return {name:session.name,label:session.label,start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)};
 }
-function sBi(sd){var p=price;if(!sd)return'NEUTRAL';if(p>sd.r1)return'BULLISH';if(p<sd.s1)return'BEARISH';if(p>sd.pivot)return'BULLISH';return'BEARISH'}
+function sBi(sd) {
+    var p = price;
+    if (!sd) return 'NEUTRAL';
+    if (p > sd.r1) return 'BULLISH';
+    if (p < sd.s1) return 'BEARISH';
+    if (p > sd.pivot) return 'BULLISH';
+    return 'BEARISH';
+}
+function getSessionDuration(session) {
+    if (session.name === 'ASIA') {
+        var sd = new Date(session.start), ed = new Date(sd);
+        ed.setUTCHours(8,0,0,0);
+        if (ed <= sd) ed.setUTCDate(ed.getUTCDate()+1);
+        return ed.getTime()-sd.getTime();
+    }
+    if (session.name === 'LONDON') {
+        var sd = new Date(session.start), ed = new Date(sd);
+        ed.setUTCHours(16,0,0,0);
+        if (ed <= sd) ed.setUTCDate(ed.getUTCDate()+1);
+        return ed.getTime()-sd.getTime();
+    }
+    if (session.name === 'NY') {
+        var sd = new Date(session.start), ed = new Date(sd);
+        ed.setUTCHours(22,0,0,0);
+        if (ed <= sd) ed.setUTCDate(ed.getUTCDate()+1);
+        return ed.getTime()-sd.getTime();
+    }
+    return 28800000;
+}
 
 // ===========================
 // SMC DETECTION
 // ===========================
-function detectSMC(d,atrVal){
- var fvgs=[],obs=[],swps=[],maxDist=atrVal*CFG[pair].maxSMC;
- for(var i=2;i<d.length;i++){var a=d[i-2],c=d[i];if(a.l>c.h){var fl=false;for(var j=i+1;j<Math.min(i+20,d.length);j++)if(d[j].l<=a.l&&d[j].l>=c.h){fl=true;break}fvgs.push({t:'BULL',top:a.l,bot:c.h,filled:fl,idx:i})}if(a.h<c.l){fl=false;for(j=i+1;j<Math.min(i+20,d.length);j++)if(d[j].h>=a.h&&d[j].h<=c.l){fl=true;break}fvgs.push({t:'BEAR',top:c.l,bot:a.h,filled:fl,idx:i})}}
- for(i=5;i<d.length-1;i++){c=d[i];var n=d[i+1],cs=Math.abs(c.c-c.o),ns=Math.abs(n.c-n.o);if(c.c<c.o&&n.c>n.o&&n.c>c.h&&ns>cs*1.5){var td=false;for(j=i+2;j<Math.min(i+20,d.length);j++)if(d[j].l<=c.o&&d[j].l>=c.l){td=true;break}obs.push({t:'BULL',h:c.h,l:c.l,o:c.o,tested:td,idx:i})}if(c.c>c.o&&n.c<n.o&&n.c<c.l&&ns>cs*1.5){td=false;for(j=i+2;j<Math.min(i+20,d.length);j++)if(d[j].h>=c.l&&d[j].h<=c.h){td=true;break}obs.push({t:'BEAR',h:c.h,l:c.l,o:c.o,tested:td,idx:i})}}
- for(i=3;i<d.length-1;i++){if(d[i].h>d[i-1].h&&d[i].h>d[i+1].h){for(j=i+1;j<Math.min(i+5,d.length);j++){if(d[j].h>d[i].h*1.0008&&d[j].c<d[j].o){swps.push({t:'SW_H',lvl:d[i].h,idx:i});break}}}if(d[i].l<d[i-1].l&&d[i].l<d[i+1].l){for(j=i+1;j<Math.min(i+5,d.length);j++){if(d[j].l<d[i].l*0.9992&&d[j].c>d[j].o){swps.push({t:'SW_L',lvl:d[i].l,idx:i});break}}}}
- return{fvgs:fvgs,obs:obs,swps:swps,lastSw:swps.length?swps[swps.length-1]:null,nearFVG:function(prc){var n=null,md=maxDist;for(var fi=0;fi<fvgs.length;fi++){var f=fvgs[fi];if(f.filled)continue;var dt=Math.min(Math.abs(f.top-prc),Math.abs(f.bot-prc));if(dt<md){md=dt;n=f}}return n},nearOB:function(prc){var n=null,md=maxDist;for(var oi=0;oi<obs.length;oi++){var o=obs[oi];if(o.tested)continue;var dt=Math.abs(o.l-prc);if(dt<md){md=dt;n=o}}return n}};
+function detectSMC(d, atrVal) {
+    var fvgs = [], obs = [], swps = [], maxDist = atrVal * CFG[pair].maxSMC;
+    for (var i = 2; i < d.length; i++) {
+        var a = d[i-2], c = d[i];
+        if (a.l > c.h) {
+            var fl = false;
+            for (var j = i+1; j < Math.min(i+20,d.length); j++) {
+                if (d[j].l <= a.l && d[j].l >= c.h) { fl = true; break; }
+            }
+            fvgs.push({t:'BULL',top:a.l,bot:c.h,filled:fl,idx:i});
+        }
+        if (a.h < c.l) {
+            fl = false;
+            for (j = i+1; j < Math.min(i+20,d.length); j++) {
+                if (d[j].h >= a.h && d[j].h <= c.l) { fl = true; break; }
+            }
+            fvgs.push({t:'BEAR',top:c.l,bot:a.h,filled:fl,idx:i});
+        }
+    }
+    for (i = 5; i < d.length-1; i++) {
+        c = d[i]; var n = d[i+1];
+        var cs = Math.abs(c.c-c.o), ns = Math.abs(n.c-n.o);
+        if (c.c < c.o && n.c > n.o && n.c > c.h && ns > cs*1.5) {
+            var td = false;
+            for (j = i+2; j < Math.min(i+20,d.length); j++) {
+                if (d[j].l <= c.o && d[j].l >= c.l) { td = true; break; }
+            }
+            obs.push({t:'BULL',h:c.h,l:c.l,o:c.o,tested:td,idx:i});
+        }
+        if (c.c > c.o && n.c < n.o && n.c < c.l && ns > cs*1.5) {
+            td = false;
+            for (j = i+2; j < Math.min(i+20,d.length); j++) {
+                if (d[j].h >= c.l && d[j].h <= c.h) { td = true; break; }
+            }
+            obs.push({t:'BEAR',h:c.h,l:c.l,o:c.o,tested:td,idx:i});
+        }
+    }
+    for (i = 3; i < d.length-1; i++) {
+        if (d[i].h > d[i-1].h && d[i].h > d[i+1].h) {
+            for (j = i+1; j < Math.min(i+5,d.length); j++) {
+                if (d[j].h > d[i].h*1.0008 && d[j].c < d[j].o) {
+                    swps.push({t:'SW_H',lvl:d[i].h,idx:i});
+                    break;
+                }
+            }
+        }
+        if (d[i].l < d[i-1].l && d[i].l < d[i+1].l) {
+            for (j = i+1; j < Math.min(i+5,d.length); j++) {
+                if (d[j].l < d[i].l*0.9992 && d[j].c > d[j].o) {
+                    swps.push({t:'SW_L',lvl:d[i].l,idx:i});
+                    break;
+                }
+            }
+        }
+    }
+    return {
+        fvgs: fvgs, obs: obs, swps: swps,
+        lastSw: swps.length ? swps[swps.length-1] : null,
+        nearFVG: function(prc) {
+            var n = null, md = maxDist;
+            for (var fi = 0; fi < fvgs.length; fi++) {
+                var f = fvgs[fi];
+                if (f.filled) continue;
+                var dt = Math.min(Math.abs(f.top-prc),Math.abs(f.bot-prc));
+                if (dt < md) { md = dt; n = f; }
+            }
+            return n;
+        },
+        nearOB: function(prc) {
+            var n = null, md = maxDist;
+            for (var oi = 0; oi < obs.length; oi++) {
+                var o = obs[oi];
+                if (o.tested) continue;
+                var dt = Math.abs(o.l-prc);
+                if (dt < md) { md = dt; n = o; }
+            }
+            return n;
+        }
+    };
 }
-function genSMC(p,smc){
- var s={bias:'NEUTRAL',str:0,entry:null,inv:null};
- var f=smc.nearFVG(p),o=smc.nearOB(p),sw=smc.lastSw;
- if(f&&f.bot!=null&&f.top!=null){if(f.t==='BULL'&&f.bot<p){s.bias='BULLISH';s.entry={lo:f.bot,hi:(f.top+f.bot)/2};s.inv=f.bot*0.9985;s.str+=35}else if(f.t==='BEAR'&&f.top>p){s.bias='BEARISH';s.entry={lo:(f.top+f.bot)/2,hi:f.top};s.inv=f.top*1.0015;s.str+=35}}
- if(o&&o.l!=null&&o.h!=null){if(o.t==='BULL'&&s.bias!=='BEARISH'){s.bias='BULLISH';s.entry={lo:(o.l+o.o)/2,hi:o.o};s.inv=o.l*0.9985;s.str+=30}else if(o.t==='BEAR'&&s.bias!=='BULLISH'){s.bias='BEARISH';s.entry={lo:o.o,hi:(o.h+o.o)/2};s.inv=o.h*1.0015;s.str+=30}}
- if(sw&&sw.lvl!=null){if(sw.t==='SW_L'&&s.bias!=='BEARISH'){s.bias='BULLISH';s.str+=20}else if(sw.t==='SW_H'&&s.bias!=='BULLISH'){s.bias='BEARISH';s.str+=20}}
- s.str=Math.min(100,s.str);return s;
+function genSMC(p, smc) {
+    var s = {bias:'NEUTRAL',str:0,entry:null,inv:null};
+    var f = smc.nearFVG(p), o = smc.nearOB(p), sw = smc.lastSw;
+    if (f && f.bot != null && f.top != null) {
+        if (f.t === 'BULL' && f.bot < p) {
+            s.bias = 'BULLISH'; s.entry = {lo:f.bot,hi:(f.top+f.bot)/2}; s.inv = f.bot*0.9985; s.str += 35;
+        } else if (f.t === 'BEAR' && f.top > p) {
+            s.bias = 'BEARISH'; s.entry = {lo:(f.top+f.bot)/2,hi:f.top}; s.inv = f.top*1.0015; s.str += 35;
+        }
+    }
+    if (o && o.l != null && o.h != null) {
+        if (o.t === 'BULL' && s.bias !== 'BEARISH') {
+            s.bias = 'BULLISH'; s.entry = {lo:(o.l+o.o)/2,hi:o.o}; s.inv = o.l*0.9985; s.str += 30;
+        } else if (o.t === 'BEAR' && s.bias !== 'BULLISH') {
+            s.bias = 'BEARISH'; s.entry = {lo:o.o,hi:(o.h+o.o)/2}; s.inv = o.h*1.0015; s.str += 30;
+        }
+    }
+    if (sw && sw.lvl != null) {
+        if (sw.t === 'SW_L' && s.bias !== 'BEARISH') { s.bias = 'BULLISH'; s.str += 20; }
+        else if (sw.t === 'SW_H' && s.bias !== 'BULLISH') { s.bias = 'BEARISH'; s.str += 20; }
+    }
+    s.str = Math.min(100, s.str);
+    return s;
 }
 
 // ===========================
 // MODE MANAGEMENT
 // ===========================
-function updateScalpingMode(){isScalpingMode=SCALPING_TF.indexOf(tf)>=0;updateModeUI();}
-function updateModeUI(){
- var tag=$('mode-tag');if(tag)tag.style.display=isScalpingMode?'inline':'none';
- var fb=$('fusion-bar');if(fb){if(isScalpingMode)fb.classList.add('scalp-mode');else fb.classList.remove('scalp-mode');}
- var badge=$('signal-badge');if(badge){if(isScalpingMode){badge.textContent='⚡SCALP';badge.classList.add('scalp');}else{badge.textContent='FUSION';badge.classList.remove('scalp');}}
- document.querySelectorAll('.tf-btn').forEach(function(b){var tff=b.dataset.tf;if(isScalpingMode&&SCALPING_TF.indexOf(tff)>=0&&b.classList.contains('active'))b.classList.add('scalp-active');else b.classList.remove('scalp-active');});
+function updateScalpingMode() {
+    isScalpingMode = SCALPING_TF.indexOf(tf) >= 0;
+    updateModeUI();
 }
-function getCooldownForTF(tfKey){var cf=CFG[pair];return LARGE_TF.indexOf(tfKey)>=0?cf.signalCooldownLg:cf.signalCooldownSm;}
+function updateModeUI() {
+    var tag = $('mode-tag');
+    if (tag) tag.style.display = isScalpingMode ? 'inline' : 'none';
+    var fb = $('fusion-bar');
+    if (fb) {
+        if (isScalpingMode) fb.classList.add('scalp-mode');
+        else fb.classList.remove('scalp-mode');
+    }
+    var badge = $('signal-badge');
+    if (badge) {
+        if (isScalpingMode) { badge.textContent = '⚡SCALP'; badge.classList.add('scalp'); }
+        else { badge.textContent = 'FUSION'; badge.classList.remove('scalp'); }
+    }
+    document.querySelectorAll('.tf-btn').forEach(function(b) {
+        var tff = b.dataset.tf;
+        if (isScalpingMode && SCALPING_TF.indexOf(tff) >= 0 && b.classList.contains('active')) {
+            b.classList.add('scalp-active');
+        } else {
+            b.classList.remove('scalp-active');
+        }
+    });
+}
+function getCooldownForTF(tfKey) {
+    var cf = CFG[pair];
+    return LARGE_TF.indexOf(tfKey) >= 0 ? cf.signalCooldownLg : cf.signalCooldownSm;
+}
 
 // ===========================
 // ENGINE 1: INTRADAY (TC + SMC + MTF)
 // ===========================
-function genFusionIntraday(tcB,tcS,tcE,tcSL,smcS,p,lv,sd){
- var s={action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
- var cf=CFG[pair];var bullScore=0,bearScore=0;
- if(tcB==='BULLISH')bullScore+=tcS*cf.tcW;else if(tcB==='BEARISH')bearScore+=tcS*cf.tcW;
- if(smcS.bias==='BULLISH')bullScore+=smcS.str*cf.smcW;else if(smcS.bias==='BEARISH')bearScore+=smcS.str*cf.smcW;
- var mtfBull=0,mtfBear=0;
- Object.keys(MTF_MAP).forEach(function(tfStr){var key=MTF_MAP[tfStr];var pts=LARGE_TF.indexOf(key)>=0?18:8;if(mtf[key]==='BULLISH'){bullScore+=pts;mtfBull++;}else if(mtf[key]==='BEARISH'){bearScore+=pts;mtfBear++;}});
- if(sd){var sB=sBi(sd);if(sB==='BULLISH')bullScore+=18;else if(sB==='BEARISH')bearScore+=18;}
- var arr=getCandles();if(arr.length>=28){var adx=ADX(arr);if(adx.adx>=cf.adxTh){if(adx.pDI>adx.mDI)bullScore+=15;else bearScore+=15;}}
- var isBullDominant=bullScore>bearScore;
- if(smcS.entry&&smcS.entry.lo!=null)s.entry=smcS.entry;else if(isBullDominant)s.entry={lo:lv.s1||(p*0.997),hi:lv.pivot||(p*0.999)};else s.entry={lo:lv.pivot||(p*1.001),hi:lv.r1||(p*1.003)};
- s.sl=smcS.inv||(isBullDominant?(lv.s2||p*0.99):(lv.r2||p*1.01));
- if(isBullDominant){s.tp=[lv.r1,lv.r2].filter(function(v){return v>p});if(s.tp.length===0)s.tp=[p*1.008,p*1.015];}else{s.tp=[lv.s1,lv.s2].filter(function(v){return v<p});if(s.tp.length===0)s.tp=[p*0.992,p*0.985];}
- var h1B=mtf.h1,htfB=mtf.h4,m15B=mtf.m15,m5B=mtf.m5;
- if(isBullDominant&&bullScore>=cf.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Bullish ('+mtfBull+'/'+((mtfBull+mtfBear)||1)+' MTF)';}
- else if(!isBullDominant&&bearScore>=cf.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Bearish ('+mtfBear+'/'+((mtfBull+mtfBear)||1)+' MTF)';}
- else{s.bias=isBullDominant?'BULLISH':'BEARISH';s.conf=Math.round(Math.max(bullScore,bearScore));s.reason='Low conf ('+s.conf+'<'+cf.minConf+')';}
- if(s.action!=='WAIT'){
-  var blocked=false,conflictMsgs=[];
-  if(htfB!=='NEUTRAL'&&((s.bias==='BULLISH'&&htfB==='BEARISH')||(s.bias==='BEARISH'&&htfB==='BULLISH'))){blocked=true;conflictMsgs.push('H4 conflict');}
-  if(h1B!=='NEUTRAL'&&m15B!=='NEUTRAL'&&m5B!=='NEUTRAL'&&h1B===m15B&&m15B===m5B&&((s.bias==='BULLISH'&&h1B==='BEARISH')||(s.bias==='BEARISH'&&h1B==='BULLISH'))){blocked=true;conflictMsgs.push('H1+M15+M5 conflict');}
-  if(blocked){s.action='WAIT';s.reason=conflictMsgs.join(' | ');s.conf=0;return s;}
-  if(h1B!=='NEUTRAL'&&((s.bias==='BULLISH'&&h1B==='BEARISH')||(s.bias==='BEARISH'&&h1B==='BULLISH'))){s.conf=Math.round(s.conf*cf.h1Pen);s.reason+=' | H1!';}
-  if(m15B!=='NEUTRAL'&&m5B!=='NEUTRAL'&&m15B===m5B&&((s.bias==='BULLISH'&&m15B==='BEARISH')||(s.bias==='BEARISH'&&m15B==='BULLISH'))){s.conf=Math.round(s.conf*cf.m15m5Pen);s.reason+=' | M15+M5!';}
-  if(s.conf<cf.minConf){s.action='WAIT';s.reason+=' - Low confidence';}
- }
- if(s.entry&&s.sl&&s.action!=='WAIT'){if((s.bias==='BULLISH'&&s.entry.hi>=s.sl)||(s.bias==='BEARISH'&&s.entry.lo<=s.sl))s.sl=s.bias==='BULLISH'?s.entry.lo*0.997:s.entry.hi*1.003;}
- if(s.entry&&s.sl&&s.tp.length>0&&s.tp[0]!=null&&!isNaN(s.tp[0])&&s.action!=='WAIT'){
-  var entryMid,risk,reward;
-  if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}
-  if(risk>0&&reward>0){var rr=reward/risk;s.rr=rr;if(rr<cf.minRR){s.action='WAIT';s.reason='Bad RR ('+rr.toFixed(2)+'<'+cf.minRR+')';s.conf=0;}}
- }
- var now=Date.now();var cd=getCooldownForTF(MTF_MAP[tf]||'m30');
- if(now-lastSignalTimestamp<cd&&activeSignal&&activeSignal.action!=='WAIT'&&s.action!=='WAIT'){s.action='WAIT';s.reason='Cooldown ('+Math.round((cd-(now-lastSignalTimestamp))/1000)+'s)';s.conf=0;}
- s.conf=Math.min(100,Math.max(0,s.conf));return s;
+function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
+    var s = {action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
+    var cf = CFG[pair];
+    var bullScore = 0, bearScore = 0;
+    if (tcB === 'BULLISH') bullScore += tcS * cf.tcW;
+    else if (tcB === 'BEARISH') bearScore += tcS * cf.tcW;
+    if (smcS.bias === 'BULLISH') bullScore += smcS.str * cf.smcW;
+    else if (smcS.bias === 'BEARISH') bearScore += smcS.str * cf.smcW;
+    var mtfBull = 0, mtfBear = 0;
+    Object.keys(MTF_MAP).forEach(function(tfStr) {
+        var key = MTF_MAP[tfStr];
+        var pts = LARGE_TF.indexOf(key) >= 0 ? 18 : 8;
+        if (mtf[key] === 'BULLISH') { bullScore += pts; mtfBull++; }
+        else if (mtf[key] === 'BEARISH') { bearScore += pts; mtfBear++; }
+    });
+    if (sd) {
+        var sB = sBi(sd);
+        if (sB === 'BULLISH') bullScore += 18;
+        else if (sB === 'BEARISH') bearScore += 18;
+    }
+    var arr = getCandles();
+    if (arr.length >= 28) {
+        var adx = ADX(arr);
+        if (adx.adx >= cf.adxTh) {
+            if (adx.pDI > adx.mDI) bullScore += 15;
+            else bearScore += 15;
+        }
+    }
+    var isBullDominant = bullScore > bearScore;
+    if (smcS.entry && smcS.entry.lo != null) {
+        s.entry = smcS.entry;
+    } else if (isBullDominant) {
+        s.entry = {lo:lv.s1||(p*0.997),hi:lv.pivot||(p*0.999)};
+    } else {
+        s.entry = {lo:lv.pivot||(p*1.001),hi:lv.r1||(p*1.003)};
+    }
+    s.sl = smcS.inv || (isBullDominant ? (lv.s2||p*0.99) : (lv.r2||p*1.01));
+    if (isBullDominant) {
+        s.tp = [lv.r1,lv.r2].filter(function(v){ return v > p; });
+        if (s.tp.length === 0) s.tp = [p*1.008,p*1.015];
+    } else {
+        s.tp = [lv.s1,lv.s2].filter(function(v){ return v < p; });
+        if (s.tp.length === 0) s.tp = [p*0.992,p*0.985];
+    }
+    var h1B = mtf.h1, htfB = mtf.h4, m15B = mtf.m15, m5B = mtf.m5;
+    if (isBullDominant && bullScore >= cf.minConf) {
+        s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.round(bullScore);
+        s.reason = 'Bullish ('+mtfBull+'/'+((mtfBull+mtfBear)||1)+' MTF)';
+    } else if (!isBullDominant && bearScore >= cf.minConf) {
+        s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.round(bearScore);
+        s.reason = 'Bearish ('+mtfBear+'/'+((mtfBull+mtfBear)||1)+' MTF)';
+    } else {
+        s.bias = isBullDominant ? 'BULLISH' : 'BEARISH';
+        s.conf = Math.round(Math.max(bullScore,bearScore));
+        s.reason = 'Low conf ('+s.conf+'<'+cf.minConf+')';
+    }
+    if (s.action !== 'WAIT') {
+        var blocked = false, conflictMsgs = [];
+        if (htfB !== 'NEUTRAL' && ((s.bias==='BULLISH'&&htfB==='BEARISH')||(s.bias==='BEARISH'&&htfB==='BULLISH'))) {
+            blocked = true; conflictMsgs.push('H4 conflict');
+        }
+        if (h1B !== 'NEUTRAL' && m15B !== 'NEUTRAL' && m5B !== 'NEUTRAL' && h1B === m15B && m15B === m5B &&
+            ((s.bias==='BULLISH'&&h1B==='BEARISH')||(s.bias==='BEARISH'&&h1B==='BULLISH'))) {
+            blocked = true; conflictMsgs.push('H1+M15+M5 conflict');
+        }
+        if (blocked) { s.action = 'WAIT'; s.reason = conflictMsgs.join(' | '); s.conf = 0; return s; }
+        if (h1B !== 'NEUTRAL' && ((s.bias==='BULLISH'&&h1B==='BEARISH')||(s.bias==='BEARISH'&&h1B==='BULLISH'))) {
+            s.conf = Math.round(s.conf * cf.h1Pen); s.reason += ' | H1!';
+        }
+        if (m15B !== 'NEUTRAL' && m5B !== 'NEUTRAL' && m15B === m5B &&
+            ((s.bias==='BULLISH'&&m15B==='BEARISH')||(s.bias==='BEARISH'&&m15B==='BULLISH'))) {
+            s.conf = Math.round(s.conf * cf.m15m5Pen); s.reason += ' | M15+M5!';
+        }
+        if (s.conf < cf.minConf) { s.action = 'WAIT'; s.reason += ' - Low confidence'; }
+    }
+    if (s.entry && s.sl && s.action !== 'WAIT') {
+        if ((s.bias==='BULLISH'&&s.entry.hi>=s.sl)||(s.bias==='BEARISH'&&s.entry.lo<=s.sl)) {
+            s.sl = s.bias==='BULLISH' ? s.entry.lo*0.997 : s.entry.hi*1.003;
+        }
+    }
+    if (s.entry && s.sl && s.tp.length > 0 && s.tp[0] != null && !isNaN(s.tp[0]) && s.action !== 'WAIT') {
+        var entryMid, risk, reward;
+        if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid - s.sl; reward = s.tp[0] - entryMid; }
+        else { entryMid = s.entry.hi; risk = s.sl - entryMid; reward = entryMid - s.tp[0]; }
+        if (risk > 0 && reward > 0) {
+    const rr = reward / risk;
+    s.rr = parseFloat(rr.toFixed(2)); // Memastikan s.rr disimpan sebagai angka dengan 2 desimal
+
+    if (rr < cf.minRR) {
+        s.action = 'WAIT';
+        s.reason = `Bad RR (${s.rr} < ${cf.minRR})`; // Menggunakan Template Literals agar lebih rapi
+        s.conf = 0;}
+          }
+      }
+      
+    var now = Date.now();
+    var cd = getCooldownForTF(MTF_MAP[tf]||'m30');
+    if (now-lastSignalTimestamp < cd && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') {
+        s.action = 'WAIT'; s.reason = 'Cooldown ('+Math.round((cd-(now-lastSignalTimestamp))/1000)+'s)'; s.conf = 0;
+    }
+    s.conf = Math.min(100, Math.max(0, s.conf));
+    return s;
 }
 
 // ===========================
 // ENGINE 2: SCALPING (Momentum + SMC + Price Action)
 // ===========================
-function genFusionScalping(smcS,p,lv){
- var s={action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
- var sc=SCALP_CFG;var bullScore=0,bearScore=0;var arr=getCandles();if(arr.length<15)return s;
- 
- // 1. Momentum Candle (40%)
- var latest=arr[arr.length-1],prev=arr[arr.length-2];
- var body=Math.abs(latest.c-latest.o),range=latest.h-latest.l;
- var bodyRatio=range>0?body/range:0;var direction=latest.c>latest.o?'BULL':'BEAR';
- var momScore=Math.round(bodyRatio*40*sc.momW);
- if(direction==='BULL'&&bodyRatio>0.4)bullScore+=momScore;
- else if(direction==='BEAR'&&bodyRatio>0.4)bearScore+=momScore;
- 
- // 2. SMC Proximity (35%)
- if(smcS.bias==='BULLISH')bullScore+=Math.round(smcS.str*sc.smcW);
- else if(smcS.bias==='BEARISH')bearScore+=Math.round(smcS.str*sc.smcW);
- 
- // 3. Price Action: HH/HL vs LH/LL (25%)
- var highs=[];
- for(var i=arr.length-8;i<arr.length-1;i++){if(i>0&&i<arr.length-1){if(arr[i].h>arr[i-1].h&&arr[i].h>arr[i+1].h)highs.push(arr[i].h);}}
- if(highs.length>=2&&highs[highs.length-1]>highs[highs.length-2])bullScore+=Math.round(25*sc.paW);
- var currLow=Math.min(latest.l,prev.l),prevLow=Math.min(arr[arr.length-3].l,arr[arr.length-4].l);
- if(currLow<prevLow)bearScore+=Math.round(25*sc.paW);
- 
- // 4. ADX Quick Check
- if(arr.length>=28){var adx=ADX(arr);if(adx.adx>=sc.adxTh){if(adx.pDI>adx.mDI)bullScore+=10;else bearScore+=10;}}
- 
- var isBullDominant=bullScore>bearScore;
- 
- // 5. Entry Zone Sempit
- var atr=(currentATR&&currentATR>0)?currentATR:(p*0.002);
- if(isScalpingMode&&atr>p*0.01)atr=p*0.005;
- if(smcS.entry&&smcS.entry.lo!=null){var mid=(smcS.entry.lo+smcS.entry.hi)/2;var hw=(smcS.entry.hi-smcS.entry.lo)*sc.entryWidth;s.entry={lo:mid-hw,hi:mid+hw};}
- else if(isBullDominant)s.entry={lo:p-atr*0.15,hi:p};else s.entry={lo:p,hi:p+atr*0.15};
- 
- // 6. SL Ketat (0.5x ATR)
- if(isBullDominant)s.sl=s.entry.lo-atr*sc.slATR;else s.sl=s.entry.hi+atr*sc.slATR;
- 
- // 7. TP Dekat (1x & 2x ATR)
- if(isBullDominant)s.tp=[p+atr*sc.tpATR1,p+atr*sc.tpATR2];else s.tp=[p-atr*sc.tpATR1,p-atr*sc.tpATR2];
- 
- // 8. Decision (Threshold 45%)
- if(isBullDominant&&bullScore>=sc.minConf){s.action='BUY';s.bias='BULLISH';s.conf=Math.round(bullScore);s.reason='Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
- else if(!isBullDominant&&bearScore>=sc.minConf){s.action='SELL';s.bias='BEARISH';s.conf=Math.round(bearScore);s.reason='Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';}
- else{s.bias=isBullDominant?'BULLISH':'BEARISH';s.conf=Math.round(Math.max(bullScore,bearScore));s.reason='Low ('+s.conf+'<'+sc.minConf+')';}
- 
- // 9. RR Validation (1.0)
- if(s.entry&&s.sl&&s.tp[0]&&s.action!=='WAIT'){var entryMid,risk,reward;if(s.bias==='BULLISH'){entryMid=s.entry.lo;risk=entryMid-s.sl;reward=s.tp[0]-entryMid;}else{entryMid=s.entry.hi;risk=s.sl-entryMid;reward=entryMid-s.tp[0];}if(risk>0&&reward>0){var rr=reward/risk;s.rr=rr;if(rr<sc.minRR){s.action='WAIT';s.reason='Bad RR';}}}
- 
- // 10. Cooldown 1 menit
- var now=Date.now();if(now-lastSignalTimestamp<sc.cooldown&&activeSignal&&activeSignal.action!=='WAIT'&&s.action!=='WAIT'){s.action='WAIT';s.reason='Scalp Cooldown';}
- s.conf=Math.min(100,Math.max(0,s.conf));return s;
+function genFusionScalping(smcS, p, lv) {
+    var s = {action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
+    var sc = SCALP_CFG;
+    var bullScore = 0, bearScore = 0;
+    var arr = getCandles();
+    if (arr.length < 15) return s;
+    
+    var latest = arr[arr.length-1], prev = arr[arr.length-2];
+    var body = Math.abs(latest.c-latest.o), range = latest.h-latest.l;
+    var bodyRatio = range > 0 ? body/range : 0;
+    var direction = latest.c > latest.o ? 'BULL' : 'BEAR';
+    var momScore = Math.round(bodyRatio * 40 * sc.momW);
+    if (direction === 'BULL' && bodyRatio > 0.4) bullScore += momScore;
+    else if (direction === 'BEAR' && bodyRatio > 0.4) bearScore += momScore;
+    
+    if (smcS.bias === 'BULLISH') bullScore += Math.round(smcS.str * sc.smcW);
+    else if (smcS.bias === 'BEARISH') bearScore += Math.round(smcS.str * sc.smcW);
+    
+    var highs = [];
+    for (var i = arr.length-8; i < arr.length-1; i++) {
+        if (i > 0 && i < arr.length-1) {
+            if (arr[i].h > arr[i-1].h && arr[i].h > arr[i+1].h) highs.push(arr[i].h);
+        }
+    }
+    if (highs.length >= 2 && highs[highs.length-1] > highs[highs.length-2]) bullScore += Math.round(25*sc.paW);
+    var currLow = Math.min(latest.l, prev.l), prevLow = Math.min(arr[arr.length-3].l, arr[arr.length-4].l);
+    if (currLow < prevLow) bearScore += Math.round(25*sc.paW);
+    
+    if (arr.length >= 28) {
+        var adx = ADX(arr);
+        if (adx.adx >= sc.adxTh) {
+            if (adx.pDI > adx.mDI) bullScore += 10;
+            else bearScore += 10;
+        }
+    }
+    
+    var isBullDominant = bullScore > bearScore;
+    var atr = (currentATR && currentATR > 0) ? currentATR : (p*0.002);
+    if (isScalpingMode && atr > p*0.01) atr = p*0.005;
+    
+    if (smcS.entry && smcS.entry.lo != null) {
+        var mid = (smcS.entry.lo+smcS.entry.hi)/2;
+        var hw = (smcS.entry.hi-smcS.entry.lo) * sc.entryWidth;
+        s.entry = {lo:mid-hw,hi:mid+hw};
+    } else if (isBullDominant) {
+        s.entry = {lo:p-atr*0.15,hi:p};
+    } else {
+        s.entry = {lo:p,hi:p+atr*0.15};
+    }
+    
+    if (isBullDominant) s.sl = s.entry.lo - atr*sc.slATR;
+    else s.sl = s.entry.hi + atr*sc.slATR;
+    
+    if (isBullDominant) s.tp = [p+atr*sc.tpATR1, p+atr*sc.tpATR2];
+    else s.tp = [p-atr*sc.tpATR1, p-atr*sc.tpATR2];
+    
+    if (isBullDominant && bullScore >= sc.minConf) {
+        s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.round(bullScore);
+        s.reason = 'Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';
+    } else if (!isBullDominant && bearScore >= sc.minConf) {
+        s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.round(bearScore);
+        s.reason = 'Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';
+    } else {
+        s.bias = isBullDominant ? 'BULLISH' : 'BEARISH';
+        s.conf = Math.round(Math.max(bullScore,bearScore));
+        s.reason = 'Low ('+s.conf+'<'+sc.minConf+')';
+    }
+    
+    if (s.entry && s.sl && s.tp[0] && s.action !== 'WAIT') {
+        var entryMid, risk, reward;
+        if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid-s.sl; reward = s.tp[0]-entryMid; }
+        else { entryMid = s.entry.hi; risk = s.sl-entryMid; reward = entryMid-s.tp[0]; }
+        if (risk > 0 && reward > 0) {
+            var rr = reward/risk; s.rr = rr;
+            if (rr < sc.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR'; }
+        }
+    }
+    
+    var now = Date.now();
+    if (now-lastSignalTimestamp < sc.cooldown && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') {
+        s.action = 'WAIT'; s.reason = 'Scalp Cooldown';
+    }
+    s.conf = Math.min(100, Math.max(0, s.conf));
+    return s;
 }
+
+// ===========================
+// CONNECTION STATE MACHINE (v5.2)
+// ===========================
+function transitionTo(newState) {
+    var oldState = connectionState;
+    if (oldState === newState) return;
+    connectionState = newState;
+    console.log('[STATE] '+oldState+' → '+newState);
+    
+    switch(newState) {
+        case ConnState.LIVE:
+            stopFallbackRoutine();
+            reconnectAttempts = 0;
+            recDelay = 1500;
+            isStale = false;
+            break;
+        case ConnState.FALLBACK:
+            startFallbackRoutine();
+            break;
+        case ConnState.RECONNECTING:
+            break;
+        case ConnState.DISCONNECTED:
+            stopFallbackRoutine();
+            cleanupWSResources();
+            break;
+    }
+    updateConnectionUI();
+}
+
+function updateConnectionUI() {
+    var dot = $('status-dot');
+    var text = $('status-text');
+    if (!dot || !text) return;
+    var config = {
+        'disconnected': { cls: 'offline', txt: 'OFFLINE' },
+        'connecting': { cls: 'connecting', txt: 'CONNECT' },
+        'live': { cls: 'live', txt: 'LIVE' },
+        'fallback': { cls: 'fallback', txt: 'FALLBACK' },
+        'stale': { cls: 'stale', txt: 'STALE' },
+        'reconnecting': { cls: 'reconnect', txt: 'RECON' }
+    };
+    var c = config[connectionState] || config['disconnected'];
+    dot.className = 'status-dot ' + c.cls;
+    text.textContent = c.txt;
+}
+
+function startFallbackRoutine() {
+    stopFallbackRoutine();
+    console.log('[FALLBACK] Memulai REST API fallback');
+    fetchPriceFallback();
+    fbT = setInterval(function() {
+        if (connectionState !== ConnState.FALLBACK && connectionState !== ConnState.RECONNECTING) {
+            stopFallbackRoutine();
+            return;
+        }
+        fetchPriceFallback();
+    }, 4000);
+}
+
+function stopFallbackRoutine() {
+    if (fbT) {
+        clearInterval(fbT);
+        fbT = null;
+        console.log('[FALLBACK] Dihentikan');
+    }
+}
+
+async function fetchPriceFallback() {
+    try {
+        var r = await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair);
+        if (!r.ok) return;
+        var d = await r.json();
+        if (d && d.price) {
+            var prc = +d.price;
+            if (prc > 0) {
+                price = prc;
+                lastUpd = Date.now();
+                lastMsg = Date.now();
+                analyze();
+            }
+        }
+    } catch(e) {
+        console.warn('[FALLBACK] Gagal fetch:', e.message);
+    }
+}
+
+function cleanupWSResources() {
+    if (ws) {
+        try {
+            ws.onopen = ws.onmessage = ws.onclose = ws.onerror = null;
+            if (ws.readyState < 2) ws.close();
+        } catch(e) {}
+        ws = null;
+    }
+    if (hbT) { clearInterval(hbT); hbT = null; }
+}
+
+function scheduleReconnect() {
+    if (wsRT) clearTimeout(wsRT);
+    if (manualOff || isLoading) return;
+    
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.log('[RECONNECT] Max attempts reached, staying in fallback');
+        transitionTo(ConnState.FALLBACK);
+        return;
+    }
+    
+    reconnectAttempts++;
+    var delay = Math.min(recDelay * Math.pow(1.5, reconnectAttempts-1), 30000);
+    console.log('[RECONNECT] Attempt '+reconnectAttempts+'/'+MAX_RECONNECT_ATTEMPTS+' in '+delay+'ms');
+    
+    wsRT = setTimeout(function() {
+        if (!manualOff && !isLoading) {
+            transitionTo(ConnState.RECONNECTING);
+            connectWS();
+        }
+    }, delay);
+}
+
+function connectWS() {
+    cleanupWSResources();
+    if (wsRT) { clearTimeout(wsRT); wsRT = null; }
+    
+    if (manualOff || isLoading) {
+        console.log('[WS] Connect dibatalkan (manualOff/isLoading)');
+        return;
+    }
+    
+    if (!isLoading) manualOff = false;
+    
+    transitionTo(ConnState.CONNECTING);
+    
+    try {
+        ws = new WebSocket('wss://fstream.binance.com/ws/'+pair.toLowerCase()+'@kline_'+tf);
+        
+        var connectTimeout = setTimeout(function() {
+            if (connectionState === ConnState.CONNECTING) {
+                console.warn('[WS] Connection timeout');
+                try { ws.close(); } catch(e) {}
+            }
+        }, 10000);
+        
+        ws.onopen = function() {
+            clearTimeout(connectTimeout);
+            console.log('[WS] Connected successfully');
+            
+            lastMsg = Date.now();
+            lastUpd = Date.now();
+            
+            transitionTo(ConnState.LIVE);
+            
+            hbT = setInterval(function() {
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({method:'ping'}));
+                }
+            }, 25000);
+        };
+        
+        ws.onmessage = function(e) {
+            try {
+                var m = JSON.parse(e.data);
+                
+                if (m && m.k) {
+                    var k = m.k;
+                    var prc = +k.c;
+                    if (prc > 0) {
+                        lastMsg = Date.now();
+                        lastUpd = Date.now();
+                        
+                        if (connectionState !== ConnState.LIVE) {
+                            transitionTo(ConnState.LIVE);
+                        }
+                        
+                        pushCandle({
+                            t: k.t,
+                            o: +k.o,
+                            h: +k.h,
+                            l: +k.l,
+                            c: prc,
+                            v: +k.v
+                        });
+                        price = prc;
+                        analyze();
+                    }
+                }
+            } catch(e) {
+                console.error('[WS] Parse error:', e);
+            }
+        };
+        
+        ws.onclose = function(event) {
+            clearTimeout(connectTimeout);
+            if (hbT) { clearInterval(hbT); hbT = null; }
+            
+            console.log('[WS] Closed (code: '+event.code+', reason: '+event.reason+')');
+            
+            if (!isLoading && !manualOff) {
+                scheduleReconnect();
+            } else {
+                transitionTo(ConnState.DISCONNECTED);
+            }
+        };
+        
+        ws.onerror = function(error) {
+            clearTimeout(connectTimeout);
+            console.error('[WS] Error:', error);
+            
+            if (!isLoading && !manualOff) {
+                transitionTo(ConnState.FALLBACK);
+                scheduleReconnect();
+            }
+        };
+        
+    } catch(e) {
+        console.error('[WS] Exception:', e);
+        transitionTo(ConnState.FALLBACK);
+        scheduleReconnect();
+    }
+}
+
+// ===========================
+// WATCHDOG - Kesehatan Koneksi
+// ===========================
+setInterval(function() {
+    var now = Date.now();
+    var timeSinceLastMsg = now - lastMsg;
+    var timeSinceLastUpdate = now - lastUpd;
+    
+    if (timeSinceLastUpdate > 12000 && price > 0) {
+        if (!isStale) {
+            console.warn('[WATCHDOG] Data stale detected');
+            isStale = true;
+        }
+    } else if (isStale && timeSinceLastUpdate < 5000) {
+        isStale = false;
+    }
+    
+    if (connectionState === ConnState.LIVE &&
+        ws && ws.readyState === WebSocket.OPEN &&
+        timeSinceLastMsg > FALLBACK_THRESHOLD) {
+        console.warn('[WATCHDOG] WS zombie detected, switching to fallback');
+        try { ws.close(); } catch(e) {}
+        transitionTo(ConnState.FALLBACK);
+        scheduleReconnect();
+    }
+    
+    if (connectionState === ConnState.FALLBACK &&
+        !wsRT && !isLoading && !manualOff) {
+        console.log('[WATCHDOG] Proactive reconnect from fallback');
+        scheduleReconnect();
+    }
+}, 5000);
 
 // ===========================
 // COOLDOWN UI
 // ===========================
-function updateCooldownUI(){
- var now=Date.now(),elapsed=now-lastSignalTimestamp;
- var cd=isScalpingMode?SCALP_CFG.cooldown:getCooldownForTF(MTF_MAP[tf]||'m30');
- cooldownTotal=cd;cooldownRemaining=Math.max(0,cd-elapsed);
- var bar=$('cooldown-bar'),fill=$('cooldown-fill');
- if(cooldownRemaining>0&&activeSignal&&activeSignal.action!=='WAIT'){if(bar)bar.classList.add('active');var pct=((cd-cooldownRemaining)/cd)*100;if(fill)fill.style.width=Math.min(100,pct)+'%';}
- else{if(bar)bar.classList.remove('active');if(fill)fill.style.width='0%';cooldownRemaining=0;}
+function updateCooldownUI() {
+    var now = Date.now(), elapsed = now - lastSignalTimestamp;
+    var cd = isScalpingMode ? SCALP_CFG.cooldown : getCooldownForTF(MTF_MAP[tf]||'m30');
+    cooldownTotal = cd;
+    cooldownRemaining = Math.max(0, cd-elapsed);
+    var bar = $('cooldown-bar'), fill = $('cooldown-fill');
+    if (cooldownRemaining > 0 && activeSignal && activeSignal.action !== 'WAIT') {
+        if (bar) bar.classList.add('active');
+        var pct = ((cd-cooldownRemaining)/cd)*100;
+        if (fill) fill.style.width = Math.min(100,pct)+'%';
+    } else {
+        if (bar) bar.classList.remove('active');
+        if (fill) fill.style.width = '0%';
+        cooldownRemaining = 0;
+    }
 }
+
+setInterval(function() {
+    if (cooldownRemaining > 0) updateCooldownUI();
+}, 1000);
 
 // ===========================
 // THEME
 // ===========================
-function setTheme(theme){currentTheme=theme;document.body.setAttribute('data-theme',theme);try{localStorage.setItem('ura-theme',theme)}catch(e){}var btn=$('theme-toggle-btn');if(btn){btn.textContent=theme==='dark'?'☀️':'🌙';btn.title=theme==='dark'?'Switch to Light Mode':'Switch to Dark Mode';}}
-function toggleTheme(){setTheme(currentTheme==='dark'?'light':'dark');}
+function setTheme(theme) {
+    currentTheme = theme;
+    document.body.setAttribute('data-theme', theme);
+    try { localStorage.setItem('ura-theme', theme); } catch(e) {}
+    var btn = $('theme-toggle-btn');
+    if (btn) {
+        btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        btn.title = theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode';
+    }
+}
+function toggleTheme() {
+    setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
 
 // ===========================
 // TC COPY
 // ===========================
-function tcCopyRow(rowEl,toastEl){var label=rowEl.querySelector('.tc-label').textContent.replace('⚡','').trim();var value=rowEl.querySelector('.tc-value').textContent;if(value==='—')return;var txt=label+': '+value;if(navigator.clipboard){navigator.clipboard.writeText(txt).then(function(){showTCToast(toastEl,'✅ '+label+' disalin!');}).catch(function(){showTCToast(toastEl,'❌ Gagal menyalin');});}else{var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');showTCToast(toastEl,'✅ '+label+' disalin!');}catch(e){showTCToast(toastEl,'❌ Gagal menyalin');}document.body.removeChild(ta);}}
-function showTCToast(el,msg){el.textContent=msg;el.classList.add('show');clearTimeout(el._timeout);el._timeout=setTimeout(function(){el.classList.remove('show')},1400);}
+function tcCopyRow(rowEl, toastEl) {
+    var label = rowEl.querySelector('.tc-label').textContent.replace('⚡','').trim();
+    var value = rowEl.querySelector('.tc-value').textContent;
+    if (value === '—') return;
+    var txt = label + ': ' + value;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(txt).then(function() {
+            showTCToast(toastEl, '✅ '+label+' disalin!');
+        }).catch(function() {
+            showTCToast(toastEl, '❌ Gagal menyalin');
+        });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = txt;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showTCToast(toastEl, '✅ '+label+' disalin!');
+        } catch(e) {
+            showTCToast(toastEl, '❌ Gagal menyalin');
+        }
+        document.body.removeChild(ta);
+    }
+}
+function showTCToast(el, msg) {
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(el._timeout);
+    el._timeout = setTimeout(function() { el.classList.remove('show'); }, 1400);
+}
 
 // ===========================
 // MAIN ANALYZE FUNCTION
 // ===========================
-function analyze(){
- var arr=getCandles();if(arr.length<30)return;
- var p=price,cf=CFG[pair],pr=cf.prec;
- var ma20=MA(arr,cf.maF),ma50=MA(arr,cf.maS),adx=ADX(arr),rsi=RSI(arr),atr=ATR(arr,cf.atrP);
- currentATR=atr;var bb=BB(arr,cf.bbP,cf.bbS);
- sessionData=getSessionData(arr);
- var usePv=sessionData||{pivot:p,r1:p*1.005,r2:p*1.01,r3:p*1.015,s1:p*0.995,s2:p*0.99,s3:p*0.985};
- 
- var tcB='NEUTRAL',tcS=50;
- if(p>usePv.pivot){tcB='BULLISH';tcS+=25;}else if(p<usePv.pivot){tcB='BEARISH';tcS+=25;}
- if(adx.adx>=cf.adxTh){tcS+=15;if(tcB==='BULLISH'&&adx.pDI>adx.mDI)tcS+=12;else if(tcB==='BEARISH'&&adx.mDI>adx.pDI)tcS+=12;}
- if(tcB==='BULLISH'&&rsi>cf.rsiLo&&rsi<cf.rsiHi)tcS+=10;else if(tcB==='BEARISH'&&rsi>(100-cf.rsiHi)&&rsi<(100-cf.rsiLo))tcS+=10;
- if(sessionData)tcS+=12;tcS=Math.min(100,Math.max(0,tcS));
- var tcE,tcSL;
- if(tcB==='BULLISH'){tcE={lo:usePv.pivot,hi:Math.min(usePv.r1,p*0.999)};tcSL=usePv.s1||p*0.99;}
- else if(tcB==='BEARISH'){tcE={lo:Math.max(usePv.s1,p*1.001),hi:usePv.pivot};tcSL=usePv.r1||p*1.01;}
- else{tcE={lo:p*0.997,hi:p*1.003};tcSL=p*0.995;}
- 
- var smc=detectSMC(arr,atr),smcS=genSMC(p,smc);
- 
- // === DUAL ENGINE ROUTING ===
- var newSignal;
- if(isScalpingMode){newSignal=genFusionScalping(smcS,p,usePv);if(newSignal.action!=='WAIT')newSignal.reason='⚡'+newSignal.reason;else newSignal.reason='⚡'+newSignal.reason;}
- else{newSignal=genFusionIntraday(tcB,tcS,tcE,tcSL,smcS,p,usePv,sessionData);}
- 
- lastGeneratedSignal=newSignal;
- if(newSignal.action!=='WAIT'){if(!activeSignal||activeSignal.action==='WAIT'||newSignal.bias!==activeSignal.bias){activeSignal=newSignal;lastSignalTimestamp=Date.now();}}
- var displaySignal=activeSignal||lastGeneratedSignal;
- var isStaleSignal=!!(!activeSignal&&lastGeneratedSignal&&lastGeneratedSignal.action==='WAIT');
- 
- // RENDER PRICE
- var f=p.toFixed(pr),pt=f.split('.');setH('price-display',pt[0]+'<span class="price-decimal">.'+(pt[1]||'00')+'</span>');
- $('price-display').style.color=p>prevPrice?'var(--accent-green)':(p<prevPrice?'var(--accent-red)':'var(--text-primary)');
- if(prevPrice>0){var ch=p-prevPrice,pct=(ch/prevPrice)*100;setT('price-change',(ch>0?'+':'')+ch.toFixed(pr)+' ('+pct.toFixed(2)+'%)');$('price-change').style.color=ch>0?'var(--accent-green)':(ch<0?'var(--accent-red)':'var(--text-secondary)');}
- 
- // TC Levels
- setT('r3v',usePv.r3.toFixed(pr));setT('r2v',usePv.r2.toFixed(pr));setT('r1v',usePv.r1.toFixed(pr));
- setT('pivotv',usePv.pivot.toFixed(pr));setT('s1v',usePv.s1.toFixed(pr));setT('s2v',usePv.s2.toFixed(pr));setT('s3v',usePv.s3.toFixed(pr));
- setT('lastv',p.toFixed(pr));setT('bbuv',bb.up.toFixed(pr));setT('bblv',bb.lo.toFixed(pr));setT('bbmv',bb.mid.toFixed(pr));
- setT('tc-bias-val',tcB);setC('tc-bias-val','tc-bias '+tcB.toLowerCase());
- var activeSessionName=sessionData?SESSION_NAMES[sessionData.name]||(sessionData.label+' SESSION INTRADAY'):'INTRADAY';
- setT('tc-upd',activeSessionName);setC('tc-upd','tc-update active-session');
- var sessionWarn=$('session-warning');
- if(sessionData&&sessionData.name!=='WEEKEND'){var sessDur=getSessionDuration(sessionData);var remaining=sessionData.start+sessDur-Date.now();if(remaining>0&&remaining<900000)sessionWarn.classList.add('show');else sessionWarn.classList.remove('show');}
- else sessionWarn.classList.remove('show');
- 
- // Metrics
- setT('ma20-val',ma20.toFixed(pr));setT('ma50-val','MA50: '+ma50.toFixed(pr));
- setT('ma-trend',p>ma20?'▲':'▼');$('ma-trend').style.color=p>ma20?'var(--accent-green)':'var(--accent-red)';
- setT('adx-val',Math.round(adx.adx)+'');setT('di-val','+'+Math.round(adx.pDI)+' | -'+Math.round(adx.mDI));
- setT('adx-trend',adx.pDI>adx.mDI?'▲':'▼');$('adx-trend').style.color=adx.pDI>adx.mDI?'var(--accent-green)':'var(--accent-red)';
- setT('rsi-val',Math.round(rsi)+'');setT('atr-val','ATR: '+atr.toFixed(pr));
- setT('rsi-trend',rsi>50?'▲':'▼');$('rsi-trend').style.color=rsi>50?'var(--accent-green)':'var(--accent-red)';
- 
- // SMC
- var nf=smc.nearFVG(p),no=smc.nearOB(p),sw=smc.lastSw;
- if(nf&&nf.bot!=null){setT('fvg-val',nf.t+' '+nf.bot.toFixed(pr)+'-'+nf.top.toFixed(pr));setT('fvg-det','Gap:'+(nf.top-nf.bot).toFixed(pr));}else{setT('fvg-val','—');setT('fvg-det','—');}
- if(no&&no.l!=null){setT('ob-val',no.t+' '+no.l.toFixed(pr)+'-'+no.h.toFixed(pr));setT('ob-det','Ent:'+no.o.toFixed(pr));}else{setT('ob-val','—');setT('ob-det','—');}
- if(sw&&sw.lvl!=null){setT('sw-val',sw.t);setT('sw-det','Lvl:'+sw.lvl.toFixed(pr));}else{setT('sw-val','—');setT('sw-det','—');}
- setT('smc-upd','Upd: '+new Date().toLocaleTimeString('id-ID'));
- 
- // SIGNAL RENDER
- if(displaySignal){
-  var isB=displaySignal.bias==='BULLISH',sc=isB?'var(--accent-green)':'var(--accent-red)';
-  if(activeSignal&&activeSignal.action!=='WAIT'){
-   setT('sig-status',activeSignal.bias+' SIGNAL');$('sig-status').style.color=sc;
-   setT('sig-arrow',isB?'▲▲':'▼▼');$('sig-arrow').style.color=sc;
-   var ct='LOW',cc='low';if(activeSignal.conf>=75)ct='HIGH',cc='high';else if(activeSignal.conf>=60)ct='MED',cc='medium';
-   setT('sig-conf',ct);setC('sig-conf','conf-badge '+cc);$('fusion-bar').classList.remove('stale-signal');
-  }else{
-   setT('sig-status',isStaleSignal?'WAITING (STALE)':'WAITING');$('sig-status').style.color='var(--text-tertiary)';
-   setT('sig-arrow','—');setT('sig-conf','WAIT');setC('sig-conf','conf-badge low');
-   if(isStaleSignal)$('fusion-bar').classList.add('stale-signal');else $('fusion-bar').classList.remove('stale-signal');
-  }
-  setT('sig-decision','FUSION: '+displaySignal.bias);setT('sig-strength',''+displaySignal.conf+'%');setT('sig-reason',displaySignal.reason||'—');
-  if(displaySignal.rr!=null){var rrClass=displaySignal.rr>=2?'good':(displaySignal.rr>=(isScalpingMode?SCALP_CFG.minRR:CFG[pair].minRR)?'ok':'bad');setT('sig-rr','RR: '+displaySignal.rr.toFixed(2));setC('sig-rr','rr-badge '+rrClass);}else{setT('sig-rr','');setC('sig-rr','');}
-  if(displaySignal.entry){setT('entry-lo',displaySignal.entry.lo!=null?displaySignal.entry.lo.toFixed(pr):'—');setT('entry-hi',displaySignal.entry.hi!=null?displaySignal.entry.hi.toFixed(pr):'—');}else{setT('entry-lo','—');setT('entry-hi','—');}
-  setT('sl-val',displaySignal.sl!=null?displaySignal.sl.toFixed(pr):'—');setT('inv-val',displaySignal.sl!=null?displaySignal.sl.toFixed(pr):'—');
-  setT('tp1-val',displaySignal.tp[0]!=null?displaySignal.tp[0].toFixed(pr):'—');setT('tp2-val',displaySignal.tp[1]!=null?displaySignal.tp[1].toFixed(pr):'—');
- }else{
-  setT('sig-status','INIT');$('sig-status').style.color='var(--text-tertiary)';setT('sig-arrow','—');setT('sig-conf','--');setC('sig-conf','conf-badge low');
-  setT('sig-decision','FUSION: --');setT('sig-strength','Conf: --%');setT('sig-reason','—');setT('sig-rr','');
-  setT('entry-lo','—');setT('entry-hi','—');setT('sl-val','—');setT('inv-val','—');setT('tp1-val','—');setT('tp2-val','—');
-  $('fusion-bar').classList.remove('stale-signal');
- }
- var actionCards=document.querySelectorAll('.action-card');var staleNotice=$('stale-notice');
- if(isStaleSignal&&!activeSignal){actionCards.forEach(function(c){c.classList.add('stale');});if(staleNotice)staleNotice.classList.add('show');}
- else{actionCards.forEach(function(c){c.classList.remove('stale');});if(staleNotice)staleNotice.classList.remove('show');}
- prevPrice=p;updateMTF();updateCooldownUI();
+function analyze() {
+    var arr = getCandles();
+    if (arr.length < 30) return;
+    var p = price, cf = CFG[pair], pr = cf.prec;
+    var ma20 = MA(arr, cf.maF), ma50 = MA(arr, cf.maS);
+    var adx = ADX(arr), rsi = RSI(arr), atr = ATR(arr, cf.atrP);
+    currentATR = atr;
+    var bb = BB(arr, cf.bbP, cf.bbS);
+    sessionData = getSessionData(arr);
+    var usePv = sessionData || {pivot:p,r1:p*1.005,r2:p*1.01,r3:p*1.015,s1:p*0.995,s2:p*0.99,s3:p*0.985};
+    
+    var tcB = 'NEUTRAL', tcS = 50;
+    if (p > usePv.pivot) { tcB = 'BULLISH'; tcS += 25; }
+    else if (p < usePv.pivot) { tcB = 'BEARISH'; tcS += 25; }
+    if (adx.adx >= cf.adxTh) {
+        tcS += 15;
+        if (tcB === 'BULLISH' && adx.pDI > adx.mDI) tcS += 12;
+        else if (tcB === 'BEARISH' && adx.mDI > adx.pDI) tcS += 12;
+    }
+    if (tcB === 'BULLISH' && rsi > cf.rsiLo && rsi < cf.rsiHi) tcS += 10;
+    else if (tcB === 'BEARISH' && rsi > (100-cf.rsiHi) && rsi < (100-cf.rsiLo)) tcS += 10;
+    if (sessionData) tcS += 12;
+    tcS = Math.min(100, Math.max(0, tcS));
+    
+    var tcE, tcSL;
+    if (tcB === 'BULLISH') { tcE = {lo:usePv.pivot,hi:Math.min(usePv.r1,p*0.999)}; tcSL = usePv.s1||p*0.99; }
+    else if (tcB === 'BEARISH') { tcE = {lo:Math.max(usePv.s1,p*1.001),hi:usePv.pivot}; tcSL = usePv.r1||p*1.01; }
+    else { tcE = {lo:p*0.997,hi:p*1.003}; tcSL = p*0.995; }
+    
+    var smc = detectSMC(arr, atr), smcS = genSMC(p, smc);
+    
+    var newSignal;
+    if (isScalpingMode) {
+        newSignal = genFusionScalping(smcS, p, usePv);
+        if (newSignal.action !== 'WAIT') newSignal.reason = '⚡'+newSignal.reason;
+        else newSignal.reason = '⚡'+newSignal.reason;
+    } else {
+        newSignal = genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, usePv, sessionData);
+    }
+    
+    lastGeneratedSignal = newSignal;
+    if (newSignal.action !== 'WAIT') {
+        if (!activeSignal || activeSignal.action === 'WAIT' || newSignal.bias !== activeSignal.bias) {
+            activeSignal = newSignal;
+            lastSignalTimestamp = Date.now();
+        }
+    }
+    
+    var displaySignal = activeSignal || lastGeneratedSignal;
+    var isStaleSignal = !!(!activeSignal && lastGeneratedSignal && lastGeneratedSignal.action === 'WAIT');
+    
+    // RENDER PRICE
+    var f = p.toFixed(pr), pt = f.split('.');
+    setH('price-display', pt[0]+'<span class="price-decimal">.'+(pt[1]||'00')+'</span>');
+    $('price-display').style.color = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
+    if (prevPrice > 0) {
+        var ch = p - prevPrice, pct = (ch/prevPrice)*100;
+        setT('price-change', (ch>0?'+':'')+ch.toFixed(pr)+' ('+pct.toFixed(2)+'%)');
+        $('price-change').style.color = ch > 0 ? 'var(--accent-green)' : (ch < 0 ? 'var(--accent-red)' : 'var(--text-secondary)');
+    }
+    
+    // TC Levels
+    setT('r3v', usePv.r3.toFixed(pr)); setT('r2v', usePv.r2.toFixed(pr)); setT('r1v', usePv.r1.toFixed(pr));
+    setT('pivotv', usePv.pivot.toFixed(pr)); setT('s1v', usePv.s1.toFixed(pr)); setT('s2v', usePv.s2.toFixed(pr)); setT('s3v', usePv.s3.toFixed(pr));
+    setT('lastv', p.toFixed(pr)); setT('bbuv', bb.up.toFixed(pr)); setT('bblv', bb.lo.toFixed(pr)); setT('bbmv', bb.mid.toFixed(pr));
+    setT('tc-bias-val', tcB);
+    setC('tc-bias-val', 'tc-bias '+tcB.toLowerCase());
+    var activeSessionName = sessionData ? (SESSION_NAMES[sessionData.name]||(sessionData.label+' SESSION INTRADAY')) : 'INTRADAY';
+    setT('tc-upd', activeSessionName);
+    setC('tc-upd', 'tc-update active-session');
+    
+    var sessionWarn = $('session-warning');
+    if (sessionData && sessionData.name !== 'WEEKEND') {
+        var sessDur = getSessionDuration(sessionData);
+        var remaining = sessionData.start + sessDur - Date.now();
+        if (remaining > 0 && remaining < 900000) {
+            if (!sessionWarningActive) { sessionWarn.classList.add('show'); sessionWarningActive = true; }
+        } else {
+            if (sessionWarningActive) { sessionWarn.classList.remove('show'); sessionWarningActive = false; }
+        }
+    } else {
+        if (sessionWarningActive) { sessionWarn.classList.remove('show'); sessionWarningActive = false; }
+    }
+    
+    // Metrics
+    setT('ma20-val', ma20.toFixed(pr)); setT('ma50-val', 'MA50: '+ma50.toFixed(pr));
+    setT('ma-trend', p > ma20 ? '▲' : '▼');
+    $('ma-trend').style.color = p > ma20 ? 'var(--accent-green)' : 'var(--accent-red)';
+    setT('adx-val', Math.round(adx.adx)+'');
+    setT('di-val', '+'+Math.round(adx.pDI)+' | -'+Math.round(adx.mDI));
+    setT('adx-trend', adx.pDI > adx.mDI ? '▲' : '▼');
+    $('adx-trend').style.color = adx.pDI > adx.mDI ? 'var(--accent-green)' : 'var(--accent-red)';
+    setT('rsi-val', Math.round(rsi)+''); setT('atr-val', 'ATR: '+atr.toFixed(pr));
+    setT('rsi-trend', rsi > 50 ? '▲' : '▼');
+    $('rsi-trend').style.color = rsi > 50 ? 'var(--accent-green)' : 'var(--accent-red)';
+    
+    // SMC
+    var nf = smc.nearFVG(p), no = smc.nearOB(p), sw = smc.lastSw;
+    if (nf && nf.bot != null) { setT('fvg-val', nf.t+' '+nf.bot.toFixed(pr)+'-'+nf.top.toFixed(pr)); setT('fvg-det', 'Gap:'+(nf.top-nf.bot).toFixed(pr)); }
+    else { setT('fvg-val', '—'); setT('fvg-det', '—'); }
+    if (no && no.l != null) { setT('ob-val', no.t+' '+no.l.toFixed(pr)+'-'+no.h.toFixed(pr)); setT('ob-det', 'Ent:'+no.o.toFixed(pr)); }
+    else { setT('ob-val', '—'); setT('ob-det', '—'); }
+    if (sw && sw.lvl != null) { setT('sw-val', sw.t); setT('sw-det', 'Lvl:'+sw.lvl.toFixed(pr)); }
+    else { setT('sw-val', '—'); setT('sw-det', '—'); }
+    setT('smc-upd', 'Upd: '+new Date().toLocaleTimeString('id-ID'));
+    
+    // SIGNAL RENDER
+    if (displaySignal) {
+        var isB = displaySignal.bias === 'BULLISH', sc = isB ? 'var(--accent-green)' : 'var(--accent-red)';
+        if (activeSignal && activeSignal.action !== 'WAIT') {
+            setT('sig-status', activeSignal.bias+' SIGNAL');
+            $('sig-status').style.color = sc;
+            setT('sig-arrow', isB ? '▲▲' : '▼▼');
+            $('sig-arrow').style.color = sc;
+            var ct = 'LOW', cc = 'low';
+            if (activeSignal.conf >= 75) { ct = 'HIGH'; cc = 'high'; }
+            else if (activeSignal.conf >= 60) { ct = 'MED'; cc = 'medium'; }
+            setT('sig-conf', ct); setC('sig-conf', 'conf-badge '+cc);
+            $('fusion-bar').classList.remove('stale-signal');
+        } else {
+            setT('sig-status', isStaleSignal ? 'WAITING (STALE)' : 'WAITING');
+            $('sig-status').style.color = 'var(--text-tertiary)';
+            setT('sig-arrow', '—'); setT('sig-conf', 'WAIT');
+            setC('sig-conf', 'conf-badge low');
+            if (isStaleSignal) $('fusion-bar').classList.add('stale-signal');
+            else $('fusion-bar').classList.remove('stale-signal');
+        }
+        setT('sig-decision', 'FUSION: '+displaySignal.bias);
+        setT('sig-strength', ''+displaySignal.conf+'%');
+        setT('sig-reason', displaySignal.reason||'—');
+        if (displaySignal.rr != null) {
+            var rrClass = displaySignal.rr >= 2 ? 'good' : (displaySignal.rr >= (isScalpingMode?SCALP_CFG.minRR:CFG[pair].minRR) ? 'ok' : 'bad');
+            setT('sig-rr', 'RR: '+displaySignal.rr.toFixed(2));
+            setC('sig-rr', 'rr-badge '+rrClass);
+        } else { setT('sig-rr', ''); setC('sig-rr', ''); }
+        if (displaySignal.entry) {
+            setT('entry-lo', displaySignal.entry.lo != null ? displaySignal.entry.lo.toFixed(pr) : '—');
+            setT('entry-hi', displaySignal.entry.hi != null ? displaySignal.entry.hi.toFixed(pr) : '—');
+        } else { setT('entry-lo', '—'); setT('entry-hi', '—'); }
+        setT('sl-val', displaySignal.sl != null ? displaySignal.sl.toFixed(pr) : '—');
+        setT('inv-val', displaySignal.sl != null ? displaySignal.sl.toFixed(pr) : '—');
+        setT('tp1-val', displaySignal.tp[0] != null ? displaySignal.tp[0].toFixed(pr) : '—');
+        setT('tp2-val', displaySignal.tp[1] != null ? displaySignal.tp[1].toFixed(pr) : '—');
+    } else {
+        setT('sig-status', 'INIT'); $('sig-status').style.color = 'var(--text-tertiary)';
+        setT('sig-arrow', '—'); setT('sig-conf', '--'); setC('sig-conf', 'conf-badge low');
+        setT('sig-decision', 'FUSION: --'); setT('sig-strength', 'Conf: --%');
+        setT('sig-reason', '—'); setT('sig-rr', '');
+        setT('entry-lo', '—'); setT('entry-hi', '—');
+        setT('sl-val', '—'); setT('inv-val', '—');
+        setT('tp1-val', '—'); setT('tp2-val', '—');
+        $('fusion-bar').classList.remove('stale-signal');
+    }
+    
+    var actionCards = document.querySelectorAll('.action-card');
+    var staleNotice = $('stale-notice');
+    if (isStaleSignal && !activeSignal) {
+        actionCards.forEach(function(c) { c.classList.add('stale'); });
+        if (staleNotice) staleNotice.classList.add('show');
+    } else {
+        actionCards.forEach(function(c) { c.classList.remove('stale'); });
+        if (staleNotice) staleNotice.classList.remove('show');
+    }
+    
+    prevPrice = p;
+    updateMTF();
+    updateCooldownUI();
 }
 
-function getSessionDuration(session){
- if(session.name==='ASIA'){var sd=new Date(session.start),ed=new Date(sd);ed.setUTCHours(8,0,0,0);if(ed<=sd)ed.setUTCDate(ed.getUTCDate()+1);return ed.getTime()-sd.getTime();}
- if(session.name==='LONDON'){var sd=new Date(session.start),ed=new Date(sd);ed.setUTCHours(16,0,0,0);if(ed<=sd)ed.setUTCDate(ed.getUTCDate()+1);return ed.getTime()-sd.getTime();}
- if(session.name==='NY'){var sd=new Date(session.start),ed=new Date(sd);ed.setUTCHours(22,0,0,0);if(ed<=sd)ed.setUTCDate(ed.getUTCDate()+1);return ed.getTime()-sd.getTime();}
- return 28800000;
-}
-
-function updateMTF(){
- var cb=activeSignal&&activeSignal.bias?activeSignal.bias:'NEUTRAL';
- ['h4','h1','m30','m15','m5'].forEach(function(key){var sym=document.getElementById('sym-'+key);if(sym){sym.textContent=SYM[mtf[key]]||'●';sym.className='tf-bias-symbol '+mtf[key].toLowerCase();}});
- document.querySelectorAll('.tf-btn').forEach(function(btn){var tff=btn.dataset.tf,key=MTF_MAP[tff],cached=mtf[key];btn.classList.remove('aligned','conflict','warning');if(cb!=='NEUTRAL'&&cached&&cached!=='NEUTRAL'){if(cached===cb)btn.classList.add('aligned');else if(LARGE_TF.indexOf(key)>=0)btn.classList.add('conflict');else btn.classList.add('warning');}});
+function updateMTF() {
+    var cb = activeSignal && activeSignal.bias ? activeSignal.bias : 'NEUTRAL';
+    ['h4','h1','m30','m15','m5'].forEach(function(key) {
+        var sym = document.getElementById('sym-'+key);
+        if (sym) {
+            sym.textContent = SYM[mtf[key]] || '●';
+            sym.className = 'tf-bias-symbol ' + mtf[key].toLowerCase();
+        }
+    });
+    document.querySelectorAll('.tf-btn').forEach(function(btn) {
+        var tff = btn.dataset.tf, key = MTF_MAP[tff], cached = mtf[key];
+        btn.classList.remove('aligned','conflict','warning');
+        if (cb !== 'NEUTRAL' && cached && cached !== 'NEUTRAL') {
+            if (cached === cb) btn.classList.add('aligned');
+            else if (LARGE_TF.indexOf(key) >= 0) btn.classList.add('conflict');
+            else btn.classList.add('warning');
+        }
+    });
 }
 
 // ===========================
-// WEBSOCKET & FALLBACK
+// FETCH KLINE & MTF
 // ===========================
-function cleanWS(){if(ws){manualOff=true;try{ws.onopen=ws.onmessage=ws.onclose=ws.onerror=null;if(ws.readyState<2)ws.close();}catch(e){}ws=null;}if(hbT){clearInterval(hbT);hbT=null;}if(fbT){clearInterval(fbT);fbT=null;}}
-function scheduleReconnect(){if(wsRT)clearTimeout(wsRT);if(manualOff||isLoading)return;wsRT=setTimeout(function(){if(!manualOff&&!isLoading){recDelay=Math.min(recDelay*1.5,30000);connectWS();}},recDelay);}
-function setStatus(s,m){setC('status-dot','status-dot '+s);setT('status-text',m);if(s==='live'){isFB=false;isStale=false;recDelay=1500;}else if(s==='fallback')isFB=true;else if(s==='stale')isStale=true;}
-function startFB(){if(fbT)clearInterval(fbT);fbT=setInterval(async function(){try{var r=await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair);if(!r.ok)return;var d=await r.json();if(d&&d.price){var prc=+d.price;if(prc>0&&(Date.now()-lastMsg>3000||isFB)){lastUpd=Date.now();price=prc;analyze();}}}catch(e){}},4000);}
-
-async function fetchKL(){
- try{var r=await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval='+tf+'&limit=300');if(!r.ok)return false;var d=await r.json();if(Array.isArray(d)&&d.length>0){buf=[];d.forEach(function(k){pushCandle({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]});});var lst=buf[buf.length-1];if(lst){price=lst.c;prevPrice=lst.c;lastUpd=Date.now();}activeSignal=null;lastGeneratedSignal=null;lastSignalTimestamp=0;analyze();return true;}}catch(e){}return false;
+async function fetchKL() {
+    try {
+        var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval='+tf+'&limit=300');
+        if (!r.ok) return false;
+        var d = await r.json();
+        if (Array.isArray(d) && d.length > 0) {
+            buf = [];
+            d.forEach(function(k) {
+                pushCandle({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]});
+            });
+            var lst = buf[buf.length-1];
+            if (lst) { price = lst.c; prevPrice = lst.c; lastUpd = Date.now(); }
+            activeSignal = null; lastGeneratedSignal = null; lastSignalTimestamp = 0;
+            analyze();
+            return true;
+        }
+    } catch(e) {}
+    return false;
 }
 
-function connectWS(){
- cleanWS();if(wsRT){clearTimeout(wsRT);wsRT=null;}setStatus('connecting','CONNECT');
- try{ws=new WebSocket('wss://fstream.binance.com/ws/'+pair.toLowerCase()+'@kline_'+tf);ws.onopen=function(){recDelay=1500;lastMsg=lastUpd=Date.now();isFB=false;isStale=false;setStatus('live','LIVE');if(fbT){clearInterval(fbT);fbT=null;}hbT=setInterval(function(){if(ws&&ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({method:'ping'}));},25000);};ws.onmessage=function(e){try{var m=JSON.parse(e.data);if(m&&m.k){var k=m.k,prc=+k.c;if(prc>0){lastMsg=lastUpd=Date.now();if(isFB)setStatus('live','LIVE');if(isStale)setStatus('live','LIVE');pushCandle({t:k.t,o:+k.o,h:+k.h,l:+k.l,c:prc,v:+k.v});price=prc;analyze();}}}catch(e){}};ws.onclose=function(){if(hbT){clearInterval(hbT);hbT=null;}if(!isLoading&&!manualOff){setStatus('reconnect','RECON');scheduleReconnect();}};ws.onerror=function(){if(!isLoading&&!manualOff)setStatus('reconnect','ERROR');};}catch(e){setStatus('fallback','FALLBACK');isFB=true;startFB();}
+async function fetchMTF(pr, tff, key) {
+    try {
+        var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pr+'&interval='+tff+'&limit=150');
+        if (!r.ok) return;
+        var d = await r.json();
+        if (Array.isArray(d) && d.length >= 50) {
+            var fd = d.map(function(k) {
+                return {t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]};
+            });
+            var cf = CFG[pr], p2 = fd[fd.length-1].c;
+            var ma20 = MA(fd, cf.maF), ma50 = MA(fd, cf.maS), adx = ADX(fd);
+            var bias = 'NEUTRAL';
+            if (adx.adx >= cf.adxTh) {
+                if (p2 > ma20 && p2 > ma50 && adx.pDI > adx.mDI) bias = 'BULLISH';
+                else if (p2 < ma20 && p2 < ma50 && adx.mDI > adx.pDI) bias = 'BEARISH';
+            }
+            mtf[key] = bias;
+        }
+    } catch(e) {}
 }
 
-setInterval(function(){var n=Date.now();if(n-lastUpd>12000&&price>0&&!isStale){setStatus('stale','STALE');isStale=true;}else if(isStale&&n-lastUpd<5000){setStatus(isFB?'fallback':'live',isFB?'FALLBACK':'LIVE');isStale=false;}if(ws&&ws.readyState===WebSocket.OPEN&&n-lastMsg>12000&&!isFB&&!isLoading){setStatus('fallback','FALLBACK');isFB=true;startFB();}},4000);
-setInterval(function(){if(cooldownRemaining>0)updateCooldownUI();},1000);
+async function updateAllMTF() {
+    var tasks = Object.entries(MTF_MAP).map(function(e) {
+        return fetchMTF(pair, e[0], e[1]);
+    });
+    await Promise.allSettled(tasks);
+    updateMTF();
+}
 
 // ===========================
-// RELOAD & INIT
+// RELOAD
 // ===========================
-async function reload(){
- if(isLoading)return;isLoading=true;manualOff=true;cleanWS();if(fbT){clearInterval(fbT);fbT=null;}if(wsRT){clearTimeout(wsRT);wsRT=null;}sessionHigh=0;sessionLow=0;activeSignal=null;lastGeneratedSignal=null;lastSignalTimestamp=0;
- updateScalpingMode();
- document.querySelectorAll('[data-pair]').forEach(function(b){b.classList.toggle('active',b.dataset.pair===pair);});
- document.querySelectorAll('.tf-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tf===tf);b.classList.remove('scalp-active');if(isScalpingMode&&SCALPING_TF.indexOf(b.dataset.tf)>=0&&b.classList.contains('active'))b.classList.add('scalp-active');});
- await fetchKL();manualOff=false;connectWS();updateAllMTF();isLoading=false;
+async function reload() {
+    if (isLoading) return;
+    isLoading = true;
+    manualOff = true;
+    
+    stopFallbackRoutine();
+    cleanupWSResources();
+    if (wsRT) { clearTimeout(wsRT); wsRT = null; }
+    
+    sessionHigh = 0; sessionLow = 0;
+    activeSignal = null; lastGeneratedSignal = null; lastSignalTimestamp = 0;
+    reconnectAttempts = 0;
+    
+    updateScalpingMode();
+    
+    document.querySelectorAll('[data-pair]').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.pair === pair);
+    });
+    document.querySelectorAll('.tf-btn').forEach(function(b) {
+        b.classList.toggle('active', b.dataset.tf === tf);
+        b.classList.remove('scalp-active');
+        if (isScalpingMode && SCALPING_TF.indexOf(b.dataset.tf) >= 0 && b.classList.contains('active')) {
+            b.classList.add('scalp-active');
+        }
+    });
+    
+    await fetchKL();
+    
+    manualOff = false;
+    isLoading = false;
+    
+    transitionTo(ConnState.DISCONNECTED);
+    connectWS();
+    updateAllMTF();
 }
 
-async function fetchMTF(pr,tff,key){
- try{var r=await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pr+'&interval='+tff+'&limit=150');if(!r.ok)return;var d=await r.json();if(Array.isArray(d)&&d.length>=50){var fd=d.map(function(k){return{t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]};});var cf=CFG[pr],p2=fd[fd.length-1].c;var ma20=MA(fd,cf.maF),ma50=MA(fd,cf.maS),adx=ADX(fd);var bias='NEUTRAL';if(adx.adx>=cf.adxTh){if(p2>ma20&&p2>ma50&&adx.pDI>adx.mDI)bias='BULLISH';else if(p2<ma20&&p2<ma50&&adx.mDI>adx.pDI)bias='BEARISH';}mtf[key]=bias;}}catch(e){}
+// ===========================
+// EVENT LISTENERS
+// ===========================
+var switchTimeout = null;
+document.querySelectorAll('[data-pair]').forEach(function(b) {
+    b.addEventListener('click', function() {
+        if (isLoading) return;
+        pair = this.dataset.pair;
+        if (switchTimeout) clearTimeout(switchTimeout);
+        switchTimeout = setTimeout(function() { reload(); }, 150);
+    });
+});
+document.querySelectorAll('.tf-btn').forEach(function(b) {
+    b.addEventListener('click', function() {
+        if (isLoading) return;
+        tf = this.dataset.tf;
+        updateScalpingMode();
+        if (switchTimeout) clearTimeout(switchTimeout);
+        switchTimeout = setTimeout(function() { reload(); }, 150);
+    });
+});
+document.getElementById('fusion-bar').addEventListener('click', copySetup);
+document.getElementById('copy-btn').addEventListener('click', copySetup);
+
+function copySetup() {
+    var sig = activeSignal || lastGeneratedSignal;
+    if (!sig) { alert('Tidak ada sinyal untuk disalin.'); return; }
+    var pr = CFG[pair].prec;
+    var entryRange = sig.entry ? (sig.entry.lo.toFixed(pr)+'-'+sig.entry.hi.toFixed(pr)) : '—';
+    var rrText = sig.rr != null ? ' | RR: '+sig.rr.toFixed(2) : '';
+    var txt = 'URA v5.2 | '+pair+' '+tf+' | '+(isScalpingMode?'SCALP':'INTRADAY')+'\n'+
+              'Bias: '+sig.bias+' | Conf: '+sig.conf+'%'+rrText+'\n'+
+              'Status: '+(sig.action||'N/A')+'\n'+
+              'Entry: '+entryRange+'\n'+
+              'SL: '+(sig.sl?sig.sl.toFixed(pr):'—')+'\n'+
+              'TP1: '+(sig.tp[0]?sig.tp[0].toFixed(pr):'—')+'\n'+
+              'TP2: '+(sig.tp[1]?sig.tp[1].toFixed(pr):'—');
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(txt).catch(function() { alert('Gagal menyalin.'); });
+    } else {
+        alert('Clipboard API tidak didukung.');
+    }
 }
 
-async function updateAllMTF(){var tasks=Object.entries(MTF_MAP).map(function(e){return fetchMTF(pair,e[0],e[1]);});await Promise.allSettled(tasks);updateMTF();}
-
-var switchTimeout=null;
-document.querySelectorAll('[data-pair]').forEach(function(b){b.addEventListener('click',function(){if(isLoading)return;pair=this.dataset.pair;if(switchTimeout)clearTimeout(switchTimeout);switchTimeout=setTimeout(function(){reload();},150);});});
-document.querySelectorAll('.tf-btn').forEach(function(b){b.addEventListener('click',function(){if(isLoading)return;tf=this.dataset.tf;updateScalpingMode();if(switchTimeout)clearTimeout(switchTimeout);switchTimeout=setTimeout(function(){reload();},150);});});
-document.getElementById('fusion-bar').addEventListener('click',copySetup);
-document.getElementById('copy-btn').addEventListener('click',copySetup);
-
-function copySetup(){
- var sig=activeSignal||lastGeneratedSignal;if(!sig){alert('Tidak ada sinyal untuk disalin.');return;}
- var pr=CFG[pair].prec;var entryRange=sig.entry?(sig.entry.lo.toFixed(pr)+'-'+sig.entry.hi.toFixed(pr)):'—';var rrText=sig.rr!=null?' | RR: '+sig.rr.toFixed(2):'';
- var txt='URA v5.1 | '+pair+' '+tf+' | '+(isScalpingMode?'SCALP':'INTRADAY')+'\n'+'Bias: '+sig.bias+' | Conf: '+sig.conf+'%'+rrText+'\n'+'Status: '+(sig.action||'N/A')+'\n'+'Entry: '+entryRange+'\n'+'SL: '+(sig.sl?sig.sl.toFixed(pr):'—')+'\n'+'TP1: '+(sig.tp[0]?sig.tp[0].toFixed(pr):'—')+'\n'+'TP2: '+(sig.tp[1]?sig.tp[1].toFixed(pr):'—');
- if(navigator.clipboard){navigator.clipboard.writeText(txt).catch(function(){alert('Gagal menyalin.');});}else{alert('Clipboard API tidak didukung.');}
+// ===========================
+// INIT
+// ===========================
+function init() {
+    try {
+        var saved = localStorage.getItem('ura-theme');
+        if (saved === 'dark' || saved === 'light') currentTheme = saved;
+    } catch(e) {}
+    setTheme(currentTheme);
+    
+    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+    
+    var tcGrid = $('tc-grid'), tcToast = $('tc-copy-toast');
+    tcGrid.addEventListener('click', function(e) {
+        var row = e.target.closest('.tc-row');
+        if (!row) return;
+        tcCopyRow(row, tcToast);
+    });
+    
+    updateScalpingMode();
+    
+    setInterval(function() {
+        var n = new Date();
+        setT('clock', n.toLocaleTimeString('id-ID'));
+        setT('date', ('0'+n.getDate()).slice(-2)+'/'+('0'+(n.getMonth()+1)).slice(-2)+'/'+n.getFullYear());
+        var sess = getCurrentSession();
+        setT('session', sess.name);
+    }, 1000);
+    
+    setInterval(function() {
+        if (!isLoading) updateAllMTF();
+    }, 30000);
+    
+    reload();
 }
 
-function init(){
- try{var saved=localStorage.getItem('ura-theme');if(saved==='dark'||saved==='light')currentTheme=saved;}catch(e){}setTheme(currentTheme);
- document.getElementById('theme-toggle-btn').addEventListener('click',toggleTheme);
- var tcGrid=$('tc-grid'),tcToast=$('tc-copy-toast');tcGrid.addEventListener('click',function(e){var row=e.target.closest('.tc-row');if(!row)return;tcCopyRow(row,tcToast);});
- updateScalpingMode();
- setInterval(function(){var n=new Date();setT('clock',n.toLocaleTimeString('id-ID'));setT('date',('0'+n.getDate()).slice(-2)+'/'+('0'+(n.getMonth()+1)).slice(-2)+'/'+n.getFullYear());var sess=getCurrentSession();setT('session',sess.name);},1000);
- setInterval(function(){if(!isLoading)updateAllMTF();},45000);
- reload();
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
 }
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}else{init();}
+
 })();
 </script>
 </body>
