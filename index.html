@@ -279,7 +279,7 @@ var CFG = {
     XAUUSDT: {adxTh:22,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:2,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000},
     BTCUSDT: {adxTh:20,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:1,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000}
 };
-var SCALP_CFG = {minConf:45,minRR:1.0,slATR:0.5,tpATR1:1.0,tpATR2:2.0,entryWidth:0.25,maxSMC:1.5,momW:0.40,smcW:0.35,paW:0.25,adxTh:15,cooldown:60000};
+var SCALP_CFG = {minConf:45,minRR:1.0,slATR:0.5,tpATR1:1.0,tpATR2:2.0,entryWidth:0.25,maxSMC:1.5,cooldown:60000};
 var MTF_MAP = {'4h':'h4','1h':'h1','30m':'m30','15m':'m15','5m':'m5'};
 var MTF_KEYS = ['h4','h1','m30','m15','m5'];
 var LARGE_TF = ['h4','h1'];
@@ -752,7 +752,7 @@ function getCooldownForTF(tfKey) {
 }
 
 // ===========================
-// ENGINE 1: INTRADAY
+// ENGINE 1: INTRADAY (TIDAK BERUBAH)
 // ===========================
 function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
     var s = {action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
@@ -858,90 +858,190 @@ function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
 }
 
 // ===========================
-// ENGINE 2: SCALPING
+// ENGINE 2: SCALPING (REVISED: TREND + SWEEP + MOMENTUM)
 // ===========================
 function genFusionScalping(smcS, p, lv) {
     var s = {action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
     var sc = SCALP_CFG;
-    var bullScore = 0, bearScore = 0;
     var arr = getCandles();
-    if (arr.length < 15) return s;
+    if (arr.length < 20) return s;
     
-    var latest = arr[arr.length-1], prev = arr[arr.length-2];
-    var body = Math.abs(latest.c-latest.o), range = latest.h-latest.l;
-    var bodyRatio = range > 0 ? body/range : 0;
-    var direction = latest.c > latest.o ? 'BULL' : 'BEAR';
-    var momScore = Math.round(bodyRatio * 40 * sc.momW);
-    if (direction === 'BULL' && bodyRatio > 0.4) bullScore += momScore;
-    else if (direction === 'BEAR' && bodyRatio > 0.4) bearScore += momScore;
+    var trendScore = 0;
+    var sweepScore = 0;
+    var momentumScore = 0;
+    var bullScore = 0, bearScore = 0;
     
-    if (smcS.bias === 'BULLISH') bullScore += Math.round(smcS.str * sc.smcW);
-    else if (smcS.bias === 'BEARISH') bearScore += Math.round(smcS.str * sc.smcW);
+    // ==========================================
+    // 1. TREND (MA20 + MA50)
+    // ==========================================
+    var ma20 = MA(arr, 20);
+    var ma50 = MA(arr, 50);
     
-    var highs = [];
-    for (var i = arr.length-8; i < arr.length-1; i++) {
-        if (i > 0 && i < arr.length-1) {
-            if (arr[i].h > arr[i-1].h && arr[i].h > arr[i+1].h) highs.push(arr[i].h);
+    if (p > ma20 && p > ma50) {
+        bullScore += 40;
+        trendScore = 40;
+    } else if (p < ma20 && p < ma50) {
+        bearScore += 40;
+        trendScore = 40;
+    } else if (p > ma20) {
+        bullScore += 20;
+        trendScore = 20;
+    } else if (p < ma20) {
+        bearScore += 20;
+        trendScore = 20;
+    }
+    
+    // MA crossover
+    if (ma20 > ma50) {
+        bullScore += 15;
+        trendScore += 15;
+    } else if (ma20 < ma50) {
+        bearScore += 15;
+        trendScore += 15;
+    }
+    
+    // ==========================================
+    // 2. SWEEP (dari SMC detector)
+    // ==========================================
+    if (smcS.bias === 'BULLISH') {
+        bullScore += smcS.str;
+        sweepScore = smcS.str;
+    } else if (smcS.bias === 'BEARISH') {
+        bearScore += smcS.str;
+        sweepScore = smcS.str;
+    }
+    
+    // Deteksi sweep terbaru dari SMC
+    var smcDetect = detectSMC(arr, currentATR || p*0.002);
+    if (smcDetect.lastSw) {
+        var lastSw = smcDetect.lastSw;
+        if (lastSw.t === 'SW_L') {
+            bullScore += 25;
+            sweepScore += 25;
+        } else if (lastSw.t === 'SW_H') {
+            bearScore += 25;
+            sweepScore += 25;
         }
     }
-    if (highs.length >= 2 && highs[highs.length-1] > highs[highs.length-2]) bullScore += Math.round(25*sc.paW);
-    var currLow = Math.min(latest.l, prev.l), prevLow = Math.min(arr[arr.length-3].l, arr[arr.length-4].l);
-    if (currLow < prevLow) bearScore += Math.round(25*sc.paW);
     
-    if (arr.length >= 28) {
-        var adx = ADX(arr);
-        if (adx.adx >= sc.adxTh) {
-            if (adx.pDI > adx.mDI) bullScore += 10;
-            else bearScore += 10;
+    // ==========================================
+    // 3. MOMENTUM (Candle body + consecutive)
+    // ==========================================
+    var latest = arr[arr.length-1];
+    var prev = arr[arr.length-2];
+    
+    if (latest && prev) {
+        var body = Math.abs(latest.c - latest.o);
+        var range = latest.h - latest.l;
+        var bodyRatio = range > 0 ? body / range : 0;
+        
+        // Strong momentum
+        if (latest.c > latest.o && bodyRatio > 0.55) {
+            bullScore += 35;
+            momentumScore = 35;
+        } else if (latest.c < latest.o && bodyRatio > 0.55) {
+            bearScore += 35;
+            momentumScore = 35;
+        }
+        // Moderate momentum
+        else if (latest.c > latest.o && bodyRatio > 0.35) {
+            bullScore += 18;
+            momentumScore = 18;
+        } else if (latest.c < latest.o && bodyRatio > 0.35) {
+            bearScore += 18;
+            momentumScore = 18;
+        }
+        
+        // Consecutive candles momentum
+        var prevBody = Math.abs(prev.c - prev.o);
+        var prevDir = prev.c > prev.o ? 'BULL' : 'BEAR';
+        var currDir = latest.c > latest.o ? 'BULL' : 'BEAR';
+        
+        if (prevDir === currDir && body > prevBody * 1.2) {
+            if (currDir === 'BULL') {
+                bullScore += 20;
+                momentumScore += 20;
+            } else {
+                bearScore += 20;
+                momentumScore += 20;
+            }
         }
     }
+    
+    // ==========================================
+    // ENTRY LEVELS
+    // ==========================================
+    var atr = (currentATR && currentATR > 0) ? currentATR : (p * 0.003);
+    if (atr > p * 0.015) atr = p * 0.008;
     
     var isBullDominant = bullScore > bearScore;
-    var atr = (currentATR && currentATR > 0) ? currentATR : (p*0.002);
-    if (isScalpingMode && atr > p*0.01) atr = p*0.005;
     
-    if (smcS.entry && smcS.entry.lo != null) {
-        var mid = (smcS.entry.lo+smcS.entry.hi)/2;
-        var hw = (smcS.entry.hi-smcS.entry.lo) * sc.entryWidth;
-        s.entry = {lo:mid-hw,hi:mid+hw};
-    } else if (isBullDominant) {
-        s.entry = {lo:p-atr*0.15,hi:p};
+    if (isBullDominant) {
+        s.entry = { lo: p - atr * 0.2, hi: p };
+        s.sl = p - atr * sc.slATR;
+        s.tp = [p + atr * sc.tpATR1, p + atr * sc.tpATR2];
     } else {
-        s.entry = {lo:p,hi:p+atr*0.15};
+        s.entry = { lo: p, hi: p + atr * 0.2 };
+        s.sl = p + atr * sc.slATR;
+        s.tp = [p - atr * sc.tpATR1, p - atr * sc.tpATR2];
     }
     
-    if (isBullDominant) s.sl = s.entry.lo - atr*sc.slATR;
-    else s.sl = s.entry.hi + atr*sc.slATR;
+    // ==========================================
+    // DECISION
+    // ==========================================
+    var totalScore = Math.max(bullScore, bearScore);
     
-    if (isBullDominant) s.tp = [p+atr*sc.tpATR1, p+atr*sc.tpATR2];
-    else s.tp = [p-atr*sc.tpATR1, p-atr*sc.tpATR2];
-    
-    if (isBullDominant && bullScore >= sc.minConf) {
-        s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.round(bullScore);
-        s.reason = 'Bull (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';
-    } else if (!isBullDominant && bearScore >= sc.minConf) {
-        s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.round(bearScore);
-        s.reason = 'Bear (MOM:'+momScore+' SMC:'+Math.round(smcS.str*sc.smcW)+')';
+    if (isBullDominant && totalScore >= sc.minConf) {
+        s.action = 'BUY';
+        s.bias = 'BULLISH';
+        s.conf = Math.min(100, Math.round(totalScore));
+        s.reason = `📈 T:${trendScore} Sw:${sweepScore} M:${momentumScore}`;
+    } else if (!isBullDominant && totalScore >= sc.minConf) {
+        s.action = 'SELL';
+        s.bias = 'BEARISH';
+        s.conf = Math.min(100, Math.round(totalScore));
+        s.reason = `📉 T:${trendScore} Sw:${sweepScore} M:${momentumScore}`;
     } else {
         s.bias = isBullDominant ? 'BULLISH' : 'BEARISH';
-        s.conf = Math.round(Math.max(bullScore,bearScore));
-        s.reason = 'Low ('+s.conf+'<'+sc.minConf+')';
+        s.conf = Math.min(100, Math.round(totalScore));
+        s.reason = `Low (${totalScore}<${sc.minConf}) T:${trendScore} Sw:${sweepScore} M:${momentumScore}`;
     }
     
+    // ==========================================
+    // RR CHECK
+    // ==========================================
     if (s.entry && s.sl && s.tp[0] && s.action !== 'WAIT') {
-        var entryMid2, risk2, reward2;
-        if (s.bias === 'BULLISH') { entryMid2 = s.entry.lo; risk2 = entryMid2-s.sl; reward2 = s.tp[0]-entryMid2; }
-        else { entryMid2 = s.entry.hi; risk2 = s.sl-entryMid2; reward2 = entryMid2-s.tp[0]; }
-        if (risk2 > 0 && reward2 > 0) {
-            var rr2 = reward2/risk2; s.rr = rr2;
-            if (rr2 < sc.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR'; }
+        var entryMid, risk, reward;
+        if (s.bias === 'BULLISH') {
+            entryMid = s.entry.lo;
+            risk = entryMid - s.sl;
+            reward = s.tp[0] - entryMid;
+        } else {
+            entryMid = s.entry.hi;
+            risk = s.sl - entryMid;
+            reward = entryMid - s.tp[0];
+        }
+        if (risk > 0 && reward > 0) {
+            var rr = reward / risk;
+            s.rr = parseFloat(rr.toFixed(2));
+            if (rr < sc.minRR) {
+                s.action = 'WAIT';
+                s.reason = `Bad RR (${s.rr}<${sc.minRR})`;
+                s.conf = 0;
+            }
         }
     }
     
+    // ==========================================
+    // COOLDOWN
+    // ==========================================
     var now = Date.now();
-    if (now-lastSignalTimestamp < sc.cooldown && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') {
-        s.action = 'WAIT'; s.reason = 'Scalp Cooldown';
+    if (now - lastSignalTimestamp < sc.cooldown && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') {
+        s.action = 'WAIT';
+        s.reason = `Cooldown ${Math.round((sc.cooldown - (now - lastSignalTimestamp)) / 1000)}s`;
+        s.conf = 0;
     }
+    
     s.conf = Math.min(100, Math.max(0, s.conf));
     return s;
 }
@@ -953,7 +1053,7 @@ function transitionTo(newState) {
     var oldState = connectionState;
     if (oldState === newState) return;
     connectionState = newState;
-    console.log('[STATE] '+oldState+' \u2192 '+newState);
+    console.log('[STATE] '+oldState+' → '+newState);
     
     switch(newState) {
         case ConnState.LIVE:
@@ -962,7 +1062,6 @@ function transitionTo(newState) {
             recDelay = 1500;
             isStale = false;
             zombieClose = false;
-            // Flash connection badge green
             var badge = $('connection-badge');
             if (badge) { badge.classList.add('live-flash'); setTimeout(function(){ badge.classList.remove('live-flash'); }, 1000); }
             break;
@@ -1023,7 +1122,6 @@ async function fetchPriceFallback() {
     lastFallbackFetch = now;
     
     try {
-        // v5.2.4: Anti-cache header
         var r = await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair, {
             cache: 'no-store',
             headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
@@ -1310,7 +1408,7 @@ function showTCToast(el, msg) {
 }
 
 // ===========================
-// MAIN ANALYZE FUNCTION (v5.2.4 — Enhanced with Flash Feedback)
+// MAIN ANALYZE FUNCTION
 // ===========================
 function analyze() {
     var arr = getCandles();
@@ -1366,15 +1464,11 @@ function analyze() {
     var displaySignal = activeSignal || lastGeneratedSignal;
     var isStaleSignal = !!(!activeSignal && lastGeneratedSignal && lastGeneratedSignal.action === 'WAIT');
     
-    // RENDER PRICE (with flash)
+    // RENDER PRICE
     var f = p.toFixed(pr), pt = f.split('.');
     setH('price-display', pt[0]+'<span class="price-decimal">.'+(pt[1]||'00')+'</span>');
     var priceColor = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
-    var oldPriceColor = $('price-display').style.color;
     $('price-display').style.color = priceColor;
-    if (oldPriceColor !== priceColor && prevPrice > 0) {
-        flashElement($('price-display').parentElement, 'flash-update', 600);
-    }
     if (prevPrice > 0) {
         var ch = p - prevPrice, pct = (ch/prevPrice)*100;
         var changeText = (ch>0?'+':'')+ch.toFixed(pr)+' ('+pct.toFixed(2)+'%)';
@@ -1386,7 +1480,7 @@ function analyze() {
         else if (ch < 0) changeEl.classList.add('down');
     }
     
-    // TC Levels (with flash)
+    // TC Levels
     setT('r3v', usePv.r3.toFixed(pr), 'red');
     setT('r2v', usePv.r2.toFixed(pr), 'red');
     setT('r1v', usePv.r1.toFixed(pr), 'red');
@@ -1417,7 +1511,7 @@ function analyze() {
         if (sessionWarningActive) { sessionWarn.classList.remove('show'); sessionWarningActive = false; }
     }
     
-    // Metrics (with flash)
+    // Metrics
     setT('ma20-val', ma20.toFixed(pr), 'pulse');
     setT('ma50-val', 'MA50: '+ma50.toFixed(pr));
     setT('ma-trend', p > ma20 ? '▲' : '▼');
@@ -1436,7 +1530,7 @@ function analyze() {
     $('rsi-trend').style.color = rsi > 50 ? 'var(--accent-green)' : 'var(--accent-red)';
     flashElement($('card-rsi'), 'data-updated', 600);
     
-    // SMC (with flash)
+    // SMC
     var nf = smc.nearFVG(p), no = smc.nearOB(p), sw = smc.lastSw;
     if (nf && nf.bot != null) { setT('fvg-val', nf.t+' '+nf.bot.toFixed(pr)+'-'+nf.top.toFixed(pr)); setT('fvg-det', 'Gap:'+(nf.top-nf.bot).toFixed(pr)); flashElement($('smc-fvg'), 'data-updated', 600); }
     else { setT('fvg-val', '—'); setT('fvg-det', '—'); }
@@ -1446,7 +1540,7 @@ function analyze() {
     else { setT('sw-val', '—'); setT('sw-det', '—'); }
     setT('smc-upd', 'Upd: '+new Date().toLocaleTimeString('id-ID'));
     
-    // SIGNAL RENDER (with flash)
+    // SIGNAL RENDER
     if (displaySignal) {
         var isB = displaySignal.bias === 'BULLISH', sc = isB ? 'var(--accent-green)' : 'var(--accent-red)';
         if (activeSignal && activeSignal.action !== 'WAIT') {
@@ -1547,7 +1641,7 @@ function updateMTF() {
 }
 
 // ===========================
-// FETCH KLINE & MTF (v5.2.4 — Anti-cache)
+// FETCH KLINE & MTF
 // ===========================
 async function fetchKL() {
     try {
@@ -1765,7 +1859,6 @@ function init() {
     
     reload();
     
-    // v5.2.4: Cleanup on page unload
     window.addEventListener('beforeunload', function() {
         cleanupAllIntervals();
         cleanupWSResources();
