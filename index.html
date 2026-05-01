@@ -272,7 +272,7 @@ var SCALPING_TF = ['15m','5m'];
 var SESSION_NAMES = {ASIA:'ASIA SESSION',LONDON:'LONDON SESSION',NY:'NEW YORK SESSION',WEEKEND:'WEEKEND — 24H RANGE'};
 var SYM = {BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
 
-var PRICE_OFFSET = -2;
+var PRICE_OFFSET = -3;
 
 var ConnState = {DISCONNECTED:'disconnected',CONNECTING:'connecting',LIVE:'live',FALLBACK:'fallback',STALE:'stale',RECONNECTING:'reconnecting'};
 
@@ -384,7 +384,7 @@ function genFusionScalping(smcS, p, lv) {
     var isBullDominant = bullScore > bearScore;
     if (isBullDominant) { s.entry = { lo: p - atr * 0.2, hi: p }; s.sl = p - atr * sc.slATR; s.tp = [p + atr * sc.tpATR1, p + atr * sc.tpATR2]; } else { s.entry = { lo: p, hi: p + atr * 0.2 }; s.sl = p + atr * sc.slATR; s.tp = [p - atr * sc.tpATR1, p - atr * sc.tpATR2]; }
     var totalScore = Math.max(bullScore, bearScore);
-    if (isBullDominant && totalScore >= sc.minConf) { s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = '📈 T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; } else if (!isBullDominant && totalScore >= sc.minConf) { s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = '📉 T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; } else { s.bias = isBullDominant ? 'BULLISH' : 'BEARISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = 'Low ('+totalScore+'<'+sc.minConf+') T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; }
+    if (isBullDominant && totalScore >= sc.minConf) { s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = 'T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; } else if (!isBullDominant && totalScore >= sc.minConf) { s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = 'T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; } else { s.bias = isBullDominant ? 'BULLISH' : 'BEARISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = 'Low ('+totalScore+'<'+sc.minConf+') T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; }
     if (s.entry && s.sl && s.tp[0] && s.action !== 'WAIT') { var entryMid, risk, reward; if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid - s.sl; reward = s.tp[0] - entryMid; } else { entryMid = s.entry.hi; risk = s.sl - entryMid; reward = entryMid - s.tp[0]; } if (risk > 0 && reward > 0) { var rr = reward / risk; s.rr = parseFloat(rr.toFixed(2)); if (rr < sc.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR ('+s.rr+'<'+sc.minRR+')'; s.conf = 0; } } }
     var now = Date.now(); if (now - lastSignalTimestamp < sc.cooldown && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') { s.action = 'WAIT'; s.reason = 'Cooldown '+Math.round((sc.cooldown-(now-lastSignalTimestamp))/1000)+'s'; s.conf = 0; }
     s.conf = Math.min(100, Math.max(0, s.conf));
@@ -437,7 +437,7 @@ function analyze() {
     var smc = detectSMC(arr, atr), smcS = genSMC(p, smc);
 
     var newSignal;
-    if (isScalpingMode) { newSignal = genFusionScalping(smcS, p, usePv); if (newSignal.action !== 'WAIT') newSignal.reason = '⚡'+newSignal.reason; else newSignal.reason = '⚡'+newSignal.reason; }
+    if (isScalpingMode) { newSignal = genFusionScalping(smcS, p, usePv); if (newSignal.action !== 'WAIT') newSignal.reason = ''+newSignal.reason; else newSignal.reason = '⚡'+newSignal.reason; }
     else { newSignal = genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, usePv, sessionData); }
 
     lastGeneratedSignal = newSignal;
