@@ -3,540 +3,2032 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>URA v5.2.6 — FUSION CORE</title>
+    <title>URA v5.2.7 — FUSION CORE</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        *{margin:0;padding:0;box-sizing:border-box}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         :root,
-        [data-theme="dark"]{
-            --bg-primary:#0A0E15;--bg-secondary:#11161E;--bg-tertiary:#1A2330;--border-subtle:#2A3646;
-            --text-primary:#EDF2F7;--text-secondary:#9CA3AF;--text-tertiary:#6B7280;
-            --accent-green:#10B981;--accent-red:#EF4444;--accent-blue:#3B82F6;--accent-gold:#F59E0B;
-            --accent-cyan:#06B6D4;--accent-purple:#8B5CF6;--accent-orange:#F97316;--accent-pink:#EC4899;
-            --safe-bottom:env(safe-area-inset-bottom,0px);
-            --conf-high-bg:rgba(16,185,129,0.2);--conf-med-bg:rgba(245,158,11,0.2);--conf-low-bg:rgba(239,68,68,0.2);
-            --rr-good-bg:rgba(16,185,129,0.2);--rr-ok-bg:rgba(245,158,11,0.2);--rr-bad-bg:rgba(239,68,68,0.2);
-            --tc-key-bg:rgba(245,158,11,0.1);--stale-notice-bg:rgba(249,115,22,0.1);--session-warn-bg:rgba(245,158,11,0.1);
-            --version-tag-bg:rgba(245,158,11,0.15);--tc-bias-neutral-bg:var(--bg-tertiary);
-            --fusion-bg:linear-gradient(135deg,var(--bg-secondary),var(--bg-tertiary));
-            --scalp-bg:rgba(249,115,22,0.15);--scalp-active-bg:rgba(249,115,22,0.1);
-            --flash-green:rgba(16,185,129,0.5);--flash-red:rgba(239,68,68,0.5);
-            --flash-gold:rgba(245,158,11,0.5);--flash-cyan:rgba(6,182,212,0.5);
+        [data-theme="dark"] {
+            --bg-primary: #0A0E15;
+            --bg-secondary: #11161E;
+            --bg-tertiary: #1A2330;
+            --border-subtle: #2A3646;
+            --text-primary: #EDF2F7;
+            --text-secondary: #9CA3AF;
+            --text-tertiary: #6B7280;
+            --accent-green: #10B981;
+            --accent-red: #EF4444;
+            --accent-blue: #3B82F6;
+            --accent-gold: #F59E0B;
+            --accent-cyan: #06B6D4;
+            --accent-purple: #8B5CF6;
+            --accent-orange: #F97316;
+            --accent-pink: #EC4899;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --conf-high-bg: rgba(16, 185, 129, 0.2);
+            --conf-med-bg: rgba(245, 158, 11, 0.2);
+            --conf-low-bg: rgba(239, 68, 68, 0.2);
+            --rr-good-bg: rgba(16, 185, 129, 0.2);
+            --rr-ok-bg: rgba(245, 158, 11, 0.2);
+            --rr-bad-bg: rgba(239, 68, 68, 0.2);
+            --tc-key-bg: rgba(245, 158, 11, 0.1);
+            --stale-notice-bg: rgba(249, 115, 22, 0.1);
+            --session-warn-bg: rgba(245, 158, 11, 0.1);
+            --version-tag-bg: rgba(245, 158, 11, 0.15);
+            --tc-bias-neutral-bg: var(--bg-tertiary);
+            --fusion-bg: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+            --scalp-bg: rgba(249, 115, 22, 0.15);
+            --scalp-active-bg: rgba(249, 115, 22, 0.1);
+            --flash-green: rgba(16, 185, 129, 0.5);
+            --flash-red: rgba(239, 68, 68, 0.5);
+            --flash-gold: rgba(245, 158, 11, 0.5);
+            --flash-cyan: rgba(6, 182, 212, 0.5);
         }
 
-        [data-theme="light"]{
-            --bg-primary:#F7F8FA;--bg-secondary:#FFFFFF;--bg-tertiary:#EEF1F5;--border-subtle:#D1D5DB;
-            --text-primary:#1F2937;--text-secondary:#4B5563;--text-tertiary:#6B7280;
-            --accent-green:#059669;--accent-red:#DC2626;--accent-blue:#2563EB;--accent-gold:#D97706;
-            --accent-cyan:#0891B2;--accent-purple:#7C3AED;--accent-orange:#EA580C;--accent-pink:#DB2777;
-            --safe-bottom:env(safe-area-inset-bottom,0px);
-            --conf-high-bg:rgba(5,150,105,0.12);--conf-med-bg:rgba(217,119,6,0.12);--conf-low-bg:rgba(220,38,38,0.12);
-            --rr-good-bg:rgba(5,150,105,0.12);--rr-ok-bg:rgba(217,119,6,0.12);--rr-bad-bg:rgba(220,38,38,0.12);
-            --tc-key-bg:rgba(217,119,6,0.08);--stale-notice-bg:rgba(234,88,12,0.08);--session-warn-bg:rgba(217,119,6,0.08);
-            --version-tag-bg:rgba(217,119,6,0.12);--tc-bias-neutral-bg:#E5E7EB;
-            --fusion-bg:linear-gradient(135deg,var(--bg-secondary),var(--bg-tertiary));
-            --scalp-bg:rgba(234,88,12,0.12);--scalp-active-bg:rgba(234,88,12,0.08);
-            --flash-green:rgba(5,150,105,0.5);--flash-red:rgba(220,38,38,0.5);
-            --flash-gold:rgba(217,119,6,0.5);--flash-cyan:rgba(8,145,178,0.5);
+        [data-theme="light"] {
+            --bg-primary: #F7F8FA;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #EEF1F5;
+            --border-subtle: #D1D5DB;
+            --text-primary: #1F2937;
+            --text-secondary: #4B5563;
+            --text-tertiary: #6B7280;
+            --accent-green: #059669;
+            --accent-red: #DC2626;
+            --accent-blue: #2563EB;
+            --accent-gold: #D97706;
+            --accent-cyan: #0891B2;
+            --accent-purple: #7C3AED;
+            --accent-orange: #EA580C;
+            --accent-pink: #DB2777;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --conf-high-bg: rgba(5, 150, 105, 0.12);
+            --conf-med-bg: rgba(217, 119, 6, 0.12);
+            --conf-low-bg: rgba(220, 38, 38, 0.12);
+            --rr-good-bg: rgba(5, 150, 105, 0.12);
+            --rr-ok-bg: rgba(217, 119, 6, 0.12);
+            --rr-bad-bg: rgba(220, 38, 38, 0.12);
+            --tc-key-bg: rgba(217, 119, 6, 0.08);
+            --stale-notice-bg: rgba(234, 88, 12, 0.08);
+            --session-warn-bg: rgba(217, 119, 6, 0.08);
+            --version-tag-bg: rgba(217, 119, 6, 0.12);
+            --tc-bias-neutral-bg: #E5E7EB;
+            --fusion-bg: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+            --scalp-bg: rgba(234, 88, 12, 0.12);
+            --scalp-active-bg: rgba(234, 88, 12, 0.08);
+            --flash-green: rgba(5, 150, 105, 0.5);
+            --flash-red: rgba(220, 38, 38, 0.5);
+            --flash-gold: rgba(217, 119, 6, 0.5);
+            --flash-cyan: rgba(8, 145, 178, 0.5);
         }
 
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        @keyframes flashGreen{0%{background:var(--flash-green)}100%{background:transparent}}
-        @keyframes flashRed{0%{background:var(--flash-red)}100%{background:transparent}}
-        @keyframes flashGold{0%{background:var(--flash-gold)}100%{background:transparent}}
-        @keyframes flashCyan{0%{background:var(--flash-cyan)}100%{background:transparent}}
-        @keyframes flashUpdate{0%{box-shadow:inset 0 0 8px var(--accent-cyan)}100%{box-shadow:inset 0 0 0 transparent}}
-
-        .flash-green{animation:flashGreen 0.8s ease-out}
-        .flash-red{animation:flashRed 0.8s ease-out}
-        .flash-gold{animation:flashGold 0.8s ease-out}
-        .flash-cyan{animation:flashCyan 0.8s ease-out}
-        .flash-update{animation:flashUpdate 0.6s ease-out}
-
-        body{
-            font-family:'Inter',-apple-system,sans-serif;background:var(--bg-primary);color:var(--text-primary);
-            height:100vh;height:100dvh;width:100vw;overflow:hidden;position:fixed;top:0;left:0;display:flex;justify-content:center;
-            -webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;
-            transition:background 0.3s,color 0.3s;
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
         }
-        .app-container{
-            display:flex;flex-direction:column;height:100vh;height:100dvh;width:100%;max-width:520px;padding:6px 8px;padding-bottom:calc(6px + var(--safe-bottom));gap:4px;
-            overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+        @keyframes flashGreen {
+            0% {
+                background: var(--flash-green);
+            }
+            100% {
+                background: transparent;
+            }
         }
-        .header{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border-subtle);flex-shrink:0}
-        .logo-section{display:flex;align-items:center;gap:6px;flex-shrink:0}
-        .logo{font-weight:800;font-size:clamp(12px,3.5vw,14px);background:linear-gradient(135deg,var(--accent-cyan),var(--accent-purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .version-tag{font-size:9px;color:var(--accent-gold);background:var(--version-tag-bg);padding:2px 6px;border-radius:10px;font-weight:700}
-        .mode-tag{font-size:9px;color:var(--accent-orange);background:var(--scalp-bg);padding:2px 6px;border-radius:10px;font-weight:700;display:none;animation:pulse 1.5s infinite}
-        .header-right-group{display:flex;align-items:center;gap:8px;flex-shrink:0}
-        .connection-badge{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--text-secondary);flex-shrink:0;transition:color 0.3s}
-        .connection-badge.live-flash{color:var(--accent-green)}
-        .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-        .status-dot.live{background:var(--accent-green);animation:pulse 2s infinite}
-        .status-dot.connecting{background:var(--accent-gold);animation:pulse 1s infinite}
-        .status-dot.reconnect{background:var(--accent-orange);animation:pulse 1s infinite}
-        .status-dot.fallback{background:var(--accent-blue);animation:pulse 1.5s infinite}
-        .status-dot.stale{background:var(--accent-red)}
-        .status-dot.offline{background:var(--text-tertiary)}
-        .theme-toggle-btn{background:var(--bg-tertiary);border:1px solid var(--border-subtle);color:var(--text-secondary);width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;padding:0;line-height:1}
-        .theme-toggle-btn:active{transform:scale(0.9);border-color:var(--accent-gold);color:var(--accent-gold)}
-        .price-row{display:flex;justify-content:space-between;align-items:center;flex-shrink:0;padding:6px 0}
-        .price-left{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
-        .price-main{font-size:clamp(22px,6vw,28px);font-weight:700;line-height:1;transition:color 0.3s}
-        .price-decimal{font-size:clamp(14px,4vw,18px);opacity:0.6}
-        .price-change{font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;background:var(--bg-secondary);border:1px solid var(--border-subtle);transition:background 0.3s,border-color 0.3s,color 0.3s}
-        .price-change.up{background:var(--conf-high-bg);border-color:var(--accent-green);color:var(--accent-green)}
-        .price-change.down{background:var(--conf-low-bg);border-color:var(--accent-red);color:var(--accent-red)}
-        .pair-group{display:flex;gap:2px;background:var(--bg-secondary);padding:2px;border-radius:4px;border:1px solid var(--border-subtle);flex-shrink:0}
-        .pair-btn{background:transparent;border:none;color:var(--text-tertiary);padding:8px 14px;font-size:11px;font-weight:600;cursor:pointer;border-radius:3px;min-width:46px;transition:all 0.15s}
-        .pair-btn.active{color:var(--text-primary);background:var(--bg-tertiary)}
-
-        /* FUSION BAR - diperbesar */
-        .fusion-bar{
-            background:var(--fusion-bg);border:1px solid var(--border-subtle);border-radius:10px;
-            padding:12px 14px;flex-shrink:0;cursor:pointer;position:relative;
-            transition:opacity 0.3s,background 0.3s;min-height:95px;
+        @keyframes flashRed {
+            0% {
+                background: var(--flash-red);
+            }
+            100% {
+                background: transparent;
+            }
         }
-        .fusion-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent-cyan),var(--accent-purple));border-radius:10px 10px 0 0}
-        .fusion-bar.stale-signal{opacity:0.55}
-        .fusion-bar.scalp-mode::before{background:linear-gradient(90deg,var(--accent-orange),var(--accent-pink))}
-        .signal-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px}
-        .signal-left{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-        .signal-badge{font-size:11px;font-weight:800;background:linear-gradient(135deg,var(--accent-gold),var(--accent-orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .signal-badge.scalp{background:linear-gradient(135deg,var(--accent-orange),var(--accent-pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .signal-text{font-size:clamp(14px,4vw,16px);font-weight:700;transition:color 0.3s}
-        .conf-badge{font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;white-space:nowrap;transition:background 0.3s,color 0.3s,border-color 0.3s}
-        .conf-badge.high{background:var(--conf-high-bg);color:var(--accent-green);border:1px solid var(--accent-green)}
-        .conf-badge.medium{background:var(--conf-med-bg);color:var(--accent-gold);border:1px solid var(--accent-gold)}
-        .conf-badge.low{background:var(--conf-low-bg);color:var(--accent-red);border:1px solid var(--accent-red)}
-        .signal-arrow{font-size:18px;transition:transform 0.3s,color 0.3s}
-        .signal-arrow.bounce{animation:bounceArrow 0.5s ease-out}
-        @keyframes bounceArrow{0%{transform:scale(1.4)}50%{transform:scale(0.9)}100%{transform:scale(1)}}
-        .fusion-details{display:flex;gap:8px;margin-top:6px;font-size:10px;color:var(--text-secondary);flex-wrap:wrap;align-items:center}
-        .fusion-details span{white-space:nowrap}
-        .rr-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;margin-left:4px;transition:background 0.3s,color 0.3s}
-        .rr-badge.good{background:var(--rr-good-bg);color:var(--accent-green)}
-        .rr-badge.ok{background:var(--rr-ok-bg);color:var(--accent-gold)}
-        .rr-badge.bad{background:var(--rr-bad-bg);color:var(--accent-red)}
-        .cooldown-bar{width:100%;height:2px;background:var(--bg-tertiary);border-radius:2px;margin-top:6px;overflow:hidden;display:none;transition:background 0.3s}
-        .cooldown-bar.active{display:block}
-        .cooldown-fill{height:100%;background:linear-gradient(90deg,var(--accent-orange),var(--accent-gold));border-radius:2px;transition:width 1s linear}
+        @keyframes flashGold {
+            0% {
+                background: var(--flash-gold);
+            }
+            100% {
+                background: transparent;
+            }
+        }
+        @keyframes flashCyan {
+            0% {
+                background: var(--flash-cyan);
+            }
+            100% {
+                background: transparent;
+            }
+        }
+        @keyframes flashUpdate {
+            0% {
+                box-shadow: inset 0 0 8px var(--accent-cyan);
+            }
+            100% {
+                box-shadow: inset 0 0 0 transparent;
+            }
+        }
 
-        /* TRADE ACTION SECTION - dipindahkan ke atas */
-        .action-section{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;flex-shrink:0}
-        .action-card{background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:8px;padding:10px 8px;cursor:pointer;min-width:0;transition:opacity 0.3s,border-color 0.15s,background 0.3s,box-shadow 0.3s}
-        .action-card.stale{opacity:0.4}
-        .action-card:active{border-color:var(--accent-gold)}
-        .action-card.data-updated{box-shadow:inset 0 0 10px var(--accent-gold)}
-        .action-header{font-size:9px;font-weight:700;color:var(--text-tertiary);margin-bottom:6px;letter-spacing:0.5px;text-align:center}
-        .action-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;gap:4px}
-        .action-label{font-size:8px;color:var(--text-secondary);white-space:nowrap;font-weight:600}
-        .action-value{font-size:11px;font-weight:700;white-space:nowrap;transition:color 0.3s,transform 0.3s}
-        .action-value.entry{color:var(--accent-gold)}.action-value.sl{color:var(--accent-red)}.action-value.tp{color:var(--accent-blue)}
-        .action-value.pulse{animation:pulseValue 0.6s ease-out}
-        @keyframes pulseValue{0%{transform:scale(1.2)}100%{transform:scale(1)}}
+        .flash-green {
+            animation: flashGreen 0.8s ease-out;
+        }
+        .flash-red {
+            animation: flashRed 0.8s ease-out;
+        }
+        .flash-gold {
+            animation: flashGold 0.8s ease-out;
+        }
+        .flash-cyan {
+            animation: flashCyan 0.8s ease-out;
+        }
+        .flash-update {
+            animation: flashUpdate 0.6s ease-out;
+        }
 
-        .tf-row{flex-shrink:0}
-        .tf-group{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:var(--bg-secondary);padding:3px;border-radius:6px;border:1px solid var(--border-subtle);transition:background 0.3s}
-        .tf-btn{background:transparent;border:none;color:var(--text-tertiary);padding:7px 2px;font-size:9px;font-weight:600;cursor:pointer;border-radius:4px;display:flex;align-items:center;justify-content:center;gap:2px;position:relative;min-width:0;transition:all 0.15s}
-        .tf-btn.active{color:var(--text-primary);background:var(--bg-tertiary)}
-        .tf-btn.scalp-active{color:var(--accent-orange);background:var(--scalp-active-bg)}
-        .tf-bias-symbol{font-size:9px;transition:transform 0.3s,color 0.3s}
-        .tf-bias-symbol.bullish{color:var(--accent-green)}.tf-bias-symbol.bearish{color:var(--accent-red)}.tf-bias-symbol.neutral{color:var(--text-tertiary)}
-        .tf-bias-symbol.flip{animation:flipSymbol 0.5s ease-out}
-        @keyframes flipSymbol{0%{transform:rotateX(90deg)}100%{transform:rotateX(0)}}
-        .tf-mtf-dot{position:absolute;top:3px;right:3px;width:4px;height:4px;border-radius:50%;opacity:0;transition:opacity 0.2s}
-        .tf-btn.aligned .tf-mtf-dot{opacity:1;background:var(--accent-green);box-shadow:0 0 4px var(--accent-green)}
-        .tf-btn.conflict .tf-mtf-dot{opacity:1;background:var(--accent-red);box-shadow:0 0 4px var(--accent-red)}
-        .tf-btn.warning .tf-mtf-dot{opacity:1;background:var(--accent-orange);box-shadow:0 0 4px var(--accent-orange)}
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            position: fixed;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+            transition: background 0.3s, color 0.3s;
+        }
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            width: 100%;
+            max-width: 520px;
+            padding: 6px 8px;
+            padding-bottom: calc(6px + var(--safe-bottom));
+            gap: 4px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .logo {
+            font-weight: 800;
+            font-size: clamp(12px, 3.5vw, 14px);
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .version-tag {
+            font-size: 9px;
+            color: var(--accent-gold);
+            background: var(--version-tag-bg);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+        .mode-tag {
+            font-size: 9px;
+            color: var(--accent-orange);
+            background: var(--scalp-bg);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+        .header-right-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .connection-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 9px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            transition: color 0.3s;
+        }
+        .connection-badge.live-flash {
+            color: var(--accent-green);
+        }
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .status-dot.live {
+            background: var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+        .status-dot.connecting {
+            background: var(--accent-gold);
+            animation: pulse 1s infinite;
+        }
+        .status-dot.reconnect {
+            background: var(--accent-orange);
+            animation: pulse 1s infinite;
+        }
+        .status-dot.fallback {
+            background: var(--accent-blue);
+            animation: pulse 1.5s infinite;
+        }
+        .status-dot.stale {
+            background: var(--accent-red);
+        }
+        .status-dot.offline {
+            background: var(--text-tertiary);
+        }
+        .theme-toggle-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            padding: 0;
+            line-height: 1;
+        }
+        .theme-toggle-btn:active {
+            transform: scale(0.9);
+            border-color: var(--accent-gold);
+            color: var(--accent-gold);
+        }
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 6px 0;
+        }
+        .price-left {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .price-main {
+            font-size: clamp(22px, 6vw, 28px);
+            font-weight: 700;
+            line-height: 1;
+            transition: color 0.1s;
+        }
+        .price-decimal {
+            font-size: clamp(14px, 4vw, 18px);
+            opacity: 0.6;
+        }
+        .price-change {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            transition: background 0.2s, border-color 0.2s, color 0.2s;
+        }
+        .price-change.up {
+            background: var(--conf-high-bg);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+        .price-change.down {
+            background: var(--conf-low-bg);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+        .pair-group {
+            display: flex;
+            gap: 2px;
+            background: var(--bg-secondary);
+            padding: 2px;
+            border-radius: 4px;
+            border: 1px solid var(--border-subtle);
+            flex-shrink: 0;
+        }
+        .pair-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            padding: 8px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 3px;
+            min-width: 46px;
+            transition: all 0.15s;
+        }
+        .pair-btn.active {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
 
-        /* TC DASHBOARD - font diperbesar */
-        .tc-dashboard{background:var(--bg-secondary);border:1px solid var(--border-subtle);border-radius:8px;padding:8px 8px;flex-shrink:0;transition:background 0.3s}
-        .tc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid var(--border-subtle);flex-wrap:wrap;gap:6px}
-        .tc-title{font-size:9px;font-weight:700;color:var(--accent-cyan)}
-        .tc-update{font-size:9px;color:var(--text-tertiary);transition:color 0.3s}
-        .tc-update.active-session{color:var(--accent-gold);font-weight:700}
-        .tc-bias{font-size:10px;font-weight:700;padding:3px 10px;border-radius:10px;white-space:nowrap;transition:background 0.3s,color 0.3s,border-color 0.3s}
-        .tc-bias.bullish{background:var(--conf-high-bg);color:var(--accent-green);border:1px solid var(--accent-green)}
-        .tc-bias.bearish{background:var(--conf-low-bg);color:var(--accent-red);border:1px solid var(--accent-red)}
-        .tc-bias.neutral{background:var(--tc-bias-neutral-bg);color:var(--text-secondary);border:1px solid var(--border-subtle)}
-        .tc-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
-        .tc-row{display:flex;justify-content:space-between;align-items:center;padding:4px 6px;cursor:pointer;border-bottom:1px dotted var(--border-subtle);min-height:24px;transition:background 0.15s;border-radius:3px}
-        .tc-row:hover{background:var(--bg-tertiary)}
-        .tc-row:active{background:var(--bg-tertiary)}
-        .tc-row.data-updated{animation:flashUpdate 0.8s ease-out}
-        .tc-label{font-size:9px;font-weight:700;color:var(--text-tertiary)}
-        .tc-value{font-size:12px;font-weight:700;font-family:'SF Mono','Consolas',monospace;transition:color 0.3s,transform 0.3s}
-        .tc-value.res{color:var(--accent-red)}.tc-value.sup{color:var(--accent-green)}.tc-value.piv{color:var(--accent-gold)}.tc-value.bb{color:var(--accent-cyan)}
-        .tc-value.pulse{animation:pulseValue 0.6s ease-out}
-        .tc-row.key{background:var(--tc-key-bg);border-left:4px solid var(--accent-gold);border-radius:0 3px 3px 0}
-        .tc-row.key .tc-label{color:var(--accent-gold);font-weight:800;font-size:10px}
-        .tc-row.key .tc-value{font-size:13px}
-        .tc-copy-toast{position:fixed;background:var(--accent-cyan);color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:15px;pointer-events:none;opacity:0;transition:opacity 0.25s;z-index:10000;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
-        .tc-copy-toast.show{opacity:1}
+        /* FUSION BAR */
+        .fusion-bar {
+            background: var(--fusion-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 12px 14px;
+            flex-shrink: 0;
+            cursor: pointer;
+            position: relative;
+            transition: opacity 0.3s, background 0.3s;
+            min-height: 95px;
+        }
+        .fusion-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 10px 10px 0 0;
+        }
+        .fusion-bar.stale-signal {
+            opacity: 0.55;
+        }
+        .fusion-bar.scalp-mode::before {
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-pink));
+        }
+        .signal-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+        .signal-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .signal-badge {
+            font-size: 11px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .signal-badge.scalp {
+            background: linear-gradient(135deg, var(--accent-orange), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .signal-text {
+            font-size: clamp(14px, 4vw, 16px);
+            font-weight: 700;
+            transition: color 0.2s;
+        }
+        .conf-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 10px;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .conf-badge.high {
+            background: var(--conf-high-bg);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+        .conf-badge.medium {
+            background: var(--conf-med-bg);
+            color: var(--accent-gold);
+            border: 1px solid var(--accent-gold);
+        }
+        .conf-badge.low {
+            background: var(--conf-low-bg);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+        .signal-arrow {
+            font-size: 18px;
+            transition: transform 0.2s, color 0.2s;
+        }
+        .signal-arrow.bounce {
+            animation: bounceArrow 0.5s ease-out;
+        }
+        @keyframes bounceArrow {
+            0% {
+                transform: scale(1.4);
+            }
+            50% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .fusion-details {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            font-size: 10px;
+            color: var(--text-secondary);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .fusion-details span {
+            white-space: nowrap;
+        }
+        .rr-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+            margin-left: 4px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .rr-badge.good {
+            background: var(--rr-good-bg);
+            color: var(--accent-green);
+        }
+        .rr-badge.ok {
+            background: var(--rr-ok-bg);
+            color: var(--accent-gold);
+        }
+        .rr-badge.bad {
+            background: var(--rr-bad-bg);
+            color: var(--accent-red);
+        }
+        .cooldown-bar {
+            width: 100%;
+            height: 2px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            margin-top: 6px;
+            overflow: hidden;
+            display: none;
+            transition: background 0.2s;
+        }
+        .cooldown-bar.active {
+            display: block;
+        }
+        .cooldown-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-orange), var(--accent-gold));
+            border-radius: 2px;
+            transition: width 1s linear;
+        }
 
-        .stale-notice{font-size:8px;color:var(--accent-orange);text-align:center;display:none;margin-top:1px;padding:3px;background:var(--stale-notice-bg);border-radius:4px;font-weight:700}
-        .stale-notice.show{display:block}
-        .session-warning{font-size:8px;color:var(--accent-gold);text-align:center;display:none;margin-top:1px;padding:3px;background:var(--session-warn-bg);border-radius:4px;font-weight:700}
-        .session-warning.show{display:block}
-        .footer{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-top:1px solid var(--border-subtle);font-size:9px;color:var(--text-secondary);flex-shrink:0;margin-top:2px}
-        .update-indicator{position:fixed;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--accent-cyan);opacity:0;transition:opacity 0.2s;z-index:10001;pointer-events:none}
-        .update-indicator.show{opacity:1;animation:pulse 0.3s ease-out}
+        /* TRADE ACTION SECTION */
+        .action-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        .action-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 10px 8px;
+            cursor: pointer;
+            min-width: 0;
+            transition: opacity 0.2s, border-color 0.15s, background 0.2s, box-shadow 0.2s;
+        }
+        .action-card.stale {
+            opacity: 0.4;
+        }
+        .action-card:active {
+            border-color: var(--accent-gold);
+        }
+        .action-card.data-updated {
+            box-shadow: inset 0 0 10px var(--accent-gold);
+        }
+        .action-header {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3px;
+            gap: 4px;
+        }
+        .action-label {
+            font-size: 8px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            font-weight: 600;
+        }
+        .action-value {
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: color 0.1s, transform 0.2s;
+        }
+        .action-value.entry {
+            color: var(--accent-gold);
+        }
+        .action-value.sl {
+            color: var(--accent-red);
+        }
+        .action-value.tp {
+            color: var(--accent-blue);
+        }
+        .action-value.pulse {
+            animation: pulseValue 0.6s ease-out;
+        }
+        @keyframes pulseValue {
+            0% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
 
-        @media (max-width:380px){
-            .app-container{padding:3px 4px;padding-bottom:calc(3px + var(--safe-bottom));gap:2px}
-            .price-main{font-size:20px}.price-decimal{font-size:13px}
-            .signal-text{font-size:12px}.signal-badge{font-size:10px}
-            .tf-btn{font-size:8px;padding:5px 1px}.tf-bias-symbol{font-size:8px}
-            .action-value{font-size:10px}.tc-value{font-size:11px}
-            .pair-btn{font-size:10px;padding:6px 10px;min-width:38px}
-            .fusion-bar{padding:10px 10px}
+        .tf-row {
+            flex-shrink: 0;
+        }
+        .tf-group {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            background: var(--bg-secondary);
+            padding: 3px;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+            transition: background 0.2s;
+        }
+        .tf-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-tertiary);
+            padding: 7px 2px;
+            font-size: 9px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            position: relative;
+            min-width: 0;
+            transition: all 0.15s;
+        }
+        .tf-btn.active {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+        .tf-btn.scalp-active {
+            color: var(--accent-orange);
+            background: var(--scalp-active-bg);
+        }
+        .tf-bias-symbol {
+            font-size: 9px;
+            transition: transform 0.2s, color 0.2s;
+        }
+        .tf-bias-symbol.bullish {
+            color: var(--accent-green);
+        }
+        .tf-bias-symbol.bearish {
+            color: var(--accent-red);
+        }
+        .tf-bias-symbol.neutral {
+            color: var(--text-tertiary);
+        }
+        .tf-bias-symbol.flip {
+            animation: flipSymbol 0.5s ease-out;
+        }
+        @keyframes flipSymbol {
+            0% {
+                transform: rotateX(90deg);
+            }
+            100% {
+                transform: rotateX(0);
+            }
+        }
+        .tf-mtf-dot {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .tf-btn.aligned .tf-mtf-dot {
+            opacity: 1;
+            background: var(--accent-green);
+            box-shadow: 0 0 4px var(--accent-green);
+        }
+        .tf-btn.conflict .tf-mtf-dot {
+            opacity: 1;
+            background: var(--accent-red);
+            box-shadow: 0 0 4px var(--accent-red);
+        }
+        .tf-btn.warning .tf-mtf-dot {
+            opacity: 1;
+            background: var(--accent-orange);
+            box-shadow: 0 0 4px var(--accent-orange);
+        }
+
+        /* TC DASHBOARD */
+        .tc-dashboard {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 8px 8px;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .tc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-subtle);
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tc-title {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+        .tc-update {
+            font-size: 9px;
+            color: var(--text-tertiary);
+            transition: color 0.2s;
+        }
+        .tc-update.active-session {
+            color: var(--accent-gold);
+            font-weight: 700;
+        }
+        .tc-bias {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 10px;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .tc-bias.bullish {
+            background: var(--conf-high-bg);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+        .tc-bias.bearish {
+            background: var(--conf-low-bg);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+        .tc-bias.neutral {
+            background: var(--tc-bias-neutral-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+        }
+        .tc-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px 8px;
+        }
+        .tc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 6px;
+            cursor: pointer;
+            border-bottom: 1px dotted var(--border-subtle);
+            min-height: 24px;
+            transition: background 0.15s;
+            border-radius: 3px;
+        }
+        .tc-row:hover {
+            background: var(--bg-tertiary);
+        }
+        .tc-row:active {
+            background: var(--bg-tertiary);
+        }
+        .tc-row.data-updated {
+            animation: flashUpdate 0.8s ease-out;
+        }
+        .tc-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-tertiary);
+        }
+        .tc-value {
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'SF Mono', 'Consolas', monospace;
+            transition: color 0.1s, transform 0.2s;
+        }
+        .tc-value.res {
+            color: var(--accent-red);
+        }
+        .tc-value.sup {
+            color: var(--accent-green);
+        }
+        .tc-value.piv {
+            color: var(--accent-gold);
+        }
+        .tc-value.pulse {
+            animation: pulseValue 0.6s ease-out;
+        }
+        .tc-row.key {
+            background: var(--tc-key-bg);
+            border-left: 4px solid var(--accent-gold);
+            border-radius: 0 3px 3px 0;
+        }
+        .tc-row.key .tc-label {
+            color: var(--accent-gold);
+            font-weight: 800;
+            font-size: 10px;
+        }
+        .tc-row.key .tc-value {
+            font-size: 13px;
+        }
+        .tc-copy-toast {
+            position: fixed;
+            background: var(--accent-cyan);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 15px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s;
+            z-index: 10000;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        .tc-copy-toast.show {
+            opacity: 1;
+        }
+
+        .stale-notice {
+            font-size: 8px;
+            color: var(--accent-orange);
+            text-align: center;
+            display: none;
+            margin-top: 1px;
+            padding: 3px;
+            background: var(--stale-notice-bg);
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .stale-notice.show {
+            display: block;
+        }
+        .session-warning {
+            font-size: 8px;
+            color: var(--accent-gold);
+            text-align: center;
+            display: none;
+            margin-top: 1px;
+            padding: 3px;
+            background: var(--session-warn-bg);
+            border-radius: 4px;
+            font-weight: 700;
+        }
+        .session-warning.show {
+            display: block;
+        }
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 9px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .update-indicator {
+            position: fixed;
+            top: 4px;
+            right: 4px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10001;
+            pointer-events: none;
+        }
+        .update-indicator.show {
+            opacity: 1;
+            animation: pulse 0.3s ease-out;
+        }
+
+        @media (max-width: 380px) {
+            .app-container {
+                padding: 3px 4px;
+                padding-bottom: calc(3px + var(--safe-bottom));
+                gap: 2px;
+            }
+            .price-main {
+                font-size: 20px;
+            }
+            .price-decimal {
+                font-size: 13px;
+            }
+            .signal-text {
+                font-size: 12px;
+            }
+            .signal-badge {
+                font-size: 10px;
+            }
+            .tf-btn {
+                font-size: 8px;
+                padding: 5px 1px;
+            }
+            .tf-bias-symbol {
+                font-size: 8px;
+            }
+            .action-value {
+                font-size: 10px;
+            }
+            .tc-value {
+                font-size: 11px;
+            }
+            .pair-btn {
+                font-size: 10px;
+                padding: 6px 10px;
+                min-width: 38px;
+            }
+            .fusion-bar {
+                padding: 10px 10px;
+            }
         }
     </style>
 </head>
 <body data-theme="dark">
-<div class="app-container" id="app">
-    <header class="header">
-        <div class="logo-section"><span class="logo">URA · ADVISOR</span><span class="version-tag">v5.2.6</span><span class="mode-tag" id="mode-tag">⚡SCALP</span></div>
-        <div class="header-right-group">
-            <div class="connection-badge" id="connection-badge"><span class="status-dot offline" id="status-dot"></span><span id="status-text">OFFLINE</span></div>
-            <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">☀️</button>
+    <div class="app-container" id="app">
+        <header class="header">
+            <div class="logo-section"><span class="logo">URA · ADVISOR</span><span class="version-tag">v5.2.7</span><span class="mode-tag" id="mode-tag">⚡SCALP</span></div>
+            <div class="header-right-group">
+                <div class="connection-badge" id="connection-badge"><span class="status-dot offline" id="status-dot"></span><span id="status-text">OFFLINE</span></div>
+                <button class="theme-toggle-btn" id="theme-toggle-btn" title="Toggle Dark/Light Mode">☀️</button>
+            </div>
+        </header>
+        <div class="price-row">
+            <div class="price-left"><div class="price-main" id="price-display">0.00</div><div class="price-change" id="price-change">0.00</div></div>
+            <div class="pair-group"><button class="pair-btn active" data-pair="XAUUSDT">XAU</button><button class="pair-btn" data-pair="BTCUSDT">BTC</button></div>
         </div>
-    </header>
-    <div class="price-row">
-        <div class="price-left"><div class="price-main" id="price-display">0.00</div><div class="price-change" id="price-change">0.00</div></div>
-        <div class="pair-group"><button class="pair-btn active" data-pair="XAUUSDT">XAU</button><button class="pair-btn" data-pair="BTCUSDT">BTC</button></div>
-    </div>
 
-    <!-- FUSION BAR - diperbesar -->
-    <div class="fusion-bar" id="fusion-bar">
-        <div class="signal-row">
-            <div class="signal-left"><span class="signal-badge" id="signal-badge">FUSION</span><span class="signal-text" id="sig-status">INIT</span><span class="conf-badge low" id="sig-conf">--</span></div>
-            <span class="signal-arrow" id="sig-arrow">—</span>
+        <!-- FUSION BAR -->
+        <div class="fusion-bar" id="fusion-bar">
+            <div class="signal-row">
+                <div class="signal-left"><span class="signal-badge" id="signal-badge">FUSION</span><span class="signal-text" id="sig-status">INIT</span><span class="conf-badge low" id="sig-conf">--</span></div>
+                <span class="signal-arrow" id="sig-arrow">—</span>
+            </div>
+            <div class="fusion-details"><span style="color:var(--accent-cyan)">⚡</span><span id="sig-decision">FUSION: --</span><span id="sig-strength">Conf: --%</span><span id="sig-rr"></span><span style="margin-left:auto" id="sig-reason">—</span></div>
+            <div class="cooldown-bar" id="cooldown-bar"><div class="cooldown-fill" id="cooldown-fill" style="width:0%"></div></div>
         </div>
-        <div class="fusion-details"><span style="color:var(--accent-cyan)">⚡</span><span id="sig-decision">FUSION: --</span><span id="sig-strength">Conf: --%</span><span id="sig-rr"></span><span style="margin-left:auto" id="sig-reason">—</span></div>
-        <div class="cooldown-bar" id="cooldown-bar"><div class="cooldown-fill" id="cooldown-fill" style="width:0%"></div></div>
-    </div>
 
-    <!-- TRADE ACTION SECTION - dipindahkan ke sini -->
-    <div class="action-section" id="action-section">
-        <div class="action-card" id="card-entry"><div class="action-header">🎯 ENTRY</div><div class="action-row"><span class="action-label">LOW</span><span class="action-value entry" id="entry-lo">—</span></div><div class="action-row"><span class="action-label">HIGH</span><span class="action-value entry" id="entry-hi">—</span></div></div>
-        <div class="action-card" id="card-sl"><div class="action-header">🛑 SL</div><div class="action-row"><span class="action-label">SL</span><span class="action-value sl" id="sl-val">—</span></div><div class="action-row"><span class="action-label">INVAL</span><span class="action-value sl" id="inv-val">—</span></div></div>
-        <div class="action-card" id="card-tp"><div class="action-header">🎯 TP</div><div class="action-row"><span class="action-label">TP1</span><span class="action-value tp" id="tp1-val">—</span></div><div class="action-row"><span class="action-label">TP2</span><span class="action-value tp" id="tp2-val">—</span></div></div>
-    </div>
-
-    <div class="tf-row"><div class="tf-group" id="tf-group">
-        <button class="tf-btn" data-tf="4h"><span>H4</span><span class="tf-bias-symbol" id="sym-h4">●</span><span class="tf-mtf-dot"></span></button>
-        <button class="tf-btn" data-tf="1h"><span>H1</span><span class="tf-bias-symbol" id="sym-h1">●</span><span class="tf-mtf-dot"></span></button>
-        <button class="tf-btn active" data-tf="30m"><span>M30</span><span class="tf-bias-symbol" id="sym-m30">●</span><span class="tf-mtf-dot"></span></button>
-        <button class="tf-btn" data-tf="15m"><span>M15</span><span class="tf-bias-symbol" id="sym-m15">●</span><span class="tf-mtf-dot"></span></button>
-        <button class="tf-btn" data-tf="5m"><span>M5</span><span class="tf-bias-symbol" id="sym-m5">●</span><span class="tf-mtf-dot"></span></button>
-    </div></div>
-
-    <!-- TC DASHBOARD -->
-    <div class="tc-dashboard">
-        <div class="tc-header"><span class="tc-title">📊 TC INTRADAY</span><span class="tc-update active-session" id="tc-upd">--</span><span class="tc-bias neutral" id="tc-bias-val">NEUTRAL</span></div>
-        <div class="tc-grid" id="tc-grid">
-            <div class="tc-row"><span class="tc-label">R3</span><span class="tc-value res" id="r3v">—</span></div><div class="tc-row"><span class="tc-label">S3</span><span class="tc-value sup" id="s3v">—</span></div>
-            <div class="tc-row"><span class="tc-label">R2</span><span class="tc-value res" id="r2v">—</span></div><div class="tc-row"><span class="tc-label">S2</span><span class="tc-value sup" id="s2v">—</span></div>
-            <div class="tc-row"><span class="tc-label">R1</span><span class="tc-value res" id="r1v">—</span></div><div class="tc-row"><span class="tc-label">S1</span><span class="tc-value sup" id="s1v">—</span></div>
-            <div class="tc-row key"><span class="tc-label">⚡PIVOT</span><span class="tc-value piv" id="pivotv">—</span></div><div class="tc-row"><span class="tc-label">LAST</span><span class="tc-value" id="lastv">—</span></div>
-            <div class="tc-row"><span class="tc-label">BB UP</span><span class="tc-value bb" id="bbuv">—</span></div><div class="tc-row"><span class="tc-label">BB LO</span><span class="tc-value bb" id="bblv">—</span></div><div class="tc-row"><span class="tc-label">BB MID</span><span class="tc-value bb" id="bbmv">—</span></div>
+        <!-- TRADE ACTION SECTION -->
+        <div class="action-section" id="action-section">
+            <div class="action-card" id="card-entry"><div class="action-header">🎯 ENTRY</div><div class="action-row"><span class="action-label">LOW</span><span class="action-value entry" id="entry-lo">—</span></div><div class="action-row"><span class="action-label">HIGH</span><span class="action-value entry" id="entry-hi">—</span></div></div>
+            <div class="action-card" id="card-sl"><div class="action-header">🛑 SL</div><div class="action-row"><span class="action-label">SL</span><span class="action-value sl" id="sl-val">—</span></div><div class="action-row"><span class="action-label">INVAL</span><span class="action-value sl" id="inv-val">—</span></div></div>
+            <div class="action-card" id="card-tp"><div class="action-header">🎯 TP</div><div class="action-row"><span class="action-label">TP1</span><span class="action-value tp" id="tp1-val">—</span></div><div class="action-row"><span class="action-label">TP2</span><span class="action-value tp" id="tp2-val">—</span></div></div>
         </div>
+
+        <div class="tf-row"><div class="tf-group" id="tf-group">
+                <button class="tf-btn" data-tf="4h"><span>H4</span><span class="tf-bias-symbol" id="sym-h4">●</span><span class="tf-mtf-dot"></span></button>
+                <button class="tf-btn" data-tf="1h"><span>H1</span><span class="tf-bias-symbol" id="sym-h1">●</span><span class="tf-mtf-dot"></span></button>
+                <button class="tf-btn active" data-tf="30m"><span>M30</span><span class="tf-bias-symbol" id="sym-m30">●</span><span class="tf-mtf-dot"></span></button>
+                <button class="tf-btn" data-tf="15m"><span>M15</span><span class="tf-bias-symbol" id="sym-m15">●</span><span class="tf-mtf-dot"></span></button>
+                <button class="tf-btn" data-tf="5m"><span>M5</span><span class="tf-bias-symbol" id="sym-m5">●</span><span class="tf-mtf-dot"></span></button>
+        </div></div>
+
+        <!-- TC DASHBOARD -->
+        <div class="tc-dashboard">
+            <div class="tc-header"><span class="tc-title">📊 TC INTRADAY</span><span class="tc-update active-session" id="tc-upd">--</span><span class="tc-bias neutral" id="tc-bias-val">NEUTRAL</span></div>
+            <div class="tc-grid" id="tc-grid">
+                <div class="tc-row"><span class="tc-label">R3</span><span class="tc-value res" id="r3v">—</span></div><div class="tc-row"><span class="tc-label">S3</span><span class="tc-value sup" id="s3v">—</span></div>
+                <div class="tc-row"><span class="tc-label">R2</span><span class="tc-value res" id="r2v">—</span></div><div class="tc-row"><span class="tc-label">S2</span><span class="tc-value sup" id="s2v">—</span></div>
+                <div class="tc-row"><span class="tc-label">R1</span><span class="tc-value res" id="r1v">—</span></div><div class="tc-row"><span class="tc-label">S1</span><span class="tc-value sup" id="s1v">—</span></div>
+                <div class="tc-row key"><span class="tc-label">⚡PIVOT</span><span class="tc-value piv" id="pivotv">—</span></div><div class="tc-row"><span class="tc-label">LAST</span><span class="tc-value" id="lastv">—</span></div>
+            </div>
+        </div>
+
+        <div class="stale-notice" id="stale-notice">⚠ DATA DARI SINYAL SEBELUMNYA (TIDAK AKTIF)</div>
+        <div class="session-warning" id="session-warning">⏳ SESI AKAN BERGANTI — LEVEL TC SEGERA BERUBAH</div>
+        <footer class="footer"><span><span id="session">NY</span> · <span id="date">—</span></span><span id="clock">00:00:00</span></footer>
     </div>
+    <div class="tc-copy-toast" id="tc-copy-toast"></div>
+    <div class="update-indicator" id="update-indicator"></div>
 
-    <div class="stale-notice" id="stale-notice">⚠ DATA DARI SINYAL SEBELUMNYA (TIDAK AKTIF)</div>
-    <div class="session-warning" id="session-warning">⏳ SESI AKAN BERGANTI — LEVEL TC SEGERA BERUBAH</div>
-    <footer class="footer"><span><span id="session">NY</span> · <span id="date">—</span></span><span id="clock">00:00:00</span></footer>
-</div>
-<div class="tc-copy-toast" id="tc-copy-toast"></div>
-<div class="update-indicator" id="update-indicator"></div>
+    <script>
+        (function() {
+            'use strict';
 
-<script>
-(function(){
-'use strict';
+            // ===========================
+            // KONFIGURASI PER PAIR
+            // ===========================
+            var CFG = {
+                XAUUSDT: {
+                    adxTh: 22,
+                    rsiHi: 65,
+                    rsiLo: 35,
+                    atrP: 14,
+                    maF: 20,
+                    maS: 50,
+                    prec: 2,
+                    smcW: 0.4,
+                    tcW: 0.35,
+                    mtfW: 0.25,
+                    h4Pen: 0.55,
+                    h1Pen: 0.65,
+                    m15m5Pen: 0.75,
+                    minConf: 55,
+                    minRR: 1.3,
+                    slBufL: 1.003,
+                    slBufS: 0.997,
+                    tpNear: 0.006,
+                    maxSMC: 3,
+                    signalCooldownLg: 180000,
+                    signalCooldownSm: 90000
+                },
+                BTCUSDT: {
+                    adxTh: 20,
+                    rsiHi: 65,
+                    rsiLo: 35,
+                    atrP: 14,
+                    maF: 20,
+                    maS: 50,
+                    prec: 1,
+                    smcW: 0.4,
+                    tcW: 0.35,
+                    mtfW: 0.25,
+                    h4Pen: 0.55,
+                    h1Pen: 0.65,
+                    m15m5Pen: 0.75,
+                    minConf: 55,
+                    minRR: 1.3,
+                    slBufL: 1.003,
+                    slBufS: 0.997,
+                    tpNear: 0.006,
+                    maxSMC: 3,
+                    signalCooldownLg: 180000,
+                    signalCooldownSm: 90000
+                }
+            };
+            var SCALP_CFG = { minConf: 45, minRR: 1.0, slATR: 0.5, tpATR1: 1.0, tpATR2: 2.0, entryWidth: 0.25, maxSMC: 1.5, cooldown: 30000 };
+            var MTF_MAP = { '4h': 'h4', '1h': 'h1', '30m': 'm30', '15m': 'm15', '5m': 'm5' };
+            var MTF_KEYS = ['h4', 'h1', 'm30', 'm15', 'm5'];
+            var LARGE_TF = ['h4', 'h1'];
+            var SCALPING_TF = ['15m', '5m'];
+            var SESSION_NAMES = { ASIA: 'ASIA SESSION', LONDON: 'LONDON SESSION', NY: 'NEW YORK SESSION', WEEKEND: 'WEEKEND — 24H RANGE' };
+            var SYM = { BULLISH: '▲', BEARISH: '▼', NEUTRAL: '●' };
 
-// ===========================
-// KONFIGURASI PER PAIR
-// ===========================
-var CFG = {
-    XAUUSDT: {adxTh:22,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:2,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000},
-    BTCUSDT: {adxTh:20,rsiHi:65,rsiLo:35,atrP:14,maF:20,maS:50,bbP:20,bbS:2,prec:1,smcW:0.4,tcW:0.35,mtfW:0.25,h4Pen:0.55,h1Pen:0.65,m15m5Pen:0.75,minConf:55,minRR:1.3,slBufL:1.003,slBufS:0.997,tpNear:0.006,maxSMC:3,signalCooldownLg:180000,signalCooldownSm:90000}
-};
-var SCALP_CFG = {minConf:45,minRR:1.0,slATR:0.5,tpATR1:1.0,tpATR2:2.0,entryWidth:0.25,maxSMC:1.5,cooldown:30000};
-var MTF_MAP = {'4h':'h4','1h':'h1','30m':'m30','15m':'m15','5m':'m5'};
-var MTF_KEYS = ['h4','h1','m30','m15','m5'];
-var LARGE_TF = ['h4','h1'];
-var SCALPING_TF = ['15m','5m'];
-var SESSION_NAMES = {ASIA:'ASIA SESSION',LONDON:'LONDON SESSION',NY:'NEW YORK SESSION',WEEKEND:'WEEKEND — 24H RANGE'};
-var SYM = {BULLISH:'▲',BEARISH:'▼',NEUTRAL:'●'};
+            var PRICE_OFFSET = -3;
 
-var PRICE_OFFSET = -4;
+            var ConnState = { DISCONNECTED: 'disconnected', CONNECTING: 'connecting', LIVE: 'live', FALLBACK: 'fallback', STALE: 'stale',
+                RECONNECTING: 'reconnecting' };
 
-var ConnState = {DISCONNECTED:'disconnected',CONNECTING:'connecting',LIVE:'live',FALLBACK:'fallback',STALE:'stale',RECONNECTING:'reconnecting'};
+            var pair = 'XAUUSDT',
+                tf = '30m',
+                price = 0,
+                prevPrice = 0,
+                sessionHigh = 0,
+                sessionLow = 0;
+            var activeSignal = null,
+                lastGeneratedSignal = null;
+            var ws = null,
+                hbT = null,
+                fbT = null,
+                wsRT = null;
+            var recDelay = 1500,
+                lastMsg = 0,
+                lastUpd = 0,
+                manualOff = false,
+                isLoading = false;
+            var isStale = false,
+                lastSignalTimestamp = 0;
+            var cooldownRemaining = 0,
+                cooldownTotal = 0,
+                isScalpingMode = false;
+            var mtf = { h4: 'NEUTRAL', h1: 'NEUTRAL', m30: 'NEUTRAL', m15: 'NEUTRAL', m5: 'NEUTRAL' };
+            var buf = [],
+                currentATR = 0,
+                sessionData = null;
+            var currentTheme = 'dark';
+            var connectionState = ConnState.DISCONNECTED;
+            var reconnectAttempts = 0;
+            var MAX_RECONNECT_ATTEMPTS = 5;
+            var FALLBACK_THRESHOLD = 2000;
+            var sessionWarningActive = false;
+            var zombieClose = false;
+            var lastFallbackFetch = 0;
+            var mtfCache = {};
+            var mtfFetching = false;
 
-var pair = 'XAUUSDT', tf = '30m', price = 0, prevPrice = 0, sessionHigh = 0, sessionLow = 0;
-var activeSignal = null, lastGeneratedSignal = null;
-var ws = null, hbT = null, fbT = null, wsRT = null;
-var recDelay = 1500, lastMsg = 0, lastUpd = 0, manualOff = false, isLoading = false;
-var isStale = false, lastSignalTimestamp = 0;
-var cooldownRemaining = 0, cooldownTotal = 0, isScalpingMode = false;
-var mtf = {h4:'NEUTRAL',h1:'NEUTRAL',m30:'NEUTRAL',m15:'NEUTRAL',m5:'NEUTRAL'};
-var buf = [], currentATR = 0, sessionData = null;
-var currentTheme = 'dark';
-var connectionState = ConnState.DISCONNECTED;
-var reconnectAttempts = 0;
-var MAX_RECONNECT_ATTEMPTS = 5;
-var FALLBACK_THRESHOLD = 2000;
-var sessionWarningActive = false;
-var zombieClose = false;
-var lastFallbackFetch = 0;
-var mtfCache = {};
-var mtfFetching = false;
+            var prevValues = {};
+            var updateFlashTimeouts = {};
+            var globalIntervals = [];
 
-var prevValues = {};
-var updateFlashTimeouts = {};
-var globalIntervals = [];
+            function pushCandle(k) { var idx = buf.findIndex(function(c) { return c.t === k.t; }); if (idx >= 0) { buf[idx] = k; return; }
+                buf.push(k); if (buf.length > 300) buf.shift(); }
 
-function pushCandle(k) { var idx = buf.findIndex(function(c){ return c.t === k.t; }); if (idx >= 0) { buf[idx] = k; return; } buf.push(k); if (buf.length > 300) buf.shift(); }
-function getCandles() { return buf; }
-function $(id) { return document.getElementById(id); }
+            function getCandles() { return buf; }
 
-function setT(id, t, flashColor) {
-    var e = $(id); if (!e) return;
-    var oldText = e.textContent; if (oldText === t) return;
-    e.textContent = t;
-    if (flashColor) { e.classList.remove('flash-green','flash-red','flash-gold','flash-cyan','pulse'); void e.offsetWidth; if (flashColor === 'pulse') { e.classList.add('pulse'); } else { e.classList.add('flash-' + flashColor); } var key = id + '-flash'; if (updateFlashTimeouts[key]) clearTimeout(updateFlashTimeouts[key]); updateFlashTimeouts[key] = setTimeout(function() { e.classList.remove('flash-green','flash-red','flash-gold','flash-cyan','pulse'); }, 800); }
-    prevValues[id] = t;
-}
-function setH(id, h) { var e = $(id); if (e) e.innerHTML = h; }
-function setC(id, c) { var e = $(id); if (!e || e.className === c) return; e.className = c; void e.offsetWidth; }
-function flashElement(el, className, duration) { if (!el) return; el.classList.add(className); setTimeout(function() { el.classList.remove(className); }, duration || 600); }
-function showUpdateIndicator() { var ind = $('update-indicator'); if (!ind) return; ind.classList.add('show'); setTimeout(function() { ind.classList.remove('show'); }, 300); }
-function registerInterval(fn, ms) { var id = setInterval(fn, ms); globalIntervals.push(id); return id; }
-function cleanupAllIntervals() { globalIntervals.forEach(function(id) { clearInterval(id); }); globalIntervals = []; }
+            function $(id) { return document.getElementById(id); }
 
-function saveUserState() { try { var state = { pair: pair, tf: tf, theme: currentTheme }; localStorage.setItem('ura-user-state', JSON.stringify(state)); } catch(e) {} }
-function loadUserState() { try { var raw = localStorage.getItem('ura-user-state'); if (raw) { var state = JSON.parse(raw); if (state.pair && CFG[state.pair]) pair = state.pair; if (state.tf && MTF_MAP[state.tf]) tf = state.tf; if (state.theme && (state.theme === 'dark' || state.theme === 'light')) currentTheme = state.theme; } var mtfRaw = localStorage.getItem('ura-mtf-cache'); if (mtfRaw) { var parsed = JSON.parse(mtfRaw); if (parsed && typeof parsed === 'object') mtfCache = parsed; } } catch(e) {} }
-function saveMTFCache() { try { var keys = Object.keys(mtfCache); if (keys.length > 4) { var oldest = keys.sort(function(a,b){ return (mtfCache[a].ts||0) - (mtfCache[b].ts||0); })[0]; delete mtfCache[oldest]; } localStorage.setItem('ura-mtf-cache', JSON.stringify(mtfCache)); } catch(e) {} }
-function getCachedMTF(pr) { var entry = mtfCache[pr]; if (entry && entry.ts && (Date.now() - entry.ts < 120000)) { return entry.data; } return null; }
-function setCachedMTF(pr, data) { mtfCache[pr] = { data: data, ts: Date.now() }; saveMTFCache(); }
+            function setT(id, t, flashColor) {
+                var e = $(id);
+                if (!e) return;
+                var oldText = e.textContent;
+                if (oldText === t) return;
+                e.textContent = t;
+                if (flashColor) { e.classList.remove('flash-green', 'flash-red', 'flash-gold', 'flash-cyan', 'pulse');
+                    void e.offsetWidth; if (flashColor === 'pulse') { e.classList.add('pulse'); } else { e.classList.add(
+                        'flash-' + flashColor); } var key = id + '-flash'; if (updateFlashTimeouts[key]) clearTimeout(
+                        updateFlashTimeouts[key]);
+                    updateFlashTimeouts[key] = setTimeout(function() { e.classList.remove('flash-green', 'flash-red',
+                        'flash-gold', 'flash-cyan', 'pulse'); }, 800); }
+                prevValues[id] = t;
+            }
 
-function MA(d, p) { if (d.length < p) return d[d.length-1].c; var s = 0; for (var i = d.length-p; i < d.length; i++) s += d[i].c; return s/p; }
-function ATR(d, p) { if (d.length < p+1) return 0; var s = 0; for (var i = d.length-p; i < d.length; i++) { var a = d[i], b = d[i-1]; s += Math.max(a.h-a.l, Math.abs(a.h-b.c), Math.abs(a.l-b.c)); } return s/p; }
-function ADX(d) { if (d.length < 28) return {adx:15,pDI:25,mDI:25}; var p = 14, tr = [], pDM = [], mDM = []; for (var i = 1; i < d.length; i++) { var a = d[i], b = d[i-1]; tr.push(Math.max(a.h-a.l, Math.abs(a.h-b.c), Math.abs(a.l-b.c))); var u = a.h - b.h, dw = b.l - a.l; pDM.push(u > dw && u > 0 ? u : 0); mDM.push(dw > u && dw > 0 ? dw : 0); } var at = 0, pd = 0, md = 0; for (i = 0; i < p; i++) { at += tr[i]; pd += pDM[i]; md += mDM[i]; } at /= p; pd /= p; md /= p; var dx = []; for (i = p; i < tr.length; i++) { at = (at*(p-1)+tr[i])/p; pd = (pd*(p-1)+pDM[i])/p; md = (md*(p-1)+mDM[i])/p; var pdi = at ? pd/at*100 : 0, mdi = at ? md/at*100 : 0; dx.push((pdi+mdi) ? Math.abs(pdi-mdi)/(pdi+mdi)*100 : 0); } if (dx.length < p) return {adx:15,pDI:pd/at*100,mDI:md/at*100}; var ax = 0; for (i = 0; i < p; i++) ax += dx[i]; ax /= p; for (i = p; i < dx.length; i++) ax = (ax*(p-1)+dx[i])/p; return {adx:Math.max(5,Math.min(100,ax)),pDI:pd/at*100,mDI:md/at*100}; }
-function RSI(d) { if (d.length < 15) return 50; var p = 14, g = 0, l = 0; for (var i = 1; i <= p; i++) { var df = d[i].c-d[i-1].c; if (df>0) g+=df; else l-=df; } var ag = g/p, al = l/p; for (i = p+1; i < d.length; i++) { df = d[i].c-d[i-1].c; ag = (ag*(p-1)+(df>0?df:0))/p; al = (al*(p-1)+(df<0?-df:0))/p; } return al === 0 ? 100 : 100-(100/(1+ag/al)); }
-function BB(d, p, s) { if (d.length < p) return {mid:d[d.length-1].c,up:d[d.length-1].c*1.02,lo:d[d.length-1].c*0.98}; var sm = 0; for (var i = d.length-p; i < d.length; i++) sm += d[i].c; var ma = sm/p, vr = 0; for (i = d.length-p; i < d.length; i++) vr += (d[i].c-ma)*(d[i].c-ma); var variance = vr/p; var std = Math.sqrt(Math.max(0, variance)); return {mid:ma,up:ma+s*std,lo:ma-s*std}; }
+            function setH(id, h) { var e = $(id); if (e) e.innerHTML = h; }
 
-function getCurrentSession() { var now = new Date(), h = now.getUTCHours(), d = now.getUTCDay(); if (d === 0 || d === 6) return {name:'WEEKEND',startHour:22,endHour:22,label:'WEEKEND'}; if (h >= 22 || h < 8) return {name:'ASIA',startHour:22,endHour:8,label:'ASIA'}; if (h >= 8 && h < 16) return {name:'LONDON',startHour:8,endHour:16,label:'LONDON'}; return {name:'NY',startHour:16,endHour:22,label:'NEW YORK'}; }
-function getSessionStartTime(session) { var now = new Date(); var startHour = session.startHour; var startDate = new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate(),startHour,0,0)); if (startDate > now) { if (session.name === 'ASIA') { startDate = new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-1,22,0,0)); } } return startDate.getTime(); }
-function getSessionData(d) { var session = getCurrentSession(); if (session.name === 'WEEKEND') { var now = Date.now(), startTS = now - 86400000; var sessionCandles = []; for (var i = 0; i < d.length; i++) { if (d[i].t >= startTS) sessionCandles.push(d[i]); } if (sessionCandles.length < 2) return null; var sHigh = -Infinity, sLow = Infinity, sOpen = sessionCandles[0].o, sClose = d[d.length-1].c; for (i = 0; i < sessionCandles.length; i++) { sHigh = Math.max(sHigh,sessionCandles[i].h); sLow = Math.min(sLow,sessionCandles[i].l); } var sPivot = (sHigh+sLow+sClose)/3; sessionHigh = sHigh; sessionLow = sLow; return {name:'WEEKEND',label:'WEEKEND',start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)}; } var startTS = getSessionStartTime(session); var sessionCandles = []; for (var i = 0; i < d.length; i++) { if (d[i].t >= startTS) sessionCandles.push(d[i]); } if (sessionCandles.length < 2) return null; var sHigh = -Infinity, sLow = Infinity, sOpen = sessionCandles[0].o, sClose = d[d.length-1].c; for (i = 0; i < sessionCandles.length; i++) { sHigh = Math.max(sHigh,sessionCandles[i].h); sLow = Math.min(sLow,sessionCandles[i].l); } var sPivot = (sHigh+sLow+sClose)/3; sessionHigh = sHigh; sessionLow = sLow; return {name:session.name,label:session.label,start:startTS,high:sHigh,low:sLow,open:sOpen,close:sClose,pivot:sPivot,r1:2*sPivot-sLow,r2:sPivot+(sHigh-sLow),r3:sHigh+2*(sPivot-sLow),s1:2*sPivot-sHigh,s2:sPivot-(sHigh-sLow),s3:sLow-2*(sHigh-sPivot)}; }
-function sBi(sd) { var p = price; if (!sd) return 'NEUTRAL'; if (p > sd.r1) return 'BULLISH'; if (p < sd.s1) return 'BEARISH'; if (p > sd.pivot) return 'BULLISH'; return 'BEARISH'; }
-function getSessionDuration(session) { if (session.name === 'ASIA') { var sd = new Date(session.start), ed = new Date(sd); ed.setUTCHours(8,0,0,0); if (ed <= sd) ed.setUTCDate(ed.getUTCDate()+1); return ed.getTime()-sd.getTime(); } if (session.name === 'LONDON') { var sd = new Date(session.start), ed = new Date(sd); ed.setUTCHours(16,0,0,0); if (ed <= sd) ed.setUTCDate(ed.getUTCDate()+1); return ed.getTime()-sd.getTime(); } if (session.name === 'NY') { var sd = new Date(session.start), ed = new Date(sd); ed.setUTCHours(22,0,0,0); if (ed <= sd) ed.setUTCDate(ed.getUTCDate()+1); return ed.getTime()-sd.getTime(); } return 28800000; }
+            function setC(id, c) { var e = $(id); if (!e || e.className === c) return;
+                e.className = c;
+                void e.offsetWidth; }
 
-function detectSMC(d, atrVal) { var fvgs = [], obs = [], swps = [], maxDist = atrVal * CFG[pair].maxSMC; for (var i = 2; i < d.length; i++) { var a = d[i-2], c = d[i]; if (a.l > c.h) { var fl = false; for (var j = i+1; j < Math.min(i+20,d.length); j++) { if (d[j].l <= a.l && d[j].l >= c.h) { fl = true; break; } } fvgs.push({t:'BULL',top:a.l,bot:c.h,filled:fl,idx:i}); } if (a.h < c.l) { fl = false; for (j = i+1; j < Math.min(i+20,d.length); j++) { if (d[j].h >= a.h && d[j].h <= c.l) { fl = true; break; } } fvgs.push({t:'BEAR',top:c.l,bot:a.h,filled:fl,idx:i}); } } for (i = 5; i < d.length-1; i++) { c = d[i]; var n = d[i+1]; var cs = Math.abs(c.c-c.o), ns = Math.abs(n.c-n.o); if (c.c < c.o && n.c > n.o && n.c > c.h && ns > cs*1.5) { var td = false; for (j = i+2; j < Math.min(i+20,d.length); j++) { if (d[j].l <= c.o && d[j].l >= c.l) { td = true; break; } } obs.push({t:'BULL',h:c.h,l:c.l,o:c.o,tested:td,idx:i}); } if (c.c > c.o && n.c < n.o && n.c < c.l && ns > cs*1.5) { td = false; for (j = i+2; j < Math.min(i+20,d.length); j++) { if (d[j].h >= c.l && d[j].h <= c.h) { td = true; break; } } obs.push({t:'BEAR',h:c.h,l:c.l,o:c.o,tested:td,idx:i}); } } for (i = 3; i < d.length-1; i++) { if (d[i].h > d[i-1].h && d[i].h > d[i+1].h) { for (j = i+1; j < Math.min(i+5,d.length); j++) { if (d[j].h > d[i].h*1.0008 && d[j].c < d[j].o) { swps.push({t:'SW_H',lvl:d[i].h,idx:i}); break; } } } if (d[i].l < d[i-1].l && d[i].l < d[i+1].l) { for (j = i+1; j < Math.min(i+5,d.length); j++) { if (d[j].l < d[i].l*0.9992 && d[j].c > d[j].o) { swps.push({t:'SW_L',lvl:d[i].l,idx:i}); break; } } } } return { fvgs: fvgs, obs: obs, swps: swps, lastSw: swps.length ? swps[swps.length-1] : null, nearFVG: function(prc) { var n = null, md = maxDist; for (var fi = 0; fi < fvgs.length; fi++) { var f = fvgs[fi]; if (f.filled) continue; var dt = Math.min(Math.abs(f.top-prc),Math.abs(f.bot-prc)); if (dt < md) { md = dt; n = f; } } return n; }, nearOB: function(prc) { var n = null, md = maxDist; for (var oi = 0; oi < obs.length; oi++) { var o = obs[oi]; if (o.tested) continue; var dt = Math.abs(o.l-prc); if (dt < md) { md = dt; n = o; } } return n; } }; }
-function genSMC(p, smc) { var s = {bias:'NEUTRAL',str:0,entry:null,inv:null}; var f = smc.nearFVG(p), o = smc.nearOB(p), sw = smc.lastSw; if (f && f.bot != null && f.top != null) { if (f.t === 'BULL' && f.bot < p) { s.bias = 'BULLISH'; s.entry = {lo:f.bot,hi:(f.top+f.bot)/2}; s.inv = f.bot*0.9985; s.str += 35; } else if (f.t === 'BEAR' && f.top > p) { s.bias = 'BEARISH'; s.entry = {lo:(f.top+f.bot)/2,hi:f.top}; s.inv = f.top*1.0015; s.str += 35; } } if (o && o.l != null && o.h != null) { if (o.t === 'BULL' && s.bias !== 'BEARISH') { s.bias = 'BULLISH'; s.entry = {lo:(o.l+o.o)/2,hi:o.o}; s.inv = o.l*0.9985; s.str += 30; } else if (o.t === 'BEAR' && s.bias !== 'BULLISH') { s.bias = 'BEARISH'; s.entry = {lo:o.o,hi:(o.h+o.o)/2}; s.inv = o.h*1.0015; s.str += 30; } } if (sw && sw.lvl != null) { if (sw.t === 'SW_L' && s.bias !== 'BEARISH') { s.bias = 'BULLISH'; s.str += 20; } else if (sw.t === 'SW_H' && s.bias !== 'BULLISH') { s.bias = 'BEARISH'; s.str += 20; } } s.str = Math.min(100, s.str); return s; }
+            function flashElement(el, className, duration) { if (!el) return;
+                el.classList.add(className);
+                setTimeout(function() { el.classList.remove(className); }, duration || 600); }
 
-function updateScalpingMode() { isScalpingMode = SCALPING_TF.indexOf(tf) >= 0; updateModeUI(); }
-function updateModeUI() { var tag = $('mode-tag'); if (tag) tag.style.display = isScalpingMode ? 'inline' : 'none'; var fb = $('fusion-bar'); if (fb) { if (isScalpingMode) fb.classList.add('scalp-mode'); else fb.classList.remove('scalp-mode'); } var badge = $('signal-badge'); if (badge) { if (isScalpingMode) { badge.textContent = 'SCALP'; badge.classList.add('scalp'); } else { badge.textContent = 'FUSION'; badge.classList.remove('scalp'); } } document.querySelectorAll('.tf-btn').forEach(function(b) { var tff = b.dataset.tf; if (isScalpingMode && SCALPING_TF.indexOf(tff) >= 0 && b.classList.contains('active')) { b.classList.add('scalp-active'); } else { b.classList.remove('scalp-active'); } }); }
-function getCooldownForTF(tfKey) { var cf = CFG[pair]; return LARGE_TF.indexOf(tfKey) >= 0 ? cf.signalCooldownLg : cf.signalCooldownSm; }
+            function showUpdateIndicator() { var ind = $('update-indicator'); if (!ind) return;
+                ind.classList.add('show');
+                setTimeout(function() { ind.classList.remove('show'); }, 300); }
 
-function applyOffset(priceValue) { return priceValue + PRICE_OFFSET; }
+            function registerInterval(fn, ms) { var id = setInterval(fn, ms);
+                globalIntervals.push(id); return id; }
 
-function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
-    var s = {action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null};
-    var cf = CFG[pair]; var bullScore = 0, bearScore = 0;
-    if (tcB === 'BULLISH') bullScore += tcS * cf.tcW; else if (tcB === 'BEARISH') bearScore += tcS * cf.tcW;
-    if (smcS.bias === 'BULLISH') bullScore += smcS.str * cf.smcW; else if (smcS.bias === 'BEARISH') bearScore += smcS.str * cf.smcW;
-    var mtfBull = 0, mtfBear = 0;
-    Object.keys(MTF_MAP).forEach(function(tfStr) { var key = MTF_MAP[tfStr]; var pts = LARGE_TF.indexOf(key) >= 0 ? 18 : 8; if (mtf[key] === 'BULLISH') { bullScore += pts; mtfBull++; } else if (mtf[key] === 'BEARISH') { bearScore += pts; mtfBear++; } });
-    if (sd) { var sB = sBi(sd); if (sB === 'BULLISH') bullScore += 18; else if (sB === 'BEARISH') bearScore += 18; }
-    var arr = getCandles(); if (arr.length >= 28) { var adx = ADX(arr); if (adx.adx >= cf.adxTh) { if (adx.pDI > adx.mDI) bullScore += 15; else bearScore += 15; } }
-    var isBullDominant = bullScore > bearScore;
-    if (smcS.entry && smcS.entry.lo != null) { s.entry = smcS.entry; } else if (isBullDominant) { s.entry = {lo:lv.s1||(p*0.997),hi:lv.pivot||(p*0.999)}; } else { s.entry = {lo:lv.pivot||(p*1.001),hi:lv.r1||(p*1.003)}; }
-    s.sl = smcS.inv || (isBullDominant ? (lv.s2||p*0.99) : (lv.r2||p*1.01));
-    if (isBullDominant) { s.tp = [lv.r1,lv.r2].filter(function(v){ return v > p; }); if (s.tp.length === 0) s.tp = [p*1.008,p*1.015]; } else { s.tp = [lv.s1,lv.s2].filter(function(v){ return v < p; }); if (s.tp.length === 0) s.tp = [p*0.992,p*0.985]; }
-    var h1B = mtf.h1, htfB = mtf.h4, m15B = mtf.m15, m5B = mtf.m5;
-    if (isBullDominant && bullScore >= cf.minConf) { s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.round(bullScore); s.reason = 'Bullish ('+mtfBull+'/'+((mtfBull+mtfBear)||1)+' MTF)'; }
-    else if (!isBullDominant && bearScore >= cf.minConf) { s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.round(bearScore); s.reason = 'Bearish ('+mtfBear+'/'+((mtfBull+mtfBear)||1)+' MTF)'; }
-    else { s.bias = isBullDominant ? 'BULLISH' : 'BEARISH'; s.conf = Math.round(Math.max(bullScore,bearScore)); s.reason = 'Low conf ('+s.conf+'<'+cf.minConf+')'; }
-    if (s.action !== 'WAIT') { var blocked = false, conflictMsgs = []; if (htfB !== 'NEUTRAL' && ((s.bias==='BULLISH'&&htfB==='BEARISH')||(s.bias==='BEARISH'&&htfB==='BULLISH'))) { blocked = true; conflictMsgs.push('H4 conflict'); } if (h1B !== 'NEUTRAL' && m15B !== 'NEUTRAL' && m5B !== 'NEUTRAL' && h1B === m15B && m15B === m5B && ((s.bias==='BULLISH'&&h1B==='BEARISH')||(s.bias==='BEARISH'&&h1B==='BULLISH'))) { blocked = true; conflictMsgs.push('H1+M15+M5 conflict'); } if (blocked) { s.action = 'WAIT'; s.reason = conflictMsgs.join(' | '); s.conf = 0; return s; } if (h1B !== 'NEUTRAL' && ((s.bias==='BULLISH'&&h1B==='BEARISH')||(s.bias==='BEARISH'&&h1B==='BULLISH'))) { s.conf = Math.round(s.conf * cf.h1Pen); s.reason += ' | H1!'; } if (m15B !== 'NEUTRAL' && m5B !== 'NEUTRAL' && m15B === m5B && ((s.bias==='BULLISH'&&m15B==='BEARISH')||(s.bias==='BEARISH'&&m15B==='BULLISH'))) { s.conf = Math.round(s.conf * cf.m15m5Pen); s.reason += ' | M15+M5!'; } if (s.conf < cf.minConf) { s.action = 'WAIT'; s.reason += ' - Low confidence'; } }
-    if (s.entry && s.sl && s.action !== 'WAIT') { if ((s.bias==='BULLISH'&&s.entry.hi>=s.sl)||(s.bias==='BEARISH'&&s.entry.lo<=s.sl)) { s.sl = s.bias==='BULLISH' ? s.entry.lo*0.997 : s.entry.hi*1.003; } }
-    if (s.entry && s.sl && s.tp.length > 0 && s.tp[0] != null && !isNaN(s.tp[0]) && s.action !== 'WAIT') { var entryMid, risk, reward; if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid - s.sl; reward = s.tp[0] - entryMid; } else { entryMid = s.entry.hi; risk = s.sl - entryMid; reward = entryMid - s.tp[0]; } if (risk > 0 && reward > 0) { var rr = reward / risk; s.rr = parseFloat(rr.toFixed(2)); if (rr < cf.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR (' + s.rr + '<' + cf.minRR + ')'; s.conf = 0; } } }
-    var now = Date.now(); var cd = getCooldownForTF(MTF_MAP[tf]||'m30'); if (now-lastSignalTimestamp < cd && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') { s.action = 'WAIT'; s.reason = 'Cooldown ('+Math.round((cd-(now-lastSignalTimestamp))/1000)+'s)'; s.conf = 0; }
-    s.conf = Math.min(100, Math.max(0, s.conf));
-    if (s.entry) { if (s.entry.lo != null) s.entry.lo = applyOffset(s.entry.lo); if (s.entry.hi != null) s.entry.hi = applyOffset(s.entry.hi); } if (s.sl != null) s.sl = applyOffset(s.sl); if (s.tp && s.tp.length > 0) { s.tp = s.tp.map(function(v) { return applyOffset(v); }); }
-    return s;
-}
+            function cleanupAllIntervals() { globalIntervals.forEach(function(id) { clearInterval(id); });
+                globalIntervals = []; }
 
-function genFusionScalping(smcS, p, lv) {
-    var s = {action:'WAIT',bias:'NEUTRAL',conf:0,entry:null,sl:null,tp:[],reason:'',rr:null}; var sc = SCALP_CFG; var arr = getCandles(); if (arr.length < 20) return s;
-    var trendScore = 0, sweepScore = 0, momentumScore = 0; var bullScore = 0, bearScore = 0;
-    var ma20 = MA(arr, 20); var ma50 = MA(arr, 50);
-    if (p > ma20 && p > ma50) { bullScore += 40; trendScore = 40; } else if (p < ma20 && p < ma50) { bearScore += 40; trendScore = 40; } else if (p > ma20) { bullScore += 20; trendScore = 20; } else if (p < ma20) { bearScore += 20; trendScore = 20; }
-    if (ma20 > ma50) { bullScore += 15; trendScore += 15; } else if (ma20 < ma50) { bearScore += 15; trendScore += 15; }
-    if (smcS.bias === 'BULLISH') { bullScore += smcS.str; sweepScore = smcS.str; } else if (smcS.bias === 'BEARISH') { bearScore += smcS.str; sweepScore = smcS.str; }
-    var smcDetect = detectSMC(arr, currentATR || p*0.002); if (smcDetect.lastSw) { var lastSw = smcDetect.lastSw; if (lastSw.t === 'SW_L') { bullScore += 25; sweepScore += 25; } else if (lastSw.t === 'SW_H') { bearScore += 25; sweepScore += 25; } }
-    var latest = arr[arr.length-1]; var prev = arr[arr.length-2];
-    if (latest && prev) { var body = Math.abs(latest.c - latest.o); var range = latest.h - latest.l; var bodyRatio = range > 0 ? body / range : 0; if (latest.c > latest.o && bodyRatio > 0.55) { bullScore += 35; momentumScore = 35; } else if (latest.c < latest.o && bodyRatio > 0.55) { bearScore += 35; momentumScore = 35; } else if (latest.c > latest.o && bodyRatio > 0.35) { bullScore += 18; momentumScore = 18; } else if (latest.c < latest.o && bodyRatio > 0.35) { bearScore += 18; momentumScore = 18; } var prevBody = Math.abs(prev.c - prev.o); var prevDir = prev.c > prev.o ? 'BULL' : 'BEAR'; var currDir = latest.c > latest.o ? 'BULL' : 'BEAR'; if (prevDir === currDir && body > prevBody * 1.2) { if (currDir === 'BULL') { bullScore += 20; momentumScore += 20; } else { bearScore += 20; momentumScore += 20; } } }
-    var atr = (currentATR && currentATR > 0) ? currentATR : (p * 0.003); if (atr > p * 0.015) atr = p * 0.008;
-    var isBullDominant = bullScore > bearScore;
-    if (isBullDominant) { s.entry = { lo: p - atr * 0.2, hi: p }; s.sl = p - atr * sc.slATR; s.tp = [p + atr * sc.tpATR1, p + atr * sc.tpATR2]; } else { s.entry = { lo: p, hi: p + atr * 0.2 }; s.sl = p + atr * sc.slATR; s.tp = [p - atr * sc.tpATR1, p - atr * sc.tpATR2]; }
-    var totalScore = Math.max(bullScore, bearScore);
-    if (isBullDominant && totalScore >= sc.minConf) { s.action = 'BUY'; s.bias = 'BULLISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = 'T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; } else if (!isBullDominant && totalScore >= sc.minConf) { s.action = 'SELL'; s.bias = 'BEARISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = 'T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; } else { s.bias = isBullDominant ? 'BULLISH' : 'BEARISH'; s.conf = Math.min(100, Math.round(totalScore)); s.reason = 'Low ('+totalScore+'<'+sc.minConf+') T:'+trendScore+' Sw:'+sweepScore+' M:'+momentumScore; }
-    if (s.entry && s.sl && s.tp[0] && s.action !== 'WAIT') { var entryMid, risk, reward; if (s.bias === 'BULLISH') { entryMid = s.entry.lo; risk = entryMid - s.sl; reward = s.tp[0] - entryMid; } else { entryMid = s.entry.hi; risk = s.sl - entryMid; reward = entryMid - s.tp[0]; } if (risk > 0 && reward > 0) { var rr = reward / risk; s.rr = parseFloat(rr.toFixed(2)); if (rr < sc.minRR) { s.action = 'WAIT'; s.reason = 'Bad RR ('+s.rr+'<'+sc.minRR+')'; s.conf = 0; } } }
-    var now = Date.now(); if (now - lastSignalTimestamp < sc.cooldown && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') { s.action = 'WAIT'; s.reason = 'Cooldown '+Math.round((sc.cooldown-(now-lastSignalTimestamp))/1000)+'s'; s.conf = 0; }
-    s.conf = Math.min(100, Math.max(0, s.conf));
-    if (s.entry) { if (s.entry.lo != null) s.entry.lo = applyOffset(s.entry.lo); if (s.entry.hi != null) s.entry.hi = applyOffset(s.entry.hi); } if (s.sl != null) s.sl = applyOffset(s.sl); if (s.tp && s.tp.length > 0) { s.tp = s.tp.map(function(v) { return applyOffset(v); }); }
-    return s;
-}
+            function saveUserState() { try { var state = { pair: pair, tf: tf, theme: currentTheme };
+                    localStorage.setItem('ura-user-state', JSON.stringify(state)); } catch (e) {} }
 
-function transitionTo(newState) { var oldState = connectionState; if (oldState === newState) return; connectionState = newState; switch(newState) { case ConnState.LIVE: stopFallbackRoutine(); reconnectAttempts = 0; recDelay = 1500; isStale = false; zombieClose = false; var badge = $('connection-badge'); if (badge) { badge.classList.add('live-flash'); setTimeout(function(){ badge.classList.remove('live-flash'); }, 1000); } break; case ConnState.FALLBACK: startFallbackRoutine(); break; case ConnState.RECONNECTING: break; case ConnState.DISCONNECTED: stopFallbackRoutine(); cleanupWSResources(); break; } updateConnectionUI(); }
-function updateConnectionUI() { var dot = $('status-dot'); var text = $('status-text'); if (!dot || !text) return; var config = { 'disconnected': { cls: 'offline', txt: 'OFFLINE' }, 'connecting': { cls: 'connecting', txt: 'CONNECT' }, 'live': { cls: 'live', txt: 'LIVE' }, 'fallback': { cls: 'fallback', txt: 'FALLBACK' }, 'stale': { cls: 'stale', txt: 'STALE' }, 'reconnecting': { cls: 'reconnect', txt: 'RECON' } }; var c = config[connectionState] || config['disconnected']; dot.className = 'status-dot ' + c.cls; text.textContent = c.txt; }
-function startFallbackRoutine() { stopFallbackRoutine(); fetchPriceFallback(); fbT = setInterval(function() { if (connectionState !== ConnState.FALLBACK && connectionState !== ConnState.RECONNECTING) { stopFallbackRoutine(); return; } fetchPriceFallback(); }, 4000); }
-function stopFallbackRoutine() { if (fbT) { clearInterval(fbT); fbT = null; } }
-async function fetchPriceFallback() { var now = Date.now(); if (now - lastFallbackFetch < 3000) return; lastFallbackFetch = now; try { var r = await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol='+pair, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }); if (!r.ok) return; var d = await r.json(); if (d && d.price) { var prc = +d.price; if (prc > 0) { price = applyOffset(prc); lastUpd = Date.now(); lastMsg = Date.now(); if (buf.length >= 30) { analyze(); } } } } catch(e) {} }
-function cleanupWSResources() { if (ws) { try { ws.onopen = ws.onmessage = ws.onclose = ws.onerror = null; if (ws.readyState < 2) ws.close(); } catch(e) {} ws = null; } if (hbT) { clearInterval(hbT); hbT = null; } if (wsRT) { clearTimeout(wsRT); wsRT = null; } }
-function scheduleReconnect() { if (wsRT) clearTimeout(wsRT); if (manualOff || isLoading) return; if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) { transitionTo(ConnState.FALLBACK); return; } reconnectAttempts++; var delay = Math.min(recDelay * Math.pow(1.5, reconnectAttempts-1), 30000); wsRT = setTimeout(function() { if (!manualOff && !isLoading) { transitionTo(ConnState.RECONNECTING); connectWS(); } }, delay); }
-function connectWS() { cleanupWSResources(); if (wsRT) { clearTimeout(wsRT); wsRT = null; } if (manualOff || isLoading) return; if (!isLoading) manualOff = false; zombieClose = false; transitionTo(ConnState.CONNECTING); try { ws = new WebSocket('wss://fstream.binance.com/ws/'+pair.toLowerCase()+'@kline_'+tf); var connectTimeout = setTimeout(function() { if (connectionState === ConnState.CONNECTING) { try { ws.close(); } catch(e) {} } }, 10000); ws.onopen = function() { clearTimeout(connectTimeout); lastMsg = Date.now(); lastUpd = Date.now(); transitionTo(ConnState.LIVE); hbT = setInterval(function() { if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({method:'ping'})); } }, 25000); }; ws.onmessage = function(e) { try { var m = JSON.parse(e.data); if (m && m.k) { var k = m.k; var prc = +k.c; if (prc > 0) { lastMsg = Date.now(); lastUpd = Date.now(); if (connectionState !== ConnState.LIVE) { transitionTo(ConnState.LIVE); } pushCandle({ t: k.t, o: +k.o, h: +k.h, l: +k.l, c: prc, v: +k.v }); price = applyOffset(prc); showUpdateIndicator(); analyze(); } } } catch(e) {} }; ws.onclose = function(event) { clearTimeout(connectTimeout); if (hbT) { clearInterval(hbT); hbT = null; } if (zombieClose) { zombieClose = false; return; } if (!isLoading && !manualOff) { scheduleReconnect(); } else { transitionTo(ConnState.DISCONNECTED); } }; ws.onerror = function(error) { clearTimeout(connectTimeout); if (!isLoading && !manualOff) { transitionTo(ConnState.FALLBACK); scheduleReconnect(); } }; } catch(e) { transitionTo(ConnState.FALLBACK); scheduleReconnect(); } }
+            function loadUserState() { try { var raw = localStorage.getItem('ura-user-state'); if (raw) { var state = JSON.parse(
+                        raw); if (state.pair && CFG[state.pair]) pair = state.pair; if (state.tf && MTF_MAP[state.tf]) tf =
+                        state.tf; if (state.theme && (state.theme === 'dark' || state.theme === 'light')) currentTheme =
+                        state.theme; } var mtfRaw = localStorage.getItem('ura-mtf-cache'); if (mtfRaw) { var parsed = JSON.parse(
+                        mtfRaw); if (parsed && typeof parsed === 'object') mtfCache = parsed; } } catch (e) {} }
 
-registerInterval(function() { var now = Date.now(); var timeSinceLastMsg = now - lastMsg; var timeSinceLastUpdate = now - lastUpd; if (timeSinceLastUpdate > 12000 && price > 0) { if (!isStale) { isStale = true; } } else if (isStale && timeSinceLastUpdate < 5000) { isStale = false; } if (connectionState === ConnState.LIVE && ws && ws.readyState === WebSocket.OPEN && timeSinceLastMsg > FALLBACK_THRESHOLD) { zombieClose = true; try { ws.close(); } catch(e) {} setTimeout(function() { if (connectionState === ConnState.LIVE || connectionState === ConnState.CONNECTING) { zombieClose = false; transitionTo(ConnState.FALLBACK); scheduleReconnect(); } }, 2000); } if (connectionState === ConnState.FALLBACK && !wsRT && !isLoading && !manualOff) { scheduleReconnect(); } }, 5000);
+            function saveMTFCache() { try { var keys = Object.keys(mtfCache); if (keys.length > 4) { var oldest = keys.sort(
+                        function(a, b) { return (mtfCache[a].ts || 0) - (mtfCache[b].ts || 0); })[0];
+                    delete mtfCache[oldest]; }
+                    localStorage.setItem('ura-mtf-cache', JSON.stringify(mtfCache)); } catch (e) {} }
 
-function updateCooldownUI() { var now = Date.now(), elapsed = now - lastSignalTimestamp; var cd = isScalpingMode ? SCALP_CFG.cooldown : getCooldownForTF(MTF_MAP[tf]||'m30'); cooldownTotal = cd; cooldownRemaining = Math.max(0, cd-elapsed); var bar = $('cooldown-bar'), fill = $('cooldown-fill'); if (cooldownRemaining > 0 && activeSignal && activeSignal.action !== 'WAIT') { if (bar) bar.classList.add('active'); var pct = ((cd-cooldownRemaining)/cd)*100; if (fill) fill.style.width = Math.min(100,pct)+'%'; } else { if (bar) bar.classList.remove('active'); if (fill) fill.style.width = '0%'; cooldownRemaining = 0; } }
-registerInterval(function() { if (cooldownRemaining > 0) updateCooldownUI(); }, 1000);
+            function getCachedMTF(pr) { var entry = mtfCache[pr]; if (entry && entry.ts && (Date.now() - entry.ts < 120000)) { return entry
+                    .data; } return null; }
 
-function setTheme(theme) { currentTheme = theme; document.body.setAttribute('data-theme', theme); try { localStorage.setItem('ura-theme', theme); } catch(e) {} var btn = $('theme-toggle-btn'); if (btn) { btn.textContent = theme === 'dark' ? '☀️' : '🌙'; } saveUserState(); }
-function toggleTheme() { setTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+            function setCachedMTF(pr, data) { mtfCache[pr] = { data: data, ts: Date.now() };
+                saveMTFCache(); }
 
-function tcCopyRow(rowEl, toastEl) { var label = rowEl.querySelector('.tc-label').textContent.replace('⚡','').trim(); var value = rowEl.querySelector('.tc-value').textContent; if (value === '—') return; var txt = label + ': ' + value; flashElement(rowEl, 'data-updated', 800); if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(function() { showTCToast(toastEl, '✅ '+label+' disalin!'); }).catch(function() { showTCToast(toastEl, '❌ Gagal menyalin'); }); } else { var ta = document.createElement('textarea'); ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); showTCToast(toastEl, '✅ '+label+' disalin!'); } catch(e) { showTCToast(toastEl, '❌ Gagal menyalin'); } document.body.removeChild(ta); } }
-function showTCToast(el, msg) { el.textContent = msg; el.classList.add('show'); clearTimeout(el._timeout); el._timeout = setTimeout(function() { el.classList.remove('show'); }, 1400); }
+            function MA(d, p) { if (d.length < p) return d[d.length - 1].c; var s = 0; for (var i = d.length - p; i < d.length; i++)
+                    s += d[i].c; return s / p; }
 
-function analyze() {
-    var arr = getCandles(); if (arr.length < 30) return;
-    var p = price, cf = CFG[pair], pr = cf.prec;
-    var ma20 = MA(arr, cf.maF), ma50 = MA(arr, cf.maS);
-    var adx = ADX(arr), rsi = RSI(arr), atr = ATR(arr, cf.atrP);
-    currentATR = atr;
-    var bb = BB(arr, cf.bbP, cf.bbS);
-    sessionData = getSessionData(arr);
-    var usePv = sessionData || {pivot:p,r1:p*1.005,r2:p*1.01,r3:p*1.015,s1:p*0.995,s2:p*0.99,s3:p*0.985};
+            function ATR(d, p) { if (d.length < p + 1) return 0; var s = 0; for (var i = d.length - p; i < d.length; i++) { var a = d[
+                    i],
+                    b = d[i - 1];
+                s += Math.max(a.h - a.l, Math.abs(a.h - b.c), Math.abs(a.l - b.c)); } return s / p; }
 
-    var tcB = 'NEUTRAL', tcS = 50;
-    if (p > usePv.pivot) { tcB = 'BULLISH'; tcS += 25; } else if (p < usePv.pivot) { tcB = 'BEARISH'; tcS += 25; }
-    if (adx.adx >= cf.adxTh) { tcS += 15; if (tcB==='BULLISH'&&adx.pDI>adx.mDI) tcS+=12; else if (tcB==='BEARISH'&&adx.mDI>adx.pDI) tcS+=12; }
-    if (tcB==='BULLISH'&&rsi>cf.rsiLo&&rsi<cf.rsiHi) tcS+=10; else if (tcB==='BEARISH'&&rsi>(100-cf.rsiHi)&&rsi<(100-cf.rsiLo)) tcS+=10;
-    if (sessionData) tcS += 12;
-    tcS = Math.min(100, Math.max(0, tcS));
+            function ADX(d) { if (d.length < 28) return { adx: 15, pDI: 25, mDI: 25 }; var p = 14,
+                    tr = [],
+                    pDM = [],
+                    mDM = []; for (var i = 1; i < d.length; i++) { var a = d[i],
+                        b = d[i - 1];
+                    tr.push(Math.max(a.h - a.l, Math.abs(a.h - b.c), Math.abs(a.l - b.c))); var u = a.h - b.h,
+                        dw = b.l - a.l;
+                    pDM.push(u > dw && u > 0 ? u : 0);
+                    mDM.push(dw > u && dw > 0 ? dw : 0); } var at = 0,
+                    pd = 0,
+                    md = 0; for (i = 0; i < p; i++) { at += tr[i];
+                    pd += pDM[i];
+                    md += mDM[i]; }
+                at /= p;
+                pd /= p;
+                md /= p; var dx = []; for (i = p; i < tr.length; i++) { at = (at * (p - 1) + tr[i]) / p;
+                    pd = (pd * (p - 1) + pDM[i]) / p;
+                    md = (md * (p - 1) + mDM[i]) / p; var pdi = at ? pd / at * 100 : 0,
+                        mdi = at ? md / at * 100 : 0;
+                    dx.push((pdi + mdi) ? Math.abs(pdi - mdi) / (pdi + mdi) * 100 : 0); } if (dx.length < p) return { adx: 15,
+                    pDI: pd / at * 100, mDI: md / at * 100 }; var ax = 0; for (i = 0; i < p; i++) ax += dx[i];
+                ax /= p; for (i = p; i < dx.length; i++) ax = (ax * (p - 1) + dx[i]) / p; return { adx: Math.max(5, Math.min(100,
+                        ax)), pDI: pd / at * 100, mDI: md / at * 100 }; }
 
-    var tcE, tcSL;
-    if (tcB === 'BULLISH') { tcE = {lo:usePv.pivot,hi:Math.min(usePv.r1,p*0.999)}; tcSL = usePv.s1||p*0.99; }
-    else if (tcB === 'BEARISH') { tcE = {lo:Math.max(usePv.s1,p*1.001),hi:usePv.pivot}; tcSL = usePv.r1||p*1.01; }
-    else { tcE = {lo:p*0.997,hi:p*1.003}; tcSL = p*0.995; }
+            function RSI(d) { if (d.length < 15) return 50; var p = 14,
+                    g = 0,
+                    l = 0; for (var i = 1; i <= p; i++) { var df = d[i].c - d[i - 1].c; if (df > 0) g += df; else l -= df; } var ag =
+                    g / p,
+                    al = l / p; for (i = p + 1; i < d.length; i++) { df = d[i].c - d[i - 1].c;
+                    ag = (ag * (p - 1) + (df > 0 ? df : 0)) / p;
+                    al = (al * (p - 1) + (df < 0 ? -df : 0)) / p; } return al === 0 ? 100 : 100 - (100 / (1 + ag / al)); }
 
-    var smc = detectSMC(arr, atr), smcS = genSMC(p, smc);
+            function detectStructure(d) {
+                // Simple swing high/low detection for structure
+                var highs = [],
+                    lows = [];
+                for (var i = 2; i < d.length - 2; i++) {
+                    if (d[i].h > d[i - 1].h && d[i].h > d[i - 2].h && d[i].h > d[i + 1].h && d[i].h > d[i + 2].h) {
+                        highs.push({ index: i, price: d[i].h, time: d[i].t });
+                    }
+                    if (d[i].l < d[i - 1].l && d[i].l < d[i - 2].l && d[i].l < d[i + 1].l && d[i].l < d[i + 2].l) {
+                        lows.push({ index: i, price: d[i].l, time: d[i].t });
+                    }
+                }
+                var trend = 'NEUTRAL';
+                if (highs.length >= 2 && lows.length >= 2) {
+                    var lastHigh = highs[highs.length - 1].price;
+                    var prevHigh = highs[highs.length - 2].price;
+                    var lastLow = lows[lows.length - 1].price;
+                    var prevLow = lows[lows.length - 2].price;
+                    if (lastHigh > prevHigh && lastLow > prevLow) trend = 'BULLISH';
+                    else if (lastHigh < prevHigh && lastLow < prevLow) trend = 'BEARISH';
+                }
+                return { trend: trend, highs: highs, lows: lows };
+            }
 
-    var newSignal;
-    if (isScalpingMode) { newSignal = genFusionScalping(smcS, p, usePv); if (newSignal.action !== 'WAIT') newSignal.reason = ''+newSignal.reason; else newSignal.reason = '⚡'+newSignal.reason; }
-    else { newSignal = genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, usePv, sessionData); }
+            function detectLiquidity(d, structure) {
+                var liquidity = 'NONE';
+                var currentPrice = d[d.length - 1].c;
+                var highs = structure.highs;
+                var lows = structure.lows;
+                // Check for buy-side liquidity sweep (price breaks above recent high then reverses)
+                if (highs.length >= 1) {
+                    var recentHigh = highs[highs.length - 1];
+                    if (currentPrice < recentHigh.price * 0.999 && d[d.length - 1].h > recentHigh.price * 1.0005) {
+                        liquidity = 'BUY_SIDE_SWEEP';
+                    }
+                }
+                // Check for sell-side liquidity sweep (price breaks below recent low then reverses)
+                if (lows.length >= 1) {
+                    var recentLow = lows[lows.length - 1];
+                    if (currentPrice > recentLow.price * 1.001 && d[d.length - 1].l < recentLow.price * 0.9995) {
+                        liquidity = 'SELL_SIDE_SWEEP';
+                    }
+                }
+                return liquidity;
+            }
 
-    lastGeneratedSignal = newSignal;
-    if (newSignal.action !== 'WAIT') { if (!activeSignal || activeSignal.action === 'WAIT' || newSignal.bias !== activeSignal.bias) { activeSignal = newSignal; lastSignalTimestamp = Date.now(); } else if (activeSignal && newSignal.bias === activeSignal.bias) { lastSignalTimestamp = Date.now(); activeSignal = newSignal; } }
+            function detectCHoCH(d, structure) {
+                var choch = 'NONE';
+                var highs = structure.highs;
+                var lows = structure.lows;
+                if (structure.trend === 'BEARISH' && highs.length >= 2) {
+                    // Check if price broke above recent high, signaling potential bullish CHoCH
+                    if (d[d.length - 1].c > highs[highs.length - 1].price * 1.0005 &&
+                        highs[highs.length - 2].price > highs[highs.length - 1].price) {
+                        choch = 'CHOCH_BULL';
+                    }
+                }
+                if (structure.trend === 'BULLISH' && lows.length >= 2) {
+                    // Check if price broke below recent low, signaling potential bearish CHoCH
+                    if (d[d.length - 1].c < lows[lows.length - 1].price * 0.9995 &&
+                        lows[lows.length - 2].price < lows[lows.length - 1].price) {
+                        choch = 'CHOCH_BEAR';
+                    }
+                }
+                return choch;
+            }
 
-    var displaySignal = activeSignal || lastGeneratedSignal;
-    var isStaleSignal = !!(!activeSignal && lastGeneratedSignal && lastGeneratedSignal.action === 'WAIT');
+            function detectZone(d, price) {
+                // Simple supply/demand zone detection based on recent swing points
+                var zone = 'NONE';
+                var structure = detectStructure(d);
+                var highs = structure.highs;
+                var lows = structure.lows;
+                if (highs.length >= 1) {
+                    var recentHigh = highs[highs.length - 1];
+                    if (price < recentHigh.price * 1.001 && price > recentHigh.price * 0.995) {
+                        zone = 'SUPPLY';
+                    }
+                }
+                if (lows.length >= 1) {
+                    var recentLow = lows[lows.length - 1];
+                    if (price < recentLow.price * 1.005 && price > recentLow.price * 0.999) {
+                        zone = 'DEMAND';
+                    }
+                }
+                return zone;
+            }
 
-    var displayPrice = p;
-    var f = displayPrice.toFixed(pr), pt = f.split('.');
-    setH('price-display', pt[0]+'<span class="price-decimal">.'+(pt[1]||'00')+'</span>');
-    var priceColor = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' : 'var(--text-primary)');
-    $('price-display').style.color = priceColor;
-    if (prevPrice > 0) { var ch = p - prevPrice, pct = (ch/prevPrice)*100; var changeText = (ch>0?'+':'')+ch.toFixed(pr)+' ('+pct.toFixed(2)+'%)'; setT('price-change', changeText); var changeEl = $('price-change'); changeEl.style.color = ch > 0 ? 'var(--accent-green)' : (ch < 0 ? 'var(--accent-red)' : 'var(--text-secondary)'); changeEl.classList.remove('up', 'down'); if (ch > 0) changeEl.classList.add('up'); else if (ch < 0) changeEl.classList.add('down'); }
+            function getSignal(data) {
+                let trend = data.trend;
+                let liquidity = data.liquidity;
+                let structure = data.structure;
+                let zone = data.zone;
 
-    setT('r3v', applyOffset(usePv.r3).toFixed(pr), 'red');
-    setT('r2v', applyOffset(usePv.r2).toFixed(pr), 'red');
-    setT('r1v', applyOffset(usePv.r1).toFixed(pr), 'red');
-    setT('pivotv', applyOffset(usePv.pivot).toFixed(pr), 'gold');
-    setT('s1v', applyOffset(usePv.s1).toFixed(pr), 'green');
-    setT('s2v', applyOffset(usePv.s2).toFixed(pr), 'green');
-    setT('s3v', applyOffset(usePv.s3).toFixed(pr), 'green');
-    setT('lastv', p.toFixed(pr), 'pulse');
-    setT('bbuv', applyOffset(bb.up).toFixed(pr), 'cyan');
-    setT('bblv', applyOffset(bb.lo).toFixed(pr), 'cyan');
-    setT('bbmv', applyOffset(bb.mid).toFixed(pr), 'cyan');
-    setT('tc-bias-val', tcB);
-    setC('tc-bias-val', 'tc-bias '+tcB.toLowerCase());
-    var activeSessionName = sessionData ? (SESSION_NAMES[sessionData.name]||(sessionData.label+' SESSION INTRADAY')) : 'INTRADAY';
-    setT('tc-upd', activeSessionName);
-    setC('tc-upd', 'tc-update active-session');
+                let signal = "NO TRADE";
+                let reason = [];
 
-    var sessionWarn = $('session-warning');
-    if (sessionData && sessionData.name !== 'WEEKEND') { var sessDur = getSessionDuration(sessionData); var remaining = sessionData.start + sessDur - Date.now(); if (remaining > 0 && remaining < 900000) { if (!sessionWarningActive) { sessionWarn.classList.add('show'); sessionWarningActive = true; } } else { if (sessionWarningActive) { sessionWarn.classList.remove('show'); sessionWarningActive = false; } } } else { if (sessionWarningActive) { sessionWarn.classList.remove('show'); sessionWarningActive = false; } }
+                // ===== SELL LOGIC =====
+                if (
+                    trend === "BEARISH" &&
+                    liquidity === "BUY_SIDE_SWEEP" &&
+                    structure === "CHOCH_BEAR" &&
+                    zone === "SUPPLY"
+                ) {
+                    signal = "SELL";
+                    reason.push("HTF Bearish");
+                    reason.push("Liquidity Sweep High");
+                    reason.push("CHoCH Bearish");
+                    reason.push("Supply Zone");
+                }
 
-    if (displaySignal) {
-        var isB = displaySignal.bias === 'BULLISH', sc = isB ? 'var(--accent-green)' : 'var(--accent-red)';
-        if (activeSignal && activeSignal.action !== 'WAIT') {
-            setT('sig-status', activeSignal.bias+' SIGNAL'); $('sig-status').style.color = sc;
-            var arrowEl = $('sig-arrow'); var newArrow = isB ? '▲' : '▼'; var oldArrow = arrowEl.textContent;
-            setT('sig-arrow', newArrow); arrowEl.style.color = sc;
-            if (oldArrow !== newArrow && oldArrow !== '—') { arrowEl.classList.add('bounce'); setTimeout(function(){ arrowEl.classList.remove('bounce'); }, 500); }
-            var ct = 'LOW', cc = 'low'; if (activeSignal.conf >= 75) { ct = 'HIGH'; cc = 'high'; } else if (activeSignal.conf >= 60) { ct = 'MED'; cc = 'medium'; }
-            setT('sig-conf', ct); setC('sig-conf', 'conf-badge '+cc);
-            $('fusion-bar').classList.remove('stale-signal'); flashElement($('fusion-bar'), 'flash-update', 600);
-        } else {
-            setT('sig-status', isStaleSignal ? 'WAITING (STALE)' : 'WAITING'); $('sig-status').style.color = 'var(--text-tertiary)';
-            setT('sig-arrow', '—'); setT('sig-conf', 'WAIT'); setC('sig-conf', 'conf-badge low');
-            if (isStaleSignal) $('fusion-bar').classList.add('stale-signal'); else $('fusion-bar').classList.remove('stale-signal');
-        }
-        setT('sig-decision', 'FUSION: '+displaySignal.bias); setT('sig-strength', ''+displaySignal.conf+'%', 'pulse'); setT('sig-reason', displaySignal.reason||'—');
-        if (displaySignal.rr != null) { var rrClass = displaySignal.rr >= 2 ? 'good' : (displaySignal.rr >= (isScalpingMode?SCALP_CFG.minRR:CFG[pair].minRR) ? 'ok' : 'bad'); setT('sig-rr', 'RR: '+displaySignal.rr.toFixed(2)); setC('sig-rr', 'rr-badge '+rrClass); } else { setT('sig-rr', ''); setC('sig-rr', ''); }
-        if (displaySignal.entry) { setT('entry-lo', displaySignal.entry.lo != null ? displaySignal.entry.lo.toFixed(pr) : '—', 'gold'); setT('entry-hi', displaySignal.entry.hi != null ? displaySignal.entry.hi.toFixed(pr) : '—', 'gold'); } else { setT('entry-lo', '—'); setT('entry-hi', '—'); }
-        setT('sl-val', displaySignal.sl != null ? displaySignal.sl.toFixed(pr) : '—', 'red'); setT('inv-val', displaySignal.sl != null ? displaySignal.sl.toFixed(pr) : '—', 'red');
-        setT('tp1-val', displaySignal.tp[0] != null ? displaySignal.tp[0].toFixed(pr) : '—', 'cyan'); setT('tp2-val', displaySignal.tp[1] != null ? displaySignal.tp[1].toFixed(pr) : '—', 'cyan');
-        flashElement($('card-entry'), 'data-updated', 600); flashElement($('card-sl'), 'data-updated', 600); flashElement($('card-tp'), 'data-updated', 600);
-    } else {
-        setT('sig-status', 'INIT'); $('sig-status').style.color = 'var(--text-tertiary)'; setT('sig-arrow', '—'); setT('sig-conf', '--'); setC('sig-conf', 'conf-badge low');
-        setT('sig-decision', 'FUSION: --'); setT('sig-strength', 'Conf: --%'); setT('sig-reason', '—'); setT('sig-rr', '');
-        setT('entry-lo', '—'); setT('entry-hi', '—'); setT('sl-val', '—'); setT('inv-val', '—'); setT('tp1-val', '—'); setT('tp2-val', '—');
-        $('fusion-bar').classList.remove('stale-signal');
-    }
-    var actionCards = document.querySelectorAll('.action-card'); var staleNotice = $('stale-notice');
-    if (isStaleSignal && !activeSignal) { actionCards.forEach(function(c) { c.classList.add('stale'); }); if (staleNotice) staleNotice.classList.add('show'); }
-    else { actionCards.forEach(function(c) { c.classList.remove('stale'); }); if (staleNotice) staleNotice.classList.remove('show'); }
-    prevPrice = p; updateMTF(); updateCooldownUI();
-}
+                // ===== BUY LOGIC =====
+                if (
+                    trend === "BULLISH" &&
+                    liquidity === "SELL_SIDE_SWEEP" &&
+                    structure === "CHOCH_BULL" &&
+                    zone === "DEMAND"
+                ) {
+                    signal = "BUY";
+                    reason.push("HTF Bullish");
+                    reason.push("Liquidity Sweep Low");
+                    reason.push("CHoCH Bullish");
+                    reason.push("Demand Zone");
+                }
 
-function updateMTF() { var cb = activeSignal && activeSignal.bias ? activeSignal.bias : 'NEUTRAL'; MTF_KEYS.forEach(function(key) { var sym = document.getElementById('sym-'+key); if (sym) { var newSymbol = SYM[mtf[key]] || '●'; sym.textContent = newSymbol; sym.className = 'tf-bias-symbol ' + (mtf[key] || 'neutral').toLowerCase(); } }); document.querySelectorAll('.tf-btn').forEach(function(btn) { var tff = btn.dataset.tf, key = MTF_MAP[tff], cached = mtf[key]; btn.classList.remove('aligned','conflict','warning'); if (cb !== 'NEUTRAL' && cached && cached !== 'NEUTRAL') { if (cached === cb) btn.classList.add('aligned'); else if (LARGE_TF.indexOf(key) >= 0) btn.classList.add('conflict'); else btn.classList.add('warning'); } }); }
+                return {
+                    signal: signal,
+                    reason: reason
+                };
+            }
 
-async function fetchKL() { try { var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pair+'&interval='+tf+'&limit=300', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }); if (!r.ok) return false; var d = await r.json(); if (Array.isArray(d) && d.length > 0) { buf = []; d.forEach(function(k) { pushCandle({t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}); }); var lst = buf[buf.length-1]; if (lst) { price = applyOffset(lst.c); prevPrice = price; lastUpd = Date.now(); } activeSignal = null; lastGeneratedSignal = null; lastSignalTimestamp = 0; analyze(); return true; } } catch(e) {} return false; }
+            function getCurrentSession() { var now = new Date(),
+                    h = now.getUTCHours(),
+                    d = now.getUTCDay(); if (d === 0 || d === 6) return { name: 'WEEKEND', startHour: 22, endHour: 22,
+                    label: 'WEEKEND' }; if (h >= 22 || h < 8) return { name: 'ASIA', startHour: 22, endHour: 8,
+                    label: 'ASIA' }; if (h >= 8 && h < 16) return { name: 'LONDON', startHour: 8, endHour: 16,
+                    label: 'LONDON' }; return { name: 'NY', startHour: 16, endHour: 22, label: 'NEW YORK' }; }
 
-async function fetchMTF(pr, tff, key) { try { var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol='+pr+'&interval='+tff+'&limit=150', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }); if (!r.ok) return null; var d = await r.json(); if (Array.isArray(d) && d.length >= 50) { var fd = d.map(function(k) { return {t:k[0],o:+k[1],h:+k[2],l:+k[3],c:+k[4],v:+k[5]}; }); var cf = CFG[pr], p2 = fd[fd.length-1].c; var ma20 = MA(fd, cf.maF), ma50 = MA(fd, cf.maS), adx = ADX(fd); var bias = 'NEUTRAL'; if (adx.adx >= cf.adxTh) { if (p2 > ma20 && p2 > ma50 && adx.pDI > adx.mDI) bias = 'BULLISH'; else if (p2 < ma20 && p2 < ma50 && adx.mDI > adx.pDI) bias = 'BEARISH'; } return { key: key, bias: bias }; } } catch(e) {} return null; }
+            function getSessionStartTime(session) { var now = new Date(); var startHour = session.startHour; var startDate = new Date(
+                    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), startHour, 0, 0)); if (startDate > now) { if (
+                        session.name === 'ASIA') { startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now
+                        .getUTCDate() - 1, 22, 0, 0)); } } return startDate.getTime(); }
 
-async function updateAllMTF() { if (mtfFetching) return; mtfFetching = true; MTF_KEYS.forEach(function(key) { mtf[key] = 'NEUTRAL'; }); updateMTF(); var cached = getCachedMTF(pair); if (cached) { MTF_KEYS.forEach(function(key) { mtf[key] = cached[key] || 'NEUTRAL'; }); updateMTF(); mtfFetching = false; return; } var tasks = Object.entries(MTF_MAP).map(function(e) { return fetchMTF(pair, e[0], e[1]); }); var results = await Promise.allSettled(tasks); var mtfData = {}; results.forEach(function(result) { if (result.status === 'fulfilled' && result.value) { var res = result.value; mtf[res.key] = res.bias; mtfData[res.key] = res.bias; } }); if (Object.keys(mtfData).length > 0) { setCachedMTF(pair, mtfData); } updateMTF(); mtfFetching = false; }
+            function getSessionData(d) { var session = getCurrentSession(); if (session.name === 'WEEKEND') { var now = Date.now(),
+                        startTS = now - 86400000; var sessionCandles = []; for (var i = 0; i < d.length; i++) { if (d[i].t >=
+                        startTS) sessionCandles.push(d[i]); } if (sessionCandles.length < 2) return null; var sHigh = -Infinity,
+                        sLow = Infinity, sOpen = sessionCandles[0].o, sClose = d[d.length - 1].c; for (i = 0; i < sessionCandles
+                        .length; i++) { sHigh = Math.max(sHigh, sessionCandles[i].h);
+                        sLow = Math.min(sLow, sessionCandles[i].l); } var sPivot = (sHigh + sLow + sClose) / 3;
+                    sessionHigh = sHigh;
+                    sessionLow = sLow; return { name: 'WEEKEND', label: 'WEEKEND', start: startTS, high: sHigh, low: sLow,
+                        open: sOpen, close: sClose, pivot: sPivot, r1: 2 * sPivot - sLow, r2: sPivot + (sHigh - sLow),
+                        r3: sHigh + 2 * (sPivot - sLow), s1: 2 * sPivot - sHigh, s2: sPivot - (sHigh - sLow), s3: sLow -
+                        2 * (sHigh - sPivot) }; } var startTS = getSessionStartTime(session); var sessionCandles = []; for (var i =
+                    0; i < d.length; i++) { if (d[i].t >= startTS) sessionCandles.push(d[i]); } if (sessionCandles.length <
+                2) return null; var sHigh = -Infinity, sLow = Infinity, sOpen = sessionCandles[0].o, sClose = d[d.length - 1]
+                    .c; for (i = 0; i < sessionCandles.length; i++) { sHigh = Math.max(sHigh, sessionCandles[i].h);
+                    sLow = Math.min(sLow, sessionCandles[i].l); } var sPivot = (sHigh + sLow + sClose) / 3;
+                sessionHigh = sHigh;
+                sessionLow = sLow; return { name: session.name, label: session.label, start: startTS, high: sHigh, low: sLow,
+                    open: sOpen, close: sClose, pivot: sPivot, r1: 2 * sPivot - sLow, r2: sPivot + (sHigh - sLow), r3: sHigh +
+                    2 * (sPivot - sLow), s1: 2 * sPivot - sHigh, s2: sPivot - (sHigh - sLow), s3: sLow - 2 * (sHigh -
+                        sPivot) }; }
 
-async function reload() { if (isLoading) return; isLoading = true; manualOff = true; zombieClose = false; stopFallbackRoutine(); cleanupWSResources(); if (wsRT) { clearTimeout(wsRT); wsRT = null; } sessionHigh = 0; sessionLow = 0; activeSignal = null; lastGeneratedSignal = null; lastSignalTimestamp = 0; reconnectAttempts = 0; saveUserState(); updateScalpingMode(); document.querySelectorAll('[data-pair]').forEach(function(b) { b.classList.toggle('active', b.dataset.pair === pair); }); document.querySelectorAll('.tf-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.tf === tf); b.classList.remove('scalp-active'); if (isScalpingMode && SCALPING_TF.indexOf(b.dataset.tf) >= 0 && b.classList.contains('active')) { b.classList.add('scalp-active'); } }); await fetchKL(); manualOff = false; isLoading = false; transitionTo(ConnState.DISCONNECTED); connectWS(); updateAllMTF(); }
+            function sBi(sd) { var p = price; if (!sd) return 'NEUTRAL'; if (p > sd.r1) return 'BULLISH'; if (p < sd.s1)
+                return 'BEARISH'; if (p > sd.pivot) return 'BULLISH'; return 'BEARISH'; }
 
-var switchTimeout = null;
-document.querySelectorAll('[data-pair]').forEach(function(b) { b.addEventListener('click', function() { if (isLoading) return; pair = this.dataset.pair; if (switchTimeout) clearTimeout(switchTimeout); switchTimeout = setTimeout(function() { reload(); }, 150); }); });
-document.querySelectorAll('.tf-btn').forEach(function(b) { b.addEventListener('click', function() { if (isLoading) return; tf = this.dataset.tf; updateScalpingMode(); if (switchTimeout) clearTimeout(switchTimeout); switchTimeout = setTimeout(function() { reload(); }, 150); }); });
+            function getSessionDuration(session) { if (session.name === 'ASIA') { var sd = new Date(session.start),
+                        ed = new Date(sd);
+                    ed.setUTCHours(8, 0, 0, 0); if (ed <= sd) ed.setUTCDate(ed.getUTCDate() + 1); return ed.getTime() - sd
+                    .getTime(); } if (session.name === 'LONDON') { var sd = new Date(session.start), ed = new Date(sd);
+                    ed.setUTCHours(16, 0, 0, 0); if (ed <= sd) ed.setUTCDate(ed.getUTCDate() + 1); return ed.getTime() - sd
+                    .getTime(); } if (session.name === 'NY') { var sd = new Date(session.start), ed = new Date(sd);
+                    ed.setUTCHours(22, 0, 0, 0); if (ed <= sd) ed.setUTCDate(ed.getUTCDate() + 1); return ed.getTime() - sd
+                    .getTime(); } return 28800000; }
 
-function init() {
-    loadUserState(); setTheme(currentTheme);
-    document.querySelectorAll('[data-pair]').forEach(function(b) { b.classList.toggle('active', b.dataset.pair === pair); });
-    document.querySelectorAll('.tf-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.tf === tf); });
-    document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
-    var tcGrid = $('tc-grid'), tcToast = $('tc-copy-toast');
-    tcGrid.addEventListener('click', function(e) { var row = e.target.closest('.tc-row'); if (!row) return; tcCopyRow(row, tcToast); });
-    updateScalpingMode();
-    registerInterval(function() { var n = new Date(); setT('clock', n.toLocaleTimeString('id-ID')); setT('date', ('0'+n.getDate()).slice(-2)+'/'+('0'+(n.getMonth()+1)).slice(-2)+'/'+n.getFullYear()); var sess = getCurrentSession(); setT('session', sess.name); }, 1000);
-    registerInterval(function() { if (!isLoading) updateAllMTF(); }, 45000);
-    reload();
-    window.addEventListener('beforeunload', function() { cleanupAllIntervals(); cleanupWSResources(); stopFallbackRoutine(); });
-}
+            function detectSMC(d, atrVal) { var fvgs = [],
+                    obs = [],
+                    swps = [],
+                    maxDist = atrVal * CFG[pair].maxSMC; for (var i = 2; i < d.length; i++) { var a = d[i - 2],
+                        c = d[i]; if (a.l > c.h) { var fl = false; for (var j = i + 1; j < Math.min(i + 20, d.length); j++) { if (d[
+                                j].l <= a.l && d[j].l >= c.h) { fl = true;
+                            break; } }
+                    fvgs.push({ t: 'BULL', top: a.l, bot: c.h, filled: fl, idx: i }); } if (a.h < c.l) { fl = false; for (j = i +
+                        1; j < Math.min(i + 20, d.length); j++) { if (d[j].h >= a.h && d[j].h <= c.l) { fl = true;
+                            break; } }
+                    fvgs.push({ t: 'BEAR', top: c.l, bot: a.h, filled: fl, idx: i }); } } for (i = 5; i < d.length - 1; i++) { c = d[
+                        i]; var n = d[i + 1]; var cs = Math.abs(c.c - c.o),
+                        ns = Math.abs(n.c - n.o); if (c.c < c.o && n.c > n.o && n.c > c.h && ns > cs * 1.5) { var td = false; for (
+                            j = i + 2; j < Math.min(i + 20, d.length); j++) { if (d[j].l <= c.o && d[j].l >= c.l) { td =
+                                true;
+                            break; } }
+                    obs.push({ t: 'BULL', h: c.h, l: c.l, o: c.o, tested: td, idx: i }); } if (c.c > c.o && n.c < n.o && n.c <
+                        c.l && ns > cs * 1.5) { td = false; for (j = i + 2; j < Math.min(i + 20, d.length); j++) { if (d[j].h >=
+                            c.l && d[j].h <= c.h) { td = true;
+                            break; } }
+                    obs.push({ t: 'BEAR', h: c.h, l: c.l, o: c.o, tested: td, idx: i }); } } for (i = 3; i < d.length - 1; i++) { if (
+                        d[i].h > d[i - 1].h && d[i].h > d[i + 1].h) { for (j = i + 1; j < Math.min(i + 5, d.length); j++) { if (
+                            d[j].h > d[i].h * 1.0008 && d[j].c < d[j].o) { swps.push({ t: 'SW_H', lvl: d[i].h, idx: i });
+                            break; } } } if (d[i].l < d[i - 1].l && d[i].l < d[i + 1].l) { for (j = i + 1; j < Math.min(i + 5, d
+                            .length); j++) { if (d[j].l < d[i].l * 0.9992 && d[j].c > d[j].o) { swps.push({ t: 'SW_L',
+                                lvl: d[i].l, idx: i });
+                            break; } } } } return { fvgs: fvgs, obs: obs, swps: swps, lastSw: swps.length ? swps[swps.length -
+                        1] : null, nearFVG: function(prc) { var n = null,
+                            md = maxDist; for (var fi = 0; fi < fvgs.length; fi++) { var f = fvgs[fi]; if (f.filled) continue; var
+                            dt = Math.min(Math.abs(f.top - prc), Math.abs(f.bot - prc)); if (dt < md) { md = dt;
+                            n = f; } } return n; }, nearOB: function(prc) { var n = null,
+                            md = maxDist; for (var oi = 0; oi < obs.length; oi++) { var o = obs[oi]; if (o.tested) continue; var
+                            dt = Math.abs(o.l - prc); if (dt < md) { md = dt;
+                            n = o; } } return n; } }; }
 
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+            function genSMC(p, smc) { var s = { bias: 'NEUTRAL', str: 0, entry: null, inv: null }; var f = smc.nearFVG(p),
+                    o = smc.nearOB(p),
+                    sw = smc.lastSw; if (f && f.bot != null && f.top != null) { if (f.t === 'BULL' && f.bot < p) { s.bias =
+                        'BULLISH';
+                    s.entry = { lo: f.bot, hi: (f.top + f.bot) / 2 };
+                    s.inv = f.bot * 0.9985;
+                    s.str += 35; } else if (f.t === 'BEAR' && f.top > p) { s.bias = 'BEARISH';
+                    s.entry = { lo: (f.top + f.bot) / 2, hi: f.top };
+                    s.inv = f.top * 1.0015;
+                    s.str += 35; } } if (o && o.l != null && o.h != null) { if (o.t === 'BULL' && s.bias !== 'BEARISH') { s.bias =
+                        'BULLISH';
+                    s.entry = { lo: (o.l + o.o) / 2, hi: o.o };
+                    s.inv = o.l * 0.9985;
+                    s.str += 30; } else if (o.t === 'BEAR' && s.bias !== 'BULLISH') { s.bias = 'BEARISH';
+                    s.entry = { lo: o.o, hi: (o.h + o.o) / 2 };
+                    s.inv = o.h * 1.0015;
+                    s.str += 30; } } if (sw && sw.lvl != null) { if (sw.t === 'SW_L' && s.bias !== 'BEARISH') { s.bias = 'BULLISH';
+                    s.str += 20; } else if (sw.t === 'SW_H' && s.bias !== 'BULLISH') { s.bias = 'BEARISH';
+                    s.str += 20; } }
+                s.str = Math.min(100, s.str); return s; }
 
-})();
-</script>
+            function updateScalpingMode() { isScalpingMode = SCALPING_TF.indexOf(tf) >= 0;
+                updateModeUI(); }
+
+            function updateModeUI() { var tag = $('mode-tag'); if (tag) tag.style.display = isScalpingMode ? 'inline' : 'none'; var
+                    fb = $('fusion-bar'); if (fb) { if (isScalpingMode) fb.classList.add('scalp-mode'); else fb.classList.remove(
+                        'scalp-mode'); } var badge = $('signal-badge'); if (badge) { if (isScalpingMode) { badge.textContent =
+                        'SCALP';
+                    badge.classList.add('scalp'); } else { badge.textContent = 'FUSION';
+                    badge.classList.remove('scalp'); } }
+                document.querySelectorAll('.tf-btn').forEach(function(b) { var tff = b.dataset.tf; if (isScalpingMode &&
+                    SCALPING_TF.indexOf(tff) >= 0 && b.classList.contains('active')) { b.classList.add(
+                    'scalp-active'); } else { b.classList.remove('scalp-active'); } }); }
+
+            function getCooldownForTF(tfKey) { var cf = CFG[pair]; return LARGE_TF.indexOf(tfKey) >= 0 ? cf.signalCooldownLg : cf
+                .signalCooldownSm; }
+
+            function applyOffset(priceValue) { return priceValue + PRICE_OFFSET; }
+
+            function genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, lv, sd) {
+                var s = { action: 'WAIT', bias: 'NEUTRAL', conf: 0, entry: null, sl: null, tp: [], reason: '', rr: null };
+                var cf = CFG[pair];
+                var bullScore = 0,
+                    bearScore = 0;
+                if (tcB === 'BULLISH') bullScore += tcS * cf.tcW;
+                else if (tcB === 'BEARISH') bearScore += tcS * cf.tcW;
+                if (smcS.bias === 'BULLISH') bullScore += smcS.str * cf.smcW;
+                else if (smcS.bias === 'BEARISH') bearScore += smcS.str * cf.smcW;
+                var mtfBull = 0,
+                    mtfBear = 0;
+                Object.keys(MTF_MAP).forEach(function(tfStr) { var key = MTF_MAP[tfStr]; var pts = LARGE_TF.indexOf(key) >= 0 ?
+                        18 : 8; if (mtf[key] === 'BULLISH') { bullScore += pts;
+                        mtfBull++; } else if (mtf[key] === 'BEARISH') { bearScore += pts;
+                        mtfBear++; } });
+                if (sd) { var sB = sBi(sd); if (sB === 'BULLISH') bullScore += 18; else if (sB === 'BEARISH') bearScore += 18; }
+                var arr = getCandles();
+                if (arr.length >= 28) { var adx = ADX(arr); if (adx.adx >= cf.adxTh) { if (adx.pDI > adx.mDI) bullScore +=
+                    15; else bearScore += 15; } }
+                var isBullDominant = bullScore > bearScore;
+                if (smcS.entry && smcS.entry.lo != null) { s.entry = smcS.entry; } else if (isBullDominant) { s.entry = { lo: lv
+                        .s1 || (p * 0.997), hi: lv.pivot || (p * 0.999) }; } else { s.entry = { lo: lv.pivot || (p * 1.001),
+                        hi: lv.r1 || (p * 1.003) }; }
+                s.sl = smcS.inv || (isBullDominant ? (lv.s2 || p * 0.99) : (lv.r2 || p * 1.01));
+                if (isBullDominant) { s.tp = [lv.r1, lv.r2].filter(function(v) { return v > p; }); if (s.tp.length === 0) s.tp = [
+                        p * 1.008, p * 1.015
+                    ]; } else { s.tp = [lv.s1, lv.s2].filter(function(v) { return v < p; }); if (s.tp.length === 0) s.tp = [p *
+                        0.992, p * 0.985
+                    ]; }
+                var h1B = mtf.h1,
+                    htfB = mtf.h4,
+                    m15B = mtf.m15,
+                    m5B = mtf.m5;
+                if (isBullDominant && bullScore >= cf.minConf) { s.action = 'BUY';
+                    s.bias = 'BULLISH';
+                    s.conf = Math.round(bullScore);
+                    s.reason = 'Bullish (' + mtfBull + '/' + ((mtfBull + mtfBear) || 1) + ' MTF)'; } else if (!isBullDominant &&
+                    bearScore >= cf.minConf) { s.action = 'SELL';
+                    s.bias = 'BEARISH';
+                    s.conf = Math.round(bearScore);
+                    s.reason = 'Bearish (' + mtfBear + '/' + ((mtfBull + mtfBear) || 1) + ' MTF)'; } else { s.bias =
+                        isBullDominant ? 'BULLISH' : 'BEARISH';
+                    s.conf = Math.round(Math.max(bullScore, bearScore));
+                    s.reason = 'Low conf (' + s.conf + '<' + cf.minConf + ')'; }
+                if (s.action !== 'WAIT') { var blocked = false,
+                        conflictMsgs = []; if (htfB !== 'NEUTRAL' && ((s.bias === 'BULLISH' && htfB === 'BEARISH') || (s.bias ===
+                            'BEARISH' && htfB === 'BULLISH'))) { blocked = true;
+                        conflictMsgs.push('H4 conflict'); } if (h1B !== 'NEUTRAL' && m15B !== 'NEUTRAL' && m5B !== 'NEUTRAL' &&
+                        h1B === m15B && m15B === m5B && ((s.bias === 'BULLISH' && h1B === 'BEARISH') || (s.bias === 'BEARISH' &&
+                            h1B === 'BULLISH'))) { blocked = true;
+                        conflictMsgs.push('H1+M15+M5 conflict'); } if (blocked) { s.action = 'WAIT';
+                        s.reason = conflictMsgs.join(' | ');
+                        s.conf = 0; return s; } if (h1B !== 'NEUTRAL' && ((s.bias === 'BULLISH' && h1B === 'BEARISH') || (s.bias ===
+                            'BEARISH' && h1B === 'BULLISH'))) { s.conf = Math.round(s.conf * cf.h1Pen);
+                        s.reason += ' | H1!'; } if (m15B !== 'NEUTRAL' && m5B !== 'NEUTRAL' && m15B === m5B && ((s.bias ===
+                            'BULLISH' && m15B === 'BEARISH') || (s.bias === 'BEARISH' && m15B === 'BULLISH'))) { s.conf = Math
+                        .round(s.conf * cf.m15m5Pen);
+                        s.reason += ' | M15+M5!'; } if (s.conf < cf.minConf) { s.action = 'WAIT';
+                        s.reason += ' - Low confidence'; } }
+                if (s.entry && s.sl && s.action !== 'WAIT') { if ((s.bias === 'BULLISH' && s.entry.hi >= s.sl) || (s.bias ===
+                        'BEARISH' && s.entry.lo <= s.sl)) { s.sl = s.bias === 'BULLISH' ? s.entry.lo * 0.997 : s.entry.hi *
+                        1.003; } }
+                if (s.entry && s.sl && s.tp.length > 0 && s.tp[0] != null && !isNaN(s.tp[0]) && s.action !== 'WAIT') { var
+                    entryMid, risk, reward; if (s.bias === 'BULLISH') { entryMid = s.entry.lo;
+                        risk = entryMid - s.sl;
+                        reward = s.tp[0] - entryMid; } else { entryMid = s.entry.hi;
+                        risk = s.sl - entryMid;
+                        reward = entryMid - s.tp[0]; } if (risk > 0 && reward > 0) { var rr = reward / risk;
+                        s.rr = parseFloat(rr.toFixed(2)); if (rr < cf.minRR) { s.action = 'WAIT';
+                            s.reason = 'Bad RR (' + s.rr + '<' + cf.minRR + ')';
+                            s.conf = 0; } } }
+                var now = Date.now();
+                var cd = getCooldownForTF(MTF_MAP[tf] || 'm30');
+                if (now - lastSignalTimestamp < cd && activeSignal && activeSignal.action !== 'WAIT' && s.action !== 'WAIT') { s
+                    .action = 'WAIT';
+                    s.reason = 'Cooldown (' + Math.round((cd - (now - lastSignalTimestamp)) / 1000) + 's)';
+                    s.conf = 0; }
+                s.conf = Math.min(100, Math.max(0, s.conf));
+                if (s.entry) { if (s.entry.lo != null) s.entry.lo = applyOffset(s.entry.lo); if (s.entry.hi != null) s.entry.hi =
+                        applyOffset(s.entry.hi); } if (s.sl != null) s.sl = applyOffset(s.sl); if (s.tp && s.tp.length > 0) { s.tp =
+                        s.tp.map(function(v) { return applyOffset(v); }); }
+                return s;
+            }
+
+            function genFusionScalping(smcS, p, lv) {
+                var s = { action: 'WAIT', bias: 'NEUTRAL', conf: 0, entry: null, sl: null, tp: [], reason: '', rr: null };
+                var sc = SCALP_CFG;
+                var arr = getCandles();
+                if (arr.length < 20) return s;
+                var trendScore = 0,
+                    sweepScore = 0,
+                    momentumScore = 0;
+                var bullScore = 0,
+                    bearScore = 0;
+                var ma20 = MA(arr, 20);
+                var ma50 = MA(arr, 50);
+                if (p > ma20 && p > ma50) { bullScore += 40;
+                    trendScore = 40; } else if (p < ma20 && p < ma50) { bearScore += 40;
+                    trendScore = 40; } else if (p > ma20) { bullScore += 20;
+                    trendScore = 20; } else if (p < ma20) { bearScore += 20;
+                    trendScore = 20; }
+                if (ma20 > ma50) { bullScore += 15;
+                    trendScore += 15; } else if (ma20 < ma50) { bearScore += 15;
+                    trendScore += 15; }
+                if (smcS.bias === 'BULLISH') { bullScore += smcS.str;
+                    sweepScore = smcS.str; } else if (smcS.bias === 'BEARISH') { bearScore += smcS.str;
+                    sweepScore = smcS.str; }
+                var smcDetect = detectSMC(arr, currentATR || p * 0.002);
+                if (smcDetect.lastSw) { var lastSw = smcDetect.lastSw; if (lastSw.t === 'SW_L') { bullScore += 25;
+                        sweepScore += 25; } else if (lastSw.t === 'SW_H') { bearScore += 25;
+                        sweepScore += 25; } }
+                var latest = arr[arr.length - 1];
+                var prev = arr[arr.length - 2];
+                if (latest && prev) { var body = Math.abs(latest.c - latest.o); var range = latest.h - latest.l; var bodyRatio =
+                        range > 0 ? body / range : 0; if (latest.c > latest.o && bodyRatio > 0.55) { bullScore += 35;
+                        momentumScore = 35; } else if (latest.c < latest.o && bodyRatio > 0.55) { bearScore += 35;
+                        momentumScore = 35; } else if (latest.c > latest.o && bodyRatio > 0.35) { bullScore += 18;
+                        momentumScore = 18; } else if (latest.c < latest.o && bodyRatio > 0.35) { bearScore += 18;
+                        momentumScore = 18; } var prevBody = Math.abs(prev.c - prev.o); var prevDir = prev.c > prev.o ? 'BULL' :
+                        'BEAR'; var currDir = latest.c > latest.o ? 'BULL' : 'BEAR'; if (prevDir === currDir && body > prevBody *
+                        1.2) { if (currDir === 'BULL') { bullScore += 20;
+                            momentumScore += 20; } else { bearScore += 20;
+                            momentumScore += 20; } } }
+                var atr = (currentATR && currentATR > 0) ? currentATR : (p * 0.003);
+                if (atr > p * 0.015) atr = p * 0.008;
+                var isBullDominant = bullScore > bearScore;
+                if (isBullDominant) { s.entry = { lo: p - atr * 0.2, hi: p };
+                    s.sl = p - atr * sc.slATR;
+                    s.tp = [p + atr * sc.tpATR1, p + atr * sc.tpATR2]; } else { s.entry = { lo: p, hi: p + atr * 0.2 };
+                    s.sl = p + atr * sc.slATR;
+                    s.tp = [p - atr * sc.tpATR1, p - atr * sc.tpATR2]; }
+                var totalScore = Math.max(bullScore, bearScore);
+                if (isBullDominant && totalScore >= sc.minConf) { s.action = 'BUY';
+                    s.bias = 'BULLISH';
+                    s.conf = Math.min(100, Math.round(totalScore));
+                    s.reason = 'T:' + trendScore + ' Sw:' + sweepScore + ' M:' + momentumScore; } else if (!isBullDominant &&
+                    totalScore >= sc.minConf) { s.action = 'SELL';
+                    s.bias = 'BEARISH';
+                    s.conf = Math.min(100, Math.round(totalScore));
+                    s.reason = 'T:' + trendScore + ' Sw:' + sweepScore + ' M:' + momentumScore; } else { s.bias = isBullDominant ?
+                        'BULLISH' : 'BEARISH';
+                    s.conf = Math.min(100, Math.round(totalScore));
+                    s.reason = 'Low (' + totalScore + '<' + sc.minConf + ') T:' + trendScore + ' Sw:' + sweepScore + ' M:' +
+                        momentumScore; }
+                if (s.entry && s.sl && s.tp[0] && s.action !== 'WAIT') { var entryMid, risk, reward; if (s.bias === 'BULLISH') {
+                        entryMid = s.entry.lo;
+                        risk = entryMid - s.sl;
+                        reward = s.tp[0] - entryMid; } else { entryMid = s.entry.hi;
+                        risk = s.sl - entryMid;
+                        reward = entryMid - s.tp[0]; } if (risk > 0 && reward > 0) { var rr = reward / risk;
+                        s.rr = parseFloat(rr.toFixed(2)); if (rr < sc.minRR) { s.action = 'WAIT';
+                            s.reason = 'Bad RR (' + s.rr + '<' + sc.minRR + ')';
+                            s.conf = 0; } } }
+                var now = Date.now();
+                if (now - lastSignalTimestamp < sc.cooldown && activeSignal && activeSignal.action !== 'WAIT' && s.action !==
+                    'WAIT') { s.action = 'WAIT';
+                    s.reason = 'Cooldown ' + Math.round((sc.cooldown - (now - lastSignalTimestamp)) / 1000) + 's';
+                    s.conf = 0; }
+                s.conf = Math.min(100, Math.max(0, s.conf));
+                if (s.entry) { if (s.entry.lo != null) s.entry.lo = applyOffset(s.entry.lo); if (s.entry.hi != null) s.entry.hi =
+                        applyOffset(s.entry.hi); } if (s.sl != null) s.sl = applyOffset(s.sl); if (s.tp && s.tp.length > 0) { s.tp =
+                        s.tp.map(function(v) { return applyOffset(v); }); }
+                return s;
+            }
+
+            function transitionTo(newState) { var oldState = connectionState; if (oldState === newState) return;
+                connectionState = newState; switch (newState) { case ConnState.LIVE:
+                    stopFallbackRoutine();
+                    reconnectAttempts = 0;
+                    recDelay = 1500;
+                    isStale = false;
+                    zombieClose = false; var badge = $('connection-badge'); if (badge) { badge.classList.add('live-flash');
+                        setTimeout(function() { badge.classList.remove('live-flash'); }, 1000); } break; case ConnState
+                    .FALLBACK:
+                    startFallbackRoutine(); break; case ConnState.RECONNECTING: break; case ConnState.DISCONNECTED:
+                    stopFallbackRoutine();
+                    cleanupWSResources(); break; }
+                updateConnectionUI(); }
+
+            function updateConnectionUI() { var dot = $('status-dot'); var text = $('status-text'); if (!dot || !text) return; var
+                config = { 'disconnected': { cls: 'offline', txt: 'OFFLINE' }, 'connecting': { cls: 'connecting',
+                        txt: 'CONNECT' }, 'live': { cls: 'live', txt: 'LIVE' }, 'fallback': { cls: 'fallback',
+                        txt: 'FALLBACK' }, 'stale': { cls: 'stale', txt: 'STALE' }, 'reconnecting': { cls: 'reconnect',
+                        txt: 'RECON' } }; var c = config[connectionState] || config['disconnected'];
+                dot.className = 'status-dot ' + c.cls;
+                text.textContent = c.txt; }
+
+            function startFallbackRoutine() { stopFallbackRoutine();
+                fetchPriceFallback();
+                fbT = setInterval(function() { if (connectionState !== ConnState.FALLBACK && connectionState !== ConnState
+                        .RECONNECTING) { stopFallbackRoutine(); return; }
+                    fetchPriceFallback(); }, 4000); }
+
+            function stopFallbackRoutine() { if (fbT) { clearInterval(fbT);
+                    fbT = null; } }
+
+            async function fetchPriceFallback() { var now = Date.now(); if (now - lastFallbackFetch < 3000) return;
+                lastFallbackFetch = now; try { var r = await fetch('https://fapi.binance.com/fapi/v1/ticker/price?symbol=' +
+                    pair, { cache: 'no-store', headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }); if (!r
+                    .ok) return; var d = await r.json(); if (d && d.price) { var prc = +d.price; if (prc > 0) { price =
+                        applyOffset(prc);
+                    lastUpd = Date.now();
+                    lastMsg = Date.now(); if (buf.length >= 30) { analyze(); } } } } catch (e) {} }
+
+            function cleanupWSResources() { if (ws) { try { ws.onopen = ws.onmessage = ws.onclose = ws.onerror = null; if (ws
+                        .readyState < 2) ws.close(); } catch (e) {}
+                ws = null; } if (hbT) { clearInterval(hbT);
+                    hbT = null; } if (wsRT) { clearTimeout(wsRT);
+                    wsRT = null; } }
+
+            function scheduleReconnect() { if (wsRT) clearTimeout(wsRT); if (manualOff || isLoading) return; if (reconnectAttempts >=
+                MAX_RECONNECT_ATTEMPTS) { transitionTo(ConnState.FALLBACK); return; }
+                reconnectAttempts++; var delay = Math.min(recDelay * Math.pow(1.5, reconnectAttempts - 1), 30000);
+                wsRT = setTimeout(function() { if (!manualOff && !isLoading) { transitionTo(ConnState.RECONNECTING);
+                        connectWS(); } }, delay); }
+
+            function connectWS() { cleanupWSResources(); if (wsRT) { clearTimeout(wsRT);
+                    wsRT = null; } if (manualOff || isLoading) return; if (!isLoading) manualOff = false;
+                zombieClose = false;
+                transitionTo(ConnState.CONNECTING); try { ws = new WebSocket('wss://fstream.binance.com/ws/' + pair.toLowerCase() +
+                        '@kline_' + tf); var connectTimeout = setTimeout(function() { if (connectionState === ConnState
+                        .CONNECTING) { try { ws.close(); } catch (e) {} } }, 10000);
+                    ws.onopen = function() { clearTimeout(connectTimeout);
+                        lastMsg = Date.now();
+                        lastUpd = Date.now();
+                        transitionTo(ConnState.LIVE);
+                        hbT = setInterval(function() { if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({
+                            method: 'ping' })); } }, 25000); };
+                    ws.onmessage = function(e) { try { var m = JSON.parse(e.data); if (m && m.k) { var k = m.k; var prc = +k
+                                .c; if (prc > 0) { lastMsg = Date.now();
+                                lastUpd = Date.now(); if (connectionState !== ConnState.LIVE) { transitionTo(ConnState
+                                    .LIVE); }
+                                pushCandle({ t: k.t, o: +k.o, h: +k.h, l: +k.l, c: prc, v: +k.v });
+                                price = applyOffset(prc);
+                                showUpdateIndicator();
+                                analyze(); } } } catch (e) {} };
+                    ws.onclose = function(event) { clearTimeout(connectTimeout); if (hbT) { clearInterval(hbT);
+                            hbT = null; } if (zombieClose) { zombieClose = false; return; } if (!isLoading && !manualOff) {
+                            scheduleReconnect(); } else { transitionTo(ConnState.DISCONNECTED); } };
+                    ws.onerror = function(error) { clearTimeout(connectTimeout); if (!isLoading && !manualOff) { transitionTo(
+                            ConnState.FALLBACK);
+                        scheduleReconnect(); } }; } catch (e) { transitionTo(ConnState.FALLBACK);
+                    scheduleReconnect(); } }
+
+            registerInterval(function() { var now = Date.now(); var timeSinceLastMsg = now - lastMsg; var timeSinceLastUpdate =
+                    now - lastUpd; if (timeSinceLastUpdate > 12000 && price > 0) { if (!isStale) { isStale = true; } } else if (
+                    isStale && timeSinceLastUpdate < 5000) { isStale = false; } if (connectionState === ConnState.LIVE && ws &&
+                    ws.readyState === WebSocket.OPEN && timeSinceLastMsg > FALLBACK_THRESHOLD) { zombieClose = true; try { ws
+                        .close(); } catch (e) {}
+                setTimeout(function() { if (connectionState === ConnState.LIVE || connectionState === ConnState
+                        .CONNECTING) { zombieClose = false;
+                        transitionTo(ConnState.FALLBACK);
+                        scheduleReconnect(); } }, 2000); } if (connectionState === ConnState.FALLBACK && !wsRT && !isLoading &&
+                    !manualOff) { scheduleReconnect(); } }, 5000);
+
+            function updateCooldownUI() { var now = Date.now(),
+                    elapsed = now - lastSignalTimestamp; var cd = isScalpingMode ? SCALP_CFG.cooldown : getCooldownForTF(MTF_MAP[
+                        tf] || 'm30');
+                cooldownTotal = cd;
+                cooldownRemaining = Math.max(0, cd - elapsed); var bar = $('cooldown-bar'),
+                    fill = $('cooldown-fill'); if (cooldownRemaining > 0 && activeSignal && activeSignal.action !== 'WAIT') { if (
+                        bar) bar.classList.add('active'); var pct = ((cd - cooldownRemaining) / cd) * 100; if (fill) fill.style
+                    .width = Math.min(100, pct) + '%'; } else { if (bar) bar.classList.remove('active'); if (fill) fill.style.width =
+                    '0%';
+                cooldownRemaining = 0; } }
+            registerInterval(function() { if (cooldownRemaining > 0) updateCooldownUI(); }, 1000);
+
+            function setTheme(theme) { currentTheme = theme;
+                document.body.setAttribute('data-theme', theme); try { localStorage.setItem('ura-theme', theme); } catch (e) {} var
+                    btn = $('theme-toggle-btn'); if (btn) { btn.textContent = theme === 'dark' ? '☀️' : '🌙'; }
+                saveUserState(); }
+
+            function toggleTheme() { setTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
+
+            function tcCopyRow(rowEl, toastEl) { var label = rowEl.querySelector('.tc-label').textContent.replace('⚡', '').trim(); var
+                value = rowEl.querySelector('.tc-value').textContent; if (value === '—') return; var txt = label + ': ' + value;
+                flashElement(rowEl, 'data-updated', 800); if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(
+                    function() { showTCToast(toastEl, '✅ ' + label + ' disalin!'); }).catch(function() { showTCToast(
+                    toastEl, '❌ Gagal menyalin'); }); } else { var ta = document.createElement('textarea');
+                ta.value = txt;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select(); try { document.execCommand('copy');
+                    showTCToast(toastEl, '✅ ' + label + ' disalin!'); } catch (e) { showTCToast(toastEl,
+                    '❌ Gagal menyalin'); }
+                document.body.removeChild(ta); } }
+
+            function showTCToast(el, msg) { el.textContent = msg;
+                el.classList.add('show');
+                clearTimeout(el._timeout);
+                el._timeout = setTimeout(function() { el.classList.remove('show'); }, 1400); }
+
+            function analyze() {
+                var arr = getCandles();
+                if (arr.length < 30) return;
+                var p = price,
+                    cf = CFG[pair],
+                    pr = cf.prec;
+                var ma20 = MA(arr, cf.maF),
+                    ma50 = MA(arr, cf.maS);
+                var adx = ADX(arr),
+                    rsi = RSI(arr),
+                    atr = ATR(arr, cf.atrP);
+                currentATR = atr;
+                sessionData = getSessionData(arr);
+                var usePv = sessionData || { pivot: p, r1: p * 1.005, r2: p * 1.01, r3: p * 1.015, s1: p * 0.995, s2: p * 0.99,
+                    s3: p * 0.985 };
+
+                // New Smart Money Concepts detection
+                var structureData = detectStructure(arr);
+                var liquidityData = detectLiquidity(arr, structureData);
+                var chochData = detectCHoCH(arr, structureData);
+                var zoneData = detectZone(arr, p);
+
+                var signalData = getSignal({
+                    trend: structureData.trend,
+                    liquidity: liquidityData,
+                    structure: chochData,
+                    zone: zoneData
+                });
+
+                var tcB = 'NEUTRAL',
+                    tcS = 50;
+                if (p > usePv.pivot) { tcB = 'BULLISH';
+                    tcS += 25; } else if (p < usePv.pivot) { tcB = 'BEARISH';
+                    tcS += 25; }
+                if (adx.adx >= cf.adxTh) { tcS += 15; if (tcB === 'BULLISH' && adx.pDI > adx.mDI) tcS += 12; else if (tcB ===
+                        'BEARISH' && adx.mDI > adx.pDI) tcS += 12; }
+                if (tcB === 'BULLISH' && rsi > cf.rsiLo && rsi < cf.rsiHi) tcS += 10; else if (tcB === 'BEARISH' && rsi > (100 - cf
+                        .rsiHi) && rsi < (100 - cf.rsiLo)) tcS += 10; if (sessionData) tcS += 12;
+                tcS = Math.min(100, Math.max(0, tcS));
+
+                var tcE, tcSL;
+                if (tcB === 'BULLISH') { tcE = { lo: usePv.pivot, hi: Math.min(usePv.r1, p * 0.999) };
+                    tcSL = usePv.s1 || p * 0.99; } else if (tcB === 'BEARISH') { tcE = { lo: Math.max(usePv.s1, p * 1.001),
+                        hi: usePv.pivot };
+                    tcSL = usePv.r1 || p * 1.01; } else { tcE = { lo: p * 0.997, hi: p * 1.003 };
+                    tcSL = p * 0.995; }
+
+                var smc = detectSMC(arr, atr),
+                    smcS = genSMC(p, smc);
+
+                // Integrate SMC signal with existing fusion logic
+                if (signalData.signal === 'BUY') {
+                    smcS.bias = 'BULLISH';
+                    smcS.str = Math.min(100, smcS.str + 30);
+                } else if (signalData.signal === 'SELL') {
+                    smcS.bias = 'BEARISH';
+                    smcS.str = Math.min(100, smcS.str + 30);
+                }
+
+                var newSignal;
+                if (isScalpingMode) { newSignal = genFusionScalping(smcS, p, usePv); if (newSignal.action !== 'WAIT') newSignal
+                        .reason = '' + newSignal.reason; else newSignal.reason = '⚡' + newSignal.reason; } else { newSignal =
+                        genFusionIntraday(tcB, tcS, tcE, tcSL, smcS, p, usePv, sessionData); }
+
+                lastGeneratedSignal = newSignal;
+                if (newSignal.action !== 'WAIT') { if (!activeSignal || activeSignal.action === 'WAIT' || newSignal.bias !==
+                    activeSignal.bias) { activeSignal = newSignal;
+                        lastSignalTimestamp = Date.now(); } else if (activeSignal && newSignal.bias === activeSignal.bias) {
+                        lastSignalTimestamp = Date.now();
+                        activeSignal = newSignal; } }
+
+                var displaySignal = activeSignal || lastGeneratedSignal;
+                var isStaleSignal = !!(!activeSignal && lastGeneratedSignal && lastGeneratedSignal.action === 'WAIT');
+
+                var displayPrice = p;
+                var f = displayPrice.toFixed(pr),
+                    pt = f.split('.');
+                setH('price-display', pt[0] + '<span class="price-decimal">.' + (pt[1] || '00') + '</span>');
+                var priceColor = p > prevPrice ? 'var(--accent-green)' : (p < prevPrice ? 'var(--accent-red)' :
+                    'var(--text-primary)');
+                $('price-display').style.color = priceColor;
+                if (prevPrice > 0) { var ch = p - prevPrice,
+                        pct = (ch / prevPrice) * 100; var changeText = (ch > 0 ? '+' : '') + ch.toFixed(pr) + ' (' + pct.toFixed(
+                        2) + '%)';
+                    setT('price-change', changeText); var changeEl = $('price-change');
+                    changeEl.style.color = ch > 0 ? 'var(--accent-green)' : (ch < 0 ? 'var(--accent-red)' :
+                        'var(--text-secondary)');
+                    changeEl.classList.remove('up', 'down'); if (ch > 0) changeEl.classList.add('up'); else if (ch < 0) changeEl
+                        .classList.add('down'); }
+
+                setT('r3v', applyOffset(usePv.r3).toFixed(pr), 'red');
+                setT('r2v', applyOffset(usePv.r2).toFixed(pr), 'red');
+                setT('r1v', applyOffset(usePv.r1).toFixed(pr), 'red');
+                setT('pivotv', applyOffset(usePv.pivot).toFixed(pr), 'gold');
+                setT('s1v', applyOffset(usePv.s1).toFixed(pr), 'green');
+                setT('s2v', applyOffset(usePv.s2).toFixed(pr), 'green');
+                setT('s3v', applyOffset(usePv.s3).toFixed(pr), 'green');
+                setT('lastv', p.toFixed(pr), 'pulse');
+                setT('tc-bias-val', tcB);
+                setC('tc-bias-val', 'tc-bias ' + tcB.toLowerCase());
+                var activeSessionName = sessionData ? (SESSION_NAMES[sessionData.name] || (sessionData.label +
+                    ' SESSION INTRADAY')) : 'INTRADAY';
+                setT('tc-upd', activeSessionName);
+                setC('tc-upd', 'tc-update active-session');
+
+                var sessionWarn = $('session-warning');
+                if (sessionData && sessionData.name !== 'WEEKEND') { var sessDur = getSessionDuration(sessionData); var
+                remaining = sessionData.start + sessDur - Date.now(); if (remaining > 0 && remaining < 900000) { if (!
+                        sessionWarningActive) { sessionWarn.classList.add('show');
+                        sessionWarningActive = true; } } else { if (sessionWarningActive) { sessionWarn.classList.remove(
+                            'show');
+                        sessionWarningActive = false; } } } else { if (sessionWarningActive) { sessionWarn.classList.remove(
+                        'show');
+                    sessionWarningActive = false; } }
+
+                if (displaySignal) {
+                    var isB = displaySignal.bias === 'BULLISH',
+                        sc = isB ? 'var(--accent-green)' : 'var(--accent-red)';
+                    if (activeSignal && activeSignal.action !== 'WAIT') {
+                        setT('sig-status', activeSignal.bias + ' SIGNAL');
+                        $('sig-status').style.color = sc;
+                        var arrowEl = $('sig-arrow');
+                        var newArrow = isB ? '▲' : '▼';
+                        var oldArrow = arrowEl.textContent;
+                        setT('sig-arrow', newArrow);
+                        arrowEl.style.color = sc;
+                        if (oldArrow !== newArrow && oldArrow !== '—') { arrowEl.classList.add('bounce');
+                            setTimeout(function() { arrowEl.classList.remove('bounce'); }, 500); }
+                        var ct = 'LOW',
+                            cc = 'low';
+                        if (activeSignal.conf >= 75) { ct = 'HIGH';
+                            cc = 'high'; } else if (activeSignal.conf >= 60) { ct = 'MED';
+                            cc = 'medium'; }
+                        setT('sig-conf', ct);
+                        setC('sig-conf', 'conf-badge ' + cc);
+                        $('fusion-bar').classList.remove('stale-signal');
+                        flashElement($('fusion-bar'), 'flash-update', 600);
+                    } else {
+                        setT('sig-status', isStaleSignal ? 'WAITING (STALE)' : 'WAITING');
+                        $('sig-status').style.color = 'var(--text-tertiary)';
+                        setT('sig-arrow', '—');
+                        setT('sig-conf', 'WAIT');
+                        setC('sig-conf', 'conf-badge low');
+                        if (isStaleSignal) $('fusion-bar').classList.add('stale-signal');
+                        else $('fusion-bar').classList.remove('stale-signal');
+                    }
+                    setT('sig-decision', 'FUSION: ' + displaySignal.bias);
+                    setT('sig-strength', '' + displaySignal.conf + '%', 'pulse');
+                    setT('sig-reason', displaySignal.reason || '—');
+                    if (displaySignal.rr != null) { var rrClass = displaySignal.rr >= 2 ? 'good' : (displaySignal.rr >= (
+                            isScalpingMode ? SCALP_CFG.minRR : CFG[pair].minRR) ? 'ok' : 'bad');
+                        setT('sig-rr', 'RR: ' + displaySignal.rr.toFixed(2));
+                        setC('sig-rr', 'rr-badge ' + rrClass); } else { setT('sig-rr', '');
+                        setC('sig-rr', ''); }
+                    if (displaySignal.entry) { setT('entry-lo', displaySignal.entry.lo != null ? displaySignal.entry.lo.toFixed(
+                            pr) : '—', 'gold');
+                        setT('entry-hi', displaySignal.entry.hi != null ? displaySignal.entry.hi.toFixed(pr) : '—',
+                        'gold'); } else { setT('entry-lo', '—');
+                        setT('entry-hi', '—'); }
+                    setT('sl-val', displaySignal.sl != null ? displaySignal.sl.toFixed(pr) : '—', 'red');
+                    setT('inv-val', displaySignal.sl != null ? displaySignal.sl.toFixed(pr) : '—', 'red');
+                    setT('tp1-val', displaySignal.tp[0] != null ? displaySignal.tp[0].toFixed(pr) : '—', 'cyan');
+                    setT('tp2-val', displaySignal.tp[1] != null ? displaySignal.tp[1].toFixed(pr) : '—', 'cyan');
+                    flashElement($('card-entry'), 'data-updated', 600);
+                    flashElement($('card-sl'), 'data-updated', 600);
+                    flashElement($('card-tp'), 'data-updated', 600);
+                } else {
+                    setT('sig-status', 'INIT');
+                    $('sig-status').style.color = 'var(--text-tertiary)';
+                    setT('sig-arrow', '—');
+                    setT('sig-conf', '--');
+                    setC('sig-conf', 'conf-badge low');
+                    setT('sig-decision', 'FUSION: --');
+                    setT('sig-strength', 'Conf: --%');
+                    setT('sig-reason', '—');
+                    setT('sig-rr', '');
+                    setT('entry-lo', '—');
+                    setT('entry-hi', '—');
+                    setT('sl-val', '—');
+                    setT('inv-val', '—');
+                    setT('tp1-val', '—');
+                    setT('tp2-val', '—');
+                    $('fusion-bar').classList.remove('stale-signal');
+                }
+                var actionCards = document.querySelectorAll('.action-card');
+                var staleNotice = $('stale-notice');
+                if (isStaleSignal && !activeSignal) { actionCards.forEach(function(c) { c.classList.add('stale'); }); if (
+                        staleNotice) staleNotice.classList.add('show'); } else { actionCards.forEach(function(c) { c.classList
+                        .remove('stale'); }); if (staleNotice) staleNotice.classList.remove('show'); }
+                prevPrice = p;
+                updateMTF();
+                updateCooldownUI();
+            }
+
+            function updateMTF() { var cb = activeSignal && activeSignal.bias ? activeSignal.bias : 'NEUTRAL';
+                MTF_KEYS.forEach(function(key) { var sym = document.getElementById('sym-' + key); if (sym) { var newSymbol = SYM[
+                        mtf[key]] || '●';
+                    sym.textContent = newSymbol;
+                    sym.className = 'tf-bias-symbol ' + (mtf[key] || 'neutral').toLowerCase(); } });
+                document.querySelectorAll('.tf-btn').forEach(function(btn) { var tff = btn.dataset.tf,
+                        key = MTF_MAP[tff],
+                        cached = mtf[key];
+                    btn.classList.remove('aligned', 'conflict', 'warning'); if (cb !== 'NEUTRAL' && cached && cached !==
+                        'NEUTRAL') { if (cached === cb) btn.classList.add('aligned'); else if (LARGE_TF.indexOf(key) >= 0)
+                        btn.classList.add('conflict'); else btn.classList.add('warning'); } }); }
+
+            async function fetchKL() { try { var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol=' + pair +
+                        '&interval=' + tf + '&limit=300', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache' } }); if (!r.ok) return false; var d = await r.json(); if (Array.isArray(d) &&
+                    d.length > 0) { buf = [];
+                    d.forEach(function(k) { pushCandle({ t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[4], v: +k[
+                            5] }); }); var lst = buf[buf.length - 1]; if (lst) { price = applyOffset(lst.c);
+                        prevPrice = price;
+                        lastUpd = Date.now(); }
+                    activeSignal = null;
+                    lastGeneratedSignal = null;
+                    lastSignalTimestamp = 0;
+                    analyze(); return true; } } catch (e) {} return false; }
+
+            async function fetchMTF(pr, tff, key) { try { var r = await fetch('https://fapi.binance.com/fapi/v1/klines?symbol=' +
+                    pr + '&interval=' + tff + '&limit=150', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache' } }); if (!r.ok) return null; var d = await r.json(); if (Array.isArray(d) && d
+                    .length >= 50) { var fd = d.map(function(k) { return { t: k[0], o: +k[1], h: +k[2], l: +k[3], c: +k[
+                                4], v: +k[5] }; }); var cf = CFG[pr],
+                        p2 = fd[fd.length - 1].c; var ma20 = MA(fd, cf.maF),
+                        ma50 = MA(fd, cf.maS),
+                        adx = ADX(fd); var bias = 'NEUTRAL'; if (adx.adx >= cf.adxTh) { if (p2 > ma20 && p2 > ma50 && adx
+                            .pDI > adx.mDI) bias = 'BULLISH'; else if (p2 < ma20 && p2 < ma50 && adx.mDI > adx.pDI)
+                        bias = 'BEARISH'; } return { key: key, bias: bias }; } } catch (e) {} return null; }
+
+            async function updateAllMTF() { if (mtfFetching) return;
+                mtfFetching = true;
+                MTF_KEYS.forEach(function(key) { mtf[key] = 'NEUTRAL'; });
+                updateMTF(); var cached = getCachedMTF(pair); if (cached) { MTF_KEYS.forEach(function(key) { mtf[key] =
+                        cached[key] || 'NEUTRAL'; });
+                    updateMTF();
+                    mtfFetching = false; return; } var tasks = Object.entries(MTF_MAP).map(function(e) { return fetchMTF(pair,
+                        e[0], e[1]); }); var results = await Promise.allSettled(tasks); var mtfData = {};
+                results.forEach(function(result) { if (result.status === 'fulfilled' && result.value) { var res = result.value;
+                        mtf[res.key] = res.bias;
+                        mtfData[res.key] = res.bias; } }); if (Object.keys(mtfData).length > 0) { setCachedMTF(pair,
+                    mtfData); }
+                updateMTF();
+                mtfFetching = false; }
+
+            async function reload() { if (isLoading) return;
+                isLoading = true;
+                manualOff = true;
+                zombieClose = false;
+                stopFallbackRoutine();
+                cleanupWSResources(); if (wsRT) { clearTimeout(wsRT);
+                    wsRT = null; }
+                sessionHigh = 0;
+                sessionLow = 0;
+                activeSignal = null;
+                lastGeneratedSignal = null;
+                lastSignalTimestamp = 0;
+                reconnectAttempts = 0;
+                saveUserState();
+                updateScalpingMode();
+                document.querySelectorAll('[data-pair]').forEach(function(b) { b.classList.toggle('active', b.dataset.pair ===
+                    pair); });
+                document.querySelectorAll('.tf-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.tf === tf);
+                    b.classList.remove('scalp-active'); if (isScalpingMode && SCALPING_TF.indexOf(b.dataset.tf) >= 0 && b
+                        .classList.contains('active')) { b.classList.add('scalp-active'); } }); await fetchKL();
+                manualOff = false;
+                isLoading = false;
+                transitionTo(ConnState.DISCONNECTED);
+                connectWS();
+                updateAllMTF(); }
+
+            var switchTimeout = null;
+            document.querySelectorAll('[data-pair]').forEach(function(b) { b.addEventListener('click', function() { if (
+                    isLoading) return;
+                    pair = this.dataset.pair; if (switchTimeout) clearTimeout(switchTimeout);
+                    switchTimeout = setTimeout(function() { reload(); }, 150); }); });
+            document.querySelectorAll('.tf-btn').forEach(function(b) { b.addEventListener('click', function() { if (isLoading)
+                    return;
+                    tf = this.dataset.tf;
+                    updateScalpingMode(); if (switchTimeout) clearTimeout(switchTimeout);
+                    switchTimeout = setTimeout(function() { reload(); }, 150); }); });
+
+            function init() {
+                loadUserState();
+                setTheme(currentTheme);
+                document.querySelectorAll('[data-pair]').forEach(function(b) { b.classList.toggle('active', b.dataset.pair ===
+                    pair); });
+                document.querySelectorAll('.tf-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.tf === tf); });
+                document.getElementById('theme-toggle-btn').addEventListener('click', toggleTheme);
+                var tcGrid = $('tc-grid'),
+                    tcToast = $('tc-copy-toast');
+                tcGrid.addEventListener('click', function(e) { var row = e.target.closest('.tc-row'); if (!row) return;
+                    tcCopyRow(row, tcToast); });
+                updateScalpingMode();
+                registerInterval(function() { var n = new Date();
+                    setT('clock', n.toLocaleTimeString('id-ID'));
+                    setT('date', ('0' + n.getDate()).slice(-2) + '/' + ('0' + (n.getMonth() + 1)).slice(-2) + '/' + n
+                        .getFullYear()); var sess = getCurrentSession();
+                    setT('session', sess.name); }, 1000);
+                registerInterval(function() { if (!isLoading) updateAllMTF(); }, 45000);
+                reload();
+                window.addEventListener('beforeunload', function() { cleanupAllIntervals();
+                    cleanupWSResources();
+                    stopFallbackRoutine(); });
+            }
+
+            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
+
+        })();
+    </script>
 </body>
 </html>
